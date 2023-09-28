@@ -1,0 +1,56 @@
+POST {{host}}/query
+Authorization: {{user_token}}
+```json
+{
+  "db_name": "config.sql",
+  "query": "UPDATE _config_option SET value = '0' WHERE name = 'create_user';"
+}
+```
+HTTP 200
+
+POST {{host}}/user
+Authorization: {{user_token}}
+```json
+{
+    "email": "user_create",
+    "password": "password",
+    "admin": false,
+    "active": false
+}
+```
+HTTP 404
+
+GET {{host}}/user
+Authorization: {{user_token}}
+HTTP 404
+
+PUT {{host}}/user
+Authorization: {{user_token}}
+```json
+{
+    "email": "user_validate_user_creation_accepted",
+    "password": "password",
+    "admin": false,
+    "active": false
+}
+```
+HTTP 404
+
+DELETE {{host}}/user
+Authorization: {{user_token}}
+```json
+{
+    "email": "user_validate_user_creation_accepted"
+}
+```
+HTTP 404
+
+POST {{host}}/query
+Authorization: {{user_token}}
+```json
+{
+  "db_name": "config.sql",
+  "query": "UPDATE _config_option SET value = '1' WHERE name = 'create_user';"
+}
+```
+HTTP 200
