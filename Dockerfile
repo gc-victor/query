@@ -1,0 +1,27 @@
+# syntax=docker/dockerfile:1.3
+FROM rust:1 AS builder
+WORKDIR /root
+RUN --mount=type=cache,target=/usr/local/cargo/registry
+COPY . .
+RUN --mount=type=cache,target=/usr/local/cargo/registry --mount=type=cache,target=/root/target \
+    RUST_LOG=trace cargo build --package server --release && \
+    mv /root/target/release/server /root
+
+FROM debian:12-slim AS runtime
+
+COPY --from=builder /root/server /
+
+ADD litefs.yml /etc/litefs.yml
+COPY --from=flyio/litefs:0.5 /usr/local/bin/litefs /usr/local/bin/litefs
+
+RUN apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    sqlite3 \
+    fuse3 \
+    curl
+
+CMD ["litefs", "mount"]
+
+EXPOSE 3000

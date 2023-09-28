@@ -1,0 +1,1011 @@
+# Query
+
+Query is a Rust server for your remote SQLite databases and a CLI to manage them.
+
+## Table Of Contents
+
+- [Run A Query Server](#run-a-query-server)
+- [APIs](#apis)
+  - [Query Endpoint](#query-endpoint)
+    - [POST](#post)
+    - [GET](#get)
+  - [User Endpoint](#user-endpoint)
+    - [POST](#post-1)
+    - [PUT](#put)
+    - [PUT Password](#put-password)
+    - [DELETE](#delete)
+  - [User Token Endpoint](#user-token-endpoint)
+    - [POST](#post-2)
+    - [GET](#get)
+    - [PUT](#put-1)
+    - [DELETE](#delete)
+    - [GET Value](#get-value)
+    - [POST Value](#post-value)
+  - [Token Endpoint](#token-endpoint)
+    - [POST](#post-3)
+    - [GET](#get-1)
+    - [PUT](#put-2)
+    - [DELETE](#delete-1)
+    - [GET Value](#get-value-1)
+- [CLI](#cli)
+  - [Install](#install)
+    - [Use The Installer Scripts](#use-the-installer-scripts)
+    - [Download The Binary](#download-the-binary)
+  - [Commands](#commands)
+    - [Settings](#settings)
+      - [URL](#url)
+      - [Login](#login)
+      - [History](#history)
+    - [Shell](#shell)
+    - [User](#user)
+      - [Create User](#create-user)
+      - [Delete User](#delete-user)
+      - [List Users](#list-users)
+      - [Update User Password](#update-user-password)
+      - [Update User](#update-user)
+    - [User Token](#user-token)
+      - [Create User Token](#create-user-token)
+      - [Delete User Token](#delete-user-token)
+      - [List User Tokens](#list-user-tokens)
+      - [Update User Token](#update-user-token)
+    - [Token](#token)
+      - [Create Token](#create-token)
+      - [Delete Token](#delete-token)
+      - [List Tokens](#list-tokens)
+      - [Update Token](#update-token)
+    - [Migration](#migration)
+
+## Run A Query Server
+
+We recommend use Query with Fly (<https://fly.io>). It will help you to deploy your server in a few minutes and replicate your databases across the world.
+
+If it is the first time using Fly, you can follow the [Hands-on with Fly.io](https://fly.io/docs/hands-on/) guide to install the CLI, sign up and sign in.
+
+Once you have the Fly CLI installed, you have to rename the `fly.toml.dist` to `fly.toml`, and update it with your app name and the primary region running the following command:
+
+```sh
+fly launch
+```
+
+It is time to set the environment variables for your app. You can do it running the following commands:
+
+Token secret:
+
+```sh
+fly secrets set QUERY_SERVER_TOKEN_SECRET=USE_AN_ALPHANUMERIC_HASH
+```
+
+Admin email:
+
+```sh
+fly secrets set QUERY_SERVER_ADMIN_EMAIL=USE_YOUR_EMAIL
+```
+
+Admin password:
+
+```sh
+fly secrets set QUERY_SERVER_ADMIN_PASSWORD=USE_A_SECURE_PASSWORD
+```
+
+We use LiteFS, a Fly addon that provides a simple way to replicate your SQLite databases in the cloud. To use LiteFS you need to configure consul. You can do it running the following commands:
+
+```sh
+fly consul attach
+```
+
+For the backups of your databases you have to create a LiteFS Cloud cluster in [the LiteFS section](https://fly.io/dashboard/personal/litefs) of the fly.io dashboard. Take note of your auth token (you’ll need it later). LiteFS Cloud is optional, but highly recommended if your data is important to you!
+
+```sh
+fly secrets set LITEFS_CLOUD_TOKEN=YOUR_LITEFS_CLOUD_AUTH_TOKEN
+```
+
+Then you can deploy your app running:
+
+```sh
+fly deploy
+```
+
+Your app is currently running on a single machine. To ensure high availability, especially for production apps, Fly strongly recommend running at least 2 instances. You can scale up the number of machines using the `fly machine clone` command in the CLI. Please, have in mind that you can add that machine to an other region.
+
+```sh
+fly m clone
+```
+
+Or
+
+```sh
+fly m clone --select --region A_REGION
+```
+
+*Example: `fly m clone --select --region lhr`* (London)
+
+To get a list of rigions you can run the following command:
+
+```sh
+fly platform regions
+```
+
+## APIs
+
+Following we will see the API endpoints you can use with the Query Server.
+
+### Query Endpoint
+
+The `query` endpoint allows to execute queries in the databases. Using the `GET` method, the query is executed in the database closest to the user's region, thanks to the LiteFS proxy. Using the `POST` method, the query is executed in the primary database.
+
+#### POST
+
+The `query` endpoint allows to execute a query in the primary database.
+
+```http
+POST /query
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Body
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `db_name` | `string` | The database to use. | true |
+| `query` | `string` | The query to execute. | true |
+| `params` | `object` \| `array` | The params to use in the query. | false |
+
+The params object should use kyes with the format ":AAA", "$AAA", or "@AAA" that serve as placeholders for values that are bound to the parameters at a later time.
+
+Example:
+
+```json
+{
+  "db_name": "example.sql",
+  "query": "SELECT * FROM example WHERE id = :id",
+  "params": {
+    ":id": 1
+  }
+}
+```
+
+In the case of the array, the values are bound to the parameters based on the order of the array.
+
+Example:
+
+```json
+{
+  "db_name": "example.sql",
+  "query": "SELECT * FROM example WHERE id = ?",
+  "params": [1]
+}
+```
+
+#### GET
+
+By using the `GET` method, data can be retrieved with less latency from the database closest to the user's region, thanks to the LiteFS proxy.
+
+```http
+GET /query?db_name=<DB_NAME>&query=<QUERY>&params=<PARAMS>
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Query String
+
+| Name | Type | Format | Description | Required |
+| :--- | :--- | :--- | :--- | :--- |
+| `db_name` | `string` | - | The database to use. | true |
+| `query` | `string` | URL Encoded | The `SELECT` query. | true |
+| `params` | `object` \| `array` | URL Encoded | The params to use in the query. | false |
+
+Example:
+
+```http
+GET /query?db_name=example.sql&query=SELECT%20*%20FROM%20example%20WHERE%20id%20%3D%20%3F&params=%5B1%5D
+```
+
+### User Endpoint
+
+The user endpoint allows to manage the users of the Query Server.
+
+#### POST
+
+The `user` endpoint allows to create a new user.
+
+```http
+POST /user
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Body
+
+| Name | Type | Description | Default | Required |
+| :--- | :--- | :--- | :--- | :--- |
+| `email` | `string` | The email of the user. | - | true |
+| `password` | `string` | The password of the user. | - | true |
+| `admin` | `boolean` | If the user is admin. | false | false |
+| `active` | `boolean` | If the user is active. | true | false |
+
+Example:
+
+```json
+{
+  "email": "example@example.com",
+  "password": "example",
+  "admin": false,
+  "active": true
+}
+```
+
+#### PUT
+
+The `user` endpoint allows to update a user.
+
+```http
+PUT /user
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Body
+
+| Name | Type | Description | Default | Required |
+| :--- | :--- | :--- | :--- | :--- |
+| `email` | `string` | The email of the user. | - | true |
+| `new_email` | `string` | The new email of the user. | - | false |
+| `new_password` | `string` | The new password of the user. | - | false |
+| `admin` | `boolean` | If the user is admin. | false | false |
+| `active` | `boolean` | If the user is active. | true | false |
+
+Example:
+
+```json
+{
+  "email": "example@example.com",
+  "new_email": "new-example@example.com",
+  "new_password": "example",
+  "admin": false,
+  "active": true
+}
+```
+
+#### PUT Password
+
+The `user/password` endpoint allows to update the password of a user. The user is inferred from the token.
+
+```http
+PUT /user/password
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Body
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `password` | `string` | The password of the user. | true |
+
+Example:
+
+```json
+{
+  "password": "example"
+}
+```
+
+#### DELETE
+
+The user endpoint allows to delete a user.
+
+```http
+DELETE /user
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Body
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `email` | `string` | The email of the user. | true |
+
+Example:
+
+```json
+{
+  "email": "example@example.com"
+}
+```
+
+### User Token Endpoint
+
+The user token endpoint allows to manage the user tokens of the Query Server.
+
+#### POST
+
+The user token endpoint allows to create a new user token.
+
+```http
+POST /user-token
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Body
+
+| Name | Type | Description | Default | Required |
+| :--- | :--- | :--- | :--- | :--- |
+| `email` | `string` | The email of the user. | - | true |
+| `write` | `boolean` | If the token has write permissions. | true | false |
+| `expiration_date` | `number` | The expiration date in milliseconds. |= updated_at | false |
+
+Example:
+
+```json
+{
+  "email": "example@example.com",
+  "write": true,
+  "expiration_date": 1632960000000
+}
+```
+
+#### GET
+
+The user token endpoint allows to get a list of all the user tokens.
+
+```http
+GET /user-token
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+#### PUT
+
+The user token endpoint allows to update a user token.
+
+```http
+PUT /user-token
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Body
+
+| Name | Type | Description | Default | Required |
+| :--- | :--- | :--- | :--- | :--- |
+| `email` | `string` | The email of the user. | - | true |
+| `write` | `boolean` | If the token has write permissions. | false | false |
+| `expiration_date` | `number` | The expiration date in milliseconds. |= updated_at | false |
+
+Example:
+
+```json
+{
+  "email": "example@example.com",
+  "write": true,
+  "expiration_date": 1632960000000
+}
+```
+
+#### DELETE
+
+The user token endpoint allows to delete a user token.
+
+```http
+DELETE /user-token
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Body
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `email` | `string` | The email of the user. | true |
+
+Example:
+
+```json
+{
+  "email": "example@example.com"
+}
+```
+
+#### GET Value
+
+The user token endpoint allows to get the value of a user token having an access token.
+
+```http
+GET /user-token/value?email=<EMAIL>
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Query String
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `email` | `string` | The email of the user. | true |
+
+Example:
+
+```http
+GET /user-token/value?email=example@example.com
+```
+
+#### POST Value
+
+The user token endpoint allows to create a new user token without having an access token.
+
+```http
+POST /user-token/value
+```
+
+##### Body
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `email` | `string` | The email of the user. | true |
+| `password` | `string` | The password of the user. | true |
+
+Example:
+
+```json
+{
+  "email": "example@example.com",
+  "password": "example"
+}
+```
+
+### Token Endpoint
+
+The token endpoint allows to manage the tokens not related to a user.
+
+#### POST
+
+The token endpoint allows to create a new token.
+
+```http
+POST /token
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Body
+
+| Name | Type | Description | Default | Required |
+| :--- | :--- | :--- | :--- | :--- |
+| `name` | `string` | The name of the token. | - | true |
+| `expiration_date` | `number` | The expiration date in milliseconds. |= updated_at | false |
+| `active` | `boolean` | If the token is active | true | false |
+| `write` | `boolean` | If the token has write permissions. | true | false |
+
+Example:
+
+```json
+{
+  "name": "example",
+  "expiration_date": 1632960000000,
+  "active": true,
+  "write": true
+}
+```
+
+#### GET
+
+The token endpoint allows to get a list of all the tokens.
+
+```http
+GET /token
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+#### PUT
+
+The token endpoint allows to update a token.
+
+```http
+PUT /token
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Body
+
+| Name | Type | Description | Default | Required |
+| :--- | :--- | :--- | :--- | :--- |
+| `name` | `string` | The name of the token. | - | true |
+| `expiration_date` | `number` | The expiration date in milliseconds. |= updated_at | false |
+| `active` | `boolean` | If the token is active | true | false |
+| `write` | `boolean` | If the token has write permissions. | true | false |
+
+Example:
+
+```json
+{
+  "name": "example",
+  "expiration_date": 1632960000000,
+  "active": true,
+  "write": true
+}
+```
+
+#### DELETE
+
+The token endpoint allows to delete a token.
+
+```http
+DELETE /token
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Body
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `name` | `string` | The name of the token. | true |
+
+#### GET Value
+
+The token endpoint allows to get the value of a token.
+
+```http
+GET /token/value?name=<NAME>
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Query String
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `name` | `string` | The name of the token. | true |
+
+Example:
+
+```http
+GET /token/value?name=example
+```
+
+### Migration Endpoint
+
+The migration endpoint allows to manage the migrations of the Query Server.
+
+#### POST
+
+The migration endpoint allows to execute a migration in the primary database.
+
+```http
+POST /migration
+```
+
+##### Headers
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `Authorization` | `string` | The bearer token to connect to the server. | true |
+
+##### Body
+
+| Name | Type | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `db_name` | `string` | The database to use. | true |
+| `query` | `string` | The query to execute. | true |
+
+Example:
+
+```json
+{
+  "db_name": "example.sql",
+  "query": "CREATE TABLE example (id INTEGER PRIMARY KEY, name TEXT NOT NULL)"
+}
+```
+
+## CLI
+
+### Install
+
+#### Use The Installer Scripts
+
+macOS and Linux (not NixOS, Alpine, or Asahi):
+
+```sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/gc-victor/query/releases/latest/download/query-installer.sh | sh
+```
+
+Windows PowerShell:
+
+```powershell
+irm https://github.com/gc-victor/query/releases/latest/download/query-installer.ps1 | iex
+```
+
+#### Download The Binary
+
+<https://github.com/gc-victor/query/releases/latest>
+
+### Commands
+
+Following we will see the commands you can use with the CLI.
+
+#### Settings
+
+Lets start by adding the settings of your server.
+
+```sh
+query settings
+```
+
+It will ask you the following questions:
+
+##### URL
+
+- What is the server URL?
+
+If you don't know it, you can run the following command to get it:
+
+```sh
+fly status
+```
+
+You will have to use the Hostname plus as a prefix the protocol `https://`.
+
+*Example: `https://query-server.fly.dev`*
+
+Where `query-server.fly.dev` is the Hostname.
+
+##### Login
+
+You need to log in to get the token to connect to your Query Server. The token will be saved in the `.query/.token` file.
+
+- What is her email?
+
+You have to use the same email you used to create the admin user.
+
+- What is her password?
+
+You have to use the same password you used to create the admin user.
+
+##### History
+
+- Do you want to save the history of your shell? (Y/n)
+
+If you choose `Y` the history will be saved in the `.query/.history` file.
+
+#### Shell
+
+The shell command opens a SQLite shell to manage the remote database locally.
+
+Usage:
+
+```sh
+query shell <DB_NAME>
+```
+
+It has the following commands:
+
+- `.quit` - Exit the shell.
+- `.tables [?PATTERN?]` - List names of tables matching a LIKE pattern.
+- `.schema [?TABLE?]` - Show the CREATE statements. If TABLE specified, only show tables matching LIKE pattern TABLE.
+
+It saves the command history in the `.query/.history` file.
+
+#### User
+
+The user command allows to manage the users of your Query Server, if you are admin. If you are not admin, you can only change your user password.
+
+Usage:
+
+```sh
+query user <SUBCOMMAND>
+```
+
+It has the following subcommands:
+
+- `create` - Create a new user.
+- `delete` - Delete a user.
+- `list` - List all the users.
+- `update` - Update a user.
+- `password` - Update your user password.
+- `help` - Print this message or the help of the given subcommand(s).
+
+##### Create User
+
+It will create a new user.
+
+Usage:
+
+```sh
+query user create
+```
+
+It will ask you for the following information:
+
+- What is her email?
+- What is her password?
+- Is she an admin user? (Y/n)
+- Is she an active user? (Y/n)
+
+##### Delete User
+
+It will delete a user.
+
+Usage:
+
+```sh
+query user delete
+```
+
+It will ask you for the following information:
+
+- What is her email?
+
+##### List Users
+
+It will show you a list of all the users.
+
+Usage:
+
+```sh
+query user list
+```
+
+##### Update User Password
+
+It will update your user password.
+
+Usage:
+
+```sh
+query user password
+```
+
+It will ask you for the following information:
+
+- What is your new password?
+
+##### Update User
+
+It will update a user.
+
+Usage:
+
+```sh
+query user update
+```
+
+It will ask you for the following information:
+
+- What is her email?
+- What is her new email? (Optional)
+- What is her new password? (Optional)
+- Is she an admin user? (y/n) (Optional)
+- Is she an active user? (y/n) (Optional)
+
+### User Token
+
+The user token command allows to manage the user tokens of your Query Server, if you are admin.
+
+Usage:
+
+```sh
+query user-token <SUBCOMMAND>
+```
+
+It has the following subcommands:
+
+- `create` - Create a new user token.
+- `delete` - Delete a user token.
+- `list` - List all the user tokens.
+- `help` - Print this message or the help of the given subcommand(s).
+
+#### Create User Token
+
+It will create a new user token.
+
+Usage:
+
+```sh
+query user-token create
+```
+
+It will ask you for the following information:
+
+- What is her email?
+- Should have write permissions? (Y/n)
+- What is the expiration date in milliseconds? (Optional)
+
+#### Delete User Token
+
+It will delete a user token.
+
+Usage:
+
+```sh
+query user-token delete
+```
+
+It will ask you for the following information:
+
+- What is her email?
+
+#### List User Tokens
+
+It will show you a list of all the user tokens.
+
+Usage:
+
+```sh
+query user-token list
+```
+
+#### Update User Token
+
+It will generate a new user token maintaining the current email.
+
+Usage:
+
+```sh
+query user-token update
+```
+
+It will ask you for the following information:
+
+- What is her email?
+- Should have write permissions? (y/n) (Optional)
+- What is the expiration date in milliseconds? (Optional)
+
+### Token
+
+The token command allows to manage the tokens not related to a user of your Query Server, if you are admin.
+
+Usage:
+
+```sh
+query token <SUBCOMMAND>
+```
+
+It has the following subcommands:
+
+- `create` - Create a new token.
+- `delete` - Delete a token.
+- `list` - List all the tokens.
+- `update` - Update a token.
+- `help` - Print this message or the help of the given subcommand(s).
+
+#### Create Token
+
+It will create a new token.
+
+Usage:
+
+```sh
+query token create
+```
+
+It will ask you for the following information:
+
+- What is the name of the token?
+- Should have write permissions? (Y/n)
+- What is the expiration date in milliseconds? (Optional)
+
+#### Delete Token
+
+It will delete a token.
+
+Usage:
+
+```sh
+query token delete
+```
+
+It will ask you for the following information:
+
+- What is the name of the token?
+
+#### List Tokens
+
+It will show you a list of all the tokens.
+
+Usage:
+
+```sh
+query token list
+```
+
+#### Update Token
+
+It will generate a new token maintaining the current name.
+
+Usage:
+
+```sh
+query token update
+```
+
+It will ask you for the following information:
+
+- What is the name of the token?
+- What is the new name of the token? (Optional)
+- Should have write permissions? (y/n) (Optional)
+- What is the expiration date in milliseconds? (Optional)
+
+### Migration
+
+The migration command allows to manage the migrations of your Query Server, if you have write permissions.
+
+Migration file:
+
+- The migration file should be in the format of &lt;version&gt;_&lt;name&gt;_&lt;type&gt;.sql
+- The version should be in the format of YYYYMMDD
+- The name should be in the format of &lt;name&gt;_&lt;description&gt;
+- The type should be up or down
+
+Usage:  
+
+```sh
+query migration <DB_NAME> <PATH>
+```
