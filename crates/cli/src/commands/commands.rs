@@ -2,6 +2,8 @@ use clap::{Args, Subcommand};
 
 #[derive(Subcommand)]
 pub enum Commands {
+    /// Manage branches
+    Branch(BranchArgs),
     /// Push migrations using a migration file
     /// - The migration file should be in the format of <version>_<name>_<type>.db|.sql
     /// - The version should be in the format of YYYYMMDD
@@ -19,6 +21,22 @@ pub enum Commands {
     User(UserArgs),
     /// Manage users tokens
     UserToken(UserTokenArgs),
+}
+
+#[derive(Args)]
+pub struct BranchArgs {
+    #[command(subcommand)]
+    pub command: BranchCommands,
+}
+
+#[derive(Subcommand)]
+pub enum BranchCommands {
+    /// Create a branch
+    Create,
+    /// Delete a branch
+    Delete,
+    /// List all the branches
+    List,
 }
 
 #[derive(Args)]
