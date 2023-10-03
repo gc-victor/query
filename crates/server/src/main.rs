@@ -1,5 +1,6 @@
 pub mod constants;
 
+pub mod branch;
 mod migration;
 mod query;
 pub mod sqlite;
@@ -98,6 +99,7 @@ async fn router(req: &mut Request<Body>, segments: &[&str]) -> Result<Response<B
     }
 
     match segments[0] {
+        "branch" => branch::branch(req, segments).await,
         "migration" => migration::migration(req, segments).await,
         "query" => query::query(req, segments).await,
         "token" => token::token(req, segments).await,
