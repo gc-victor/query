@@ -7,15 +7,16 @@ use std::fs;
 
 use clap::{command, Parser};
 use commands::{
-    commands::Commands, migration::command_migration, settings::command_settings,
-    shell::command_shell, token::command_token, user::command_user, user_token::command_user_token,
+    branch::command_branch, commands::Commands, migration::command_migration,
+    settings::command_settings, shell::command_shell, token::command_token, user::command_user,
+    user_token::command_user_token,
 };
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
 #[derive(Parser)]
 #[command(name = "Query")]
-#[command(version = "0.1.0")]
+#[command(version = "0.0.0")]
 #[command(about = "The CLI to manage your Query Server instance", long_about = None)]
 struct Cli {
     #[command(subcommand)]
@@ -36,6 +37,7 @@ async fn main() {
     fs::create_dir_all(".query").unwrap();
 
     match &command {
+        Commands::Branch(command) => command_branch(command).await.unwrap(),
         Commands::Migration(command) => command_migration(command).await,
         Commands::Settings => command_settings().await,
         Commands::Shell(command) => command_shell(command).await.unwrap(),
