@@ -56,6 +56,10 @@ Query is a Rust server for your remote SQLite databases and a CLI to manage them
     - [GET Value](#get-value-1)
   - [Migration Endpoint](#migration-endpoint)
     - [POST](#post-4)
+  - [Branch Endpoint](#branch-endpoint)
+    - [POST](#post-5)
+    - [GET](#get-2)
+    - [DELETE](#delete-2)
 
 ## Run A Query Server
 
