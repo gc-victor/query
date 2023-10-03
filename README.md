@@ -32,6 +32,10 @@ Query is a Rust server for your remote SQLite databases and a CLI to manage them
       - [List Tokens](#list-tokens)
       - [Update Token](#update-token)
     - [Migration](#migration)
+    - [Branch](#branch)
+      - [Create Branch](#create-branch)
+      - [Delete Branch](#delete-branch)
+      - [List Branches](#list-branches)
 - [APIs](#apis)
   - [Query Endpoint](#query-endpoint)
     - [POST](#post)
@@ -476,6 +480,61 @@ Usage:
 query migration <DB_NAME> <PATH>
 ```
 
+### Branch
+
+The branch command allows to manage the branches of your Query Server, if you are admin.
+
+Usage:
+
+```sh
+query branch <SUBCOMMAND>
+```
+
+It has the following subcommands:
+
+- `create` - Create a new branch.
+- `delete` - Delete a branch.
+- `list` - List all the branches.
+- `help` - Print this message or the help of the given subcommand(s).
+
+#### Create Branch
+
+It will create a new branch.
+
+Usage:
+
+```sh
+query branch create
+```
+
+It will ask you for the following information:
+
+- Which database would you like to use for creating a branch?
+- What is the branch name?
+
+#### Delete Branch
+
+It will delete a branch.
+
+Usage:
+
+```sh
+query branch delete
+```
+
+It will ask you for the following information:
+
+- Which branch database would you like to delete?
+
+#### List Branches
+
+It will show you a list of all the branches.
+
+Usage:
+
+```sh
+query branch list
+```
 
 ## APIs
 
