@@ -3,7 +3,7 @@ use std::{fs, path::Path};
 use hyper::{Body, Method, Request, Response};
 use serde::Deserialize;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use serde_json::{json, Value};
 use tracing::instrument;
 
@@ -160,10 +160,10 @@ fn query_controller(
         if params.is_none() {
             let stmt = match conn.prepare(query) {
                 Ok(v) => Ok(v),
-                Err(e) => Err(anyhow!(e)),
-            };
+                Err(e) => Err(e),
+            }?;
 
-            match statement_to_vec(stmt.unwrap(), []) {
+            match statement_to_vec(stmt, []) {
                 Ok(v) => Ok(json!({ "data": v }).to_string()),
                 Err(e) => Err(e)?,
             }
@@ -178,10 +178,10 @@ fn query_controller(
 
                 let stmt = match conn.prepare(query) {
                     Ok(v) => Ok(v),
-                    Err(e) => Err(anyhow!(e)),
-                };
+                    Err(e) => Err(e),
+                }?;
 
-                match statement_to_vec(stmt.unwrap(), params) {
+                match statement_to_vec(stmt, params) {
                     Ok(v) => Ok(json!({ "data": v }).to_string()),
                     Err(e) => Err(e)?,
                 }
@@ -190,10 +190,10 @@ fn query_controller(
 
                 let stmt = match conn.prepare(&query) {
                     Ok(v) => Ok(v),
-                    Err(e) => Err(anyhow!(e)),
-                };
+                    Err(e) => Err(e),
+                }?;
 
-                match statement_to_vec(stmt.unwrap(), params) {
+                match statement_to_vec(stmt, params) {
                     Ok(v) => Ok(json!({ "data": v }).to_string()),
                     Err(e) => Err(e)?,
                 }

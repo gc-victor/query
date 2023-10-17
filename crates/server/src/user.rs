@@ -156,10 +156,10 @@ fn list_users() -> Result<String> {
 
     let stmt = match conn.prepare("SELECT * FROM _config_user") {
         Ok(v) => Ok(v),
-        Err(e) => Err(anyhow!(e)),
-    };
+        Err(e) => Err(e),
+    }?;
 
-    match statement_to_vec(stmt.unwrap(), []) {
+    match statement_to_vec(stmt, []) {
         Ok(v) => Ok(json!({ "data": v }).to_string()),
         Err(e) => {
             if let rusqlite::Error::QueryReturnedNoRows = e {
