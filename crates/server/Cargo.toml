@@ -15,7 +15,7 @@ argon2 = "0.5"
 chacha20poly1305 = { version = "0.10" }
 dotenv = "0.15"
 hyper = { version = "0.14", features = ["full"] }
-jsonwebtoken = "8.3"
+jsonwebtoken = "9.0"
 rbase64 = "2.0"
 regex = "1.9"
 rusqlite = { version = "0.29", features = [
@@ -31,7 +31,7 @@ rusqlite = { version = "0.29", features = [
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"
-tokio = { version = "1.32", features = ["full"] }
+tokio = { version = "1.33", features = ["full"] }
 tracing = { version = "0.1", features = ["log"] }
 tracing-bunyan-formatter = "0.3"
 tracing-log = "0.1"
