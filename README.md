@@ -512,6 +512,8 @@ It will ask you for the following information:
 - Which database would you like to use for creating a branch?
 - What is the branch name?
 
+The branches has this format: <db_name>.<branch_name>.branch.sql. For example, if the database name is example.sql and the branch name is dev, the branch will be example.dev.branch.sql. Notice that the extension is removed from the database name to be used as a prefix.
+
 #### Delete Branch
 
 It will delete a branch.
