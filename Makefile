@@ -17,7 +17,11 @@ clean-hurl-dbs:
 
 # CLI
 
+install-esbuild:
+	curl -fsSL https://esbuild.github.io/dl/latest | sh
+
 cli:
+	cp -r esbuild target/debug/
 	target/debug/query $(ARGUMENTS)
 
 # Coverage

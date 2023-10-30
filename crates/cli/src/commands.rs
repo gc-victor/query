@@ -1,6 +1,7 @@
 #![allow(clippy::module_inception)]
 pub mod branch;
 pub mod commands;
+pub mod function;
 pub mod migration;
 pub mod settings;
 pub mod shell;

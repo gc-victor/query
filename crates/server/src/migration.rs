@@ -30,6 +30,8 @@ pub async fn migration(
         (&Method::POST, ["migration"]) => {
             let token = get_token(req)?;
 
+            // TODO: validate_token_creation and validate is admin
+
             // IMPORTANT! don't remove this validation
             validate_token(&token)?;
 

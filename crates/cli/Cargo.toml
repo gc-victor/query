@@ -6,6 +6,7 @@ edition.workspace = true
 license.workspace = true
 homepage = "https://github.com/gc-victor/query/tree/main/crates/cli"
 repository = "https://github.com/gc-victor/query"
+build = "build.rs"
 
 [features]
 default = ["reqwest/default-tls"]
@@ -36,3 +37,6 @@ walkdir = "2"
 [dependencies.openssl]
 version = "0.10"
 features = ["vendored"]
+
+[build-dependencies]
+serde_json = "1.0"

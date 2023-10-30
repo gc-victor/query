@@ -19,3 +19,5 @@ fly.toml
 .dbs/
 .query/
 .tests/
+esbuild
+esbuild.tgz

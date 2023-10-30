@@ -1,8 +1,12 @@
 pub mod constants;
 
-pub mod branch;
+mod branch;
+pub mod ext;
+mod function;
+pub mod function_builder;
 mod migration;
 mod query;
+pub mod runtime;
 pub mod sqlite;
 mod token;
 mod user;
@@ -24,7 +28,7 @@ use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{layer::SubscriberExt, Registry};
 
 use crate::{
-    sqlite::create_config_db::create_config_db,
+    sqlite::{create_config_db::create_config_db, create_function_db::create_function_db},
     utils::env::Env,
     utils::http_error::HttpError,
     utils::responses::{
@@ -49,6 +53,8 @@ async fn main() {
 
     // NOTE: Create the config database
     create_config_db();
+    // NOTE: Create the function database
+    create_function_db();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], Env::port()));
 
@@ -100,6 +106,8 @@ async fn router(req: &mut Request<Body>, segments: &[&str]) -> Result<Response<B
 
     match segments[0] {
         "branch" => branch::branch(req, segments).await,
+        "function" => function::function(req).await,
+        "function-builder" => function_builder::function_builder(req, segments).await,
         "migration" => migration::migration(req, segments).await,
         "query" => query::query(req, segments).await,
         "token" => token::token(req, segments).await,
