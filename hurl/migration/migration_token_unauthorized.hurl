@@ -14,10 +14,10 @@ Authorization: {{user_token}}
     VALUES
         (
             'migration_token_write_false',
-            token('{\"sub\": \"' || (SELECT uuid()) ||  '\", \"exp\": ' || strftime('%s', datetime('now')) || ', \"iat\": ' || strftime('%s', datetime('now')) || ', \"iss\": \"user_token\"}'),
+            token('{\"sub\": \"' || (SELECT uuid()) ||  '\", \"exp\": ' || strftime('%s', datetime('now')) || ', \"iat\": ' || strftime('%s', datetime('now')) || ', \"iss\": \"token\"}'),
             strftime('%s', datetime('now')),
             1,
-            0
+            1
         );"
 }
 ```

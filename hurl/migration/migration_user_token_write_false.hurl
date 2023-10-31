@@ -9,7 +9,7 @@ Authorization: {{user_token}}
             password,
             admin
         ) VALUES (
-            'migration_user_token_write_false@test.com',
+            'migration_user_token_write_false',
             'password',
             1
         );
@@ -29,7 +29,7 @@ Authorization: {{user_token}}
       SET
         write = 0
       WHERE
-        user_uuid = (SELECT uuid FROM _config_user WHERE email = 'migration_user_token_write_false@test.com');
+        user_uuid = (SELECT uuid FROM _config_user WHERE email = 'migration_user_token_write_false');
     "
 }
 ```
@@ -40,7 +40,7 @@ Authorization: {{user_token}}
 ```json
 {
   "db_name": "config.sql",
-  "query": "SELECT token FROM _config_user_token WHERE user_uuid = (SELECT uuid FROM _config_user WHERE email = 'migration_user_token_write_false@test.com');"
+  "query": "SELECT token FROM _config_user_token WHERE user_uuid = (SELECT uuid FROM _config_user WHERE email = 'migration_user_token_write_false');"
 }
 ```
 HTTP 200
@@ -63,7 +63,7 @@ Authorization: {{user_token}}
 ```json
 {
   "db_name": "config.sql",
-  "query": "DELETE FROM _config_user WHERE email = 'migration_user_token_write_false@test.com';"
+  "query": "DELETE FROM _config_user WHERE email = 'migration_user_token_write_false';"
 }
 ```
 HTTP 200

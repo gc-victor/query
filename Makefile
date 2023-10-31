@@ -76,13 +76,13 @@ install-hurl:
 	cargo install hurl
 
 hurl: clean-hurl-dbs
-	hurl --verbose --fail-at-end --variables-file hurl/.env $(ARGUMENTS)
+	hurl --verbose --continue-on-error --variables-file hurl/.env $(ARGUMENTS)
 
 hurl-test: clean-hurl-dbs
-	hurl --test --fail-at-end --variables-file hurl/.env $(ARGUMENTS)
+	hurl --test --continue-on-error --variables-file hurl/.env $(ARGUMENTS)
 
 hurl-test-all: clean-hurl-dbs
-	hurl --test --fail-at-end --variables-file hurl/.env hurl/**/*.hurl hurl/**/**/*.hurl
+	hurl --test --continue-on-error --variables-file hurl/.env hurl/**/*.hurl hurl/**/**/*.hurl
 
 # Lint
 

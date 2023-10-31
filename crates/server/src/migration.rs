@@ -8,9 +8,11 @@ use crate::{
     utils::{
         get_body::get_body,
         get_token::get_token,
-        http_error::{internal_server_error, not_found, unauthorized, HttpError},
+        http_error::{bad_request, internal_server_error, not_found, unauthorized, HttpError},
         responses::created,
+        validate_is_admin::validate_is_admin,
         validate_token::validate_token,
+        validate_user_creation::validate_user_creation,
         validate_write::validate_write,
     },
 };
@@ -28,9 +30,13 @@ pub async fn migration(
 ) -> Result<Response<Body>, HttpError> {
     match (req.method(), segments) {
         (&Method::POST, ["migration"]) => {
+            // IMPORTANT! don't remove this validation
+            validate_user_creation()?;
+
             let token = get_token(req)?;
 
-            // TODO: validate_token_creation and validate is admin
+            // IMPORTANT! don't remove this validation
+            validate_is_admin(&token)?;
 
             // IMPORTANT! don't remove this validation
             validate_token(&token)?;
@@ -63,7 +69,7 @@ pub async fn migration(
 fn migration_controller(db_name: &str, query: &str) -> Result<(), HttpError> {
     let conn = connect_db(db_name)?;
 
-    conn.execute_batch(
+    match conn.execute_batch(
         format!(
             r#"
                 BEGIN;
@@ -73,7 +79,8 @@ fn migration_controller(db_name: &str, query: &str) -> Result<(), HttpError> {
             &query
         )
         .as_str(),
-    )?;
-
-    Ok(())
+    ) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(bad_request(e.to_string())),
+    }
 }
