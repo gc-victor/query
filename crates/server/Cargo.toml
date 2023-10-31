@@ -1,6 +1,6 @@
 [package]
 name = "server"
-version = "0.1.0"
+version = "0.2.0"
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -46,3 +46,6 @@ tracing-subscriber = { version = "0.3", features = [
 ] }
 url = "2.4"
 uuid = { version = "1.4", features = ["v4"] }
+
+[build]
+incremental = true

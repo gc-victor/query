@@ -1,6 +1,6 @@
 [package]
 name = "query"
-version = "0.1.0"
+version = "0.2.0"
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -37,5 +37,5 @@ walkdir = "2"
 version = "0.10"
 features = ["vendored"]
 
-[build-dependencies]
-serde_json = "1.0"
+[build]
+incremental = true
