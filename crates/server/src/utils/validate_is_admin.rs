@@ -86,21 +86,9 @@ pub fn is_admin(token: &str) -> Result<bool> {
 
 #[cfg(test)]
 mod test {
-    use std::fs;
-
     use crate::db_test;
 
     use super::*;
-
-    struct AfterValidateIsAdmin;
-
-    const PATH_AFTER_VALIDATE_IS_ADMIN: &str = "../../.tests/after_validate_is_admin";
-
-    impl Drop for AfterValidateIsAdmin {
-        fn drop(&mut self) {
-            fs::remove_dir_all(PATH_AFTER_VALIDATE_IS_ADMIN).unwrap();
-        }
-    }
 
     db_test!(test_validate_is_admin_token, TestValidateIsAdminToken, {
         let conn = connect_config_db().unwrap();

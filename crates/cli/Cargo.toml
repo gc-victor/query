@@ -36,3 +36,6 @@ walkdir = "2"
 [dependencies.openssl]
 version = "0.10"
 features = ["vendored"]
+
+[build-dependencies]
+serde_json = "1.0"

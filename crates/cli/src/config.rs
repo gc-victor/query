@@ -25,6 +25,7 @@ pub struct Config {
 
 #[derive(Debug, Deserialize)]
 pub struct CLI {
+    pub cache_file_path: String,
     pub config_file_path: String,
     pub history_file_path: String,
     pub token_file_path: String,
@@ -34,6 +35,7 @@ pub struct CLI {
 impl Default for CLI {
     fn default() -> Self {
         CLI {
+            cache_file_path: ".query/.cache".to_string(),
             config_file_path: ".query/Query.toml".to_string(),
             history_file_path: ".query/.history".to_string(),
             token_file_path: ".query/.token".to_string(),
@@ -58,12 +60,14 @@ impl Default for Server {
 #[derive(Debug, Deserialize)]
 pub struct Structure {
     pub migrations_folder: String,
+    pub functions_folder: String,
 }
 
 impl Default for Structure {
     fn default() -> Self {
         Structure {
             migrations_folder: "src/migrations".to_string(),
+            functions_folder: "src/functions".to_string(),
         }
     }
 }
@@ -77,6 +81,7 @@ struct InnerConfig {
 
 #[derive(Debug, Default, Deserialize)]
 struct InnerCLI {
+    pub cache_file_path: Option<String>,
     pub history_file_path: Option<String>,
     pub token_file_path: Option<String>,
 }
@@ -97,6 +102,7 @@ impl Default for InnerServer {
 #[derive(Debug, Default, Deserialize)]
 pub struct InnerStructure {
     pub migrations_folder: Option<String>,
+    pub functions_folder: Option<String>,
 }
 
 pub fn config() -> Config {
@@ -124,6 +130,9 @@ pub fn config() -> Config {
         .unwrap_or(CLI::default().token_file_path);
     let token = env::var("QUERY_PRIVATE_TOKEN").unwrap_or_else(|_| "".to_string());
     let cli = CLI {
+        cache_file_path: inner_config_cli
+            .cache_file_path
+            .unwrap_or(CLI::default().cache_file_path),
         config_file_path,
         history_file_path: inner_config_cli
             .history_file_path
@@ -159,6 +168,9 @@ pub fn config() -> Config {
         migrations_folder: inner_config_structure
             .migrations_folder
             .unwrap_or(Structure::default().migrations_folder),
+        functions_folder: inner_config_structure
+            .functions_folder
+            .unwrap_or(Structure::default().functions_folder),
     };
 
     let mut current_exe = env::current_exe().unwrap();

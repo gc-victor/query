@@ -17,7 +17,11 @@ clean-hurl-dbs:
 
 # CLI
 
+install-esbuild:
+	curl -fsSL https://esbuild.github.io/dl/latest | sh
+
 cli:
+	cp -r esbuild target/debug/
 	target/debug/query $(ARGUMENTS)
 
 # Coverage
@@ -91,7 +95,7 @@ build-server:
 	cargo build --package=server --release
 
 build-cli:
-	cargo build --package=query --profile release-cli
+	cargo build --package=query --profile dist
 
 # Run
 
@@ -105,7 +109,7 @@ run-release:
 	RUST_LOG=info cargo run --package=server --release -q | bunyan
 
 run-cli-release:
-	RUST_LOG=info cargo run --package=query --profile release-cli
+	RUST_LOG=info cargo run --package=query --profile dist
 
 dev-cli:
 	cargo watch --ignore .dbs --shell "make run-cli -s"

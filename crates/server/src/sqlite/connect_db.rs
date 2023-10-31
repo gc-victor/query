@@ -3,7 +3,7 @@ use std::{fs, path::Path};
 use anyhow::Result;
 use rusqlite::{limits::Limit, Connection};
 
-use crate::{constants::DB_CONFIG_NAME, utils::env::Env};
+use crate::{constants::DB_CONFIG_NAME, constants::DB_FUNCTION_NAME, utils::env::Env};
 
 use super::functions::{
     _base64_decode_function, _base64_encode_function, _not_allowed_function, _regexp_function,
@@ -12,6 +12,14 @@ use super::functions::{
 
 pub fn connect_config_db() -> Result<Connection> {
     let conn = connection(DB_CONFIG_NAME)?;
+
+    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0);
+
+    Ok(conn)
+}
+
+pub fn connect_function_db() -> Result<Connection> {
+    let conn = connection(DB_FUNCTION_NAME)?;
 
     conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0);
 

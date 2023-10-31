@@ -1,0 +1,17 @@
+export async function handleRequest(req) {
+    try {
+        return new Response("Test!", {
+	        status: 200,
+	        headers: {
+	            "content-type": "text/html;charset=UTF-8",
+	        },
+	    });
+	} catch (e) {
+		return new Response("Error!", {
+	        status: 500,
+	        headers: {
+	            "content-type": "text/html;charset=UTF-8",
+	        },
+	    });
+	}
+}

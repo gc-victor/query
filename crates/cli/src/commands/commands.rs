@@ -4,6 +4,10 @@ use clap::{Args, Subcommand};
 pub enum Commands {
     /// Manage branches
     Branch(BranchArgs),
+    /// Push all the functions without setting a path
+    /// or a function defining a file path
+    #[clap(verbatim_doc_comment)]
+    Function(FunctionArgs),
     /// Push migrations using a migration file
     /// - The migration file should be in the format of <version>_<name>_<type>.db|.sql
     /// - The version should be in the format of YYYYMMDD
@@ -37,6 +41,15 @@ pub enum BranchCommands {
     Delete,
     /// List all the branches
     List,
+}
+
+#[derive(Args)]
+pub struct FunctionArgs {
+    /// Path to the function definition file
+    pub path: Option<String>,
+    /// Delete the function definition
+    #[arg(short, long, default_value_t = false)]
+    pub delete: bool,
 }
 
 #[derive(Args)]

@@ -130,6 +130,8 @@ fn create_user_token_table() -> String {
     .to_string()
 }
 
+// TODO: create a table adding restrictions by database name, action (migration and query) and operations (SELECT, INSERT, DELETE, UPDATE) for each user token
+
 fn insert_admin_user_token() -> String {
     let email: String = Env::admin_email();
 
@@ -185,6 +187,8 @@ fn create_token_table() -> String {
     "#
     .to_string()
 }
+
+// TODO: create a table adding restrictions by database name, action (migration and query) and operations (SELECT, INSERT, DELETE, UPDATE) for each token
 
 // IMPORTANT! Insert the initial name and value for each option
 fn options() -> String {

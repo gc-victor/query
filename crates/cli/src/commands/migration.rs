@@ -1,4 +1,4 @@
-use std::{fs, process::exit};
+use std::fs;
 
 use reqwest::Method;
 use serde_json::json;
@@ -15,8 +15,7 @@ pub async fn command_migration(command: &MigrationArgs) {
     let query = match fs::read_to_string(&path) {
         Ok(content) => content,
         Err(_) => {
-            error!(r#"The migration file "{}" doesn't exists"#, path);
-            exit(1);
+            panic!(r#"The migration file "{}" doesn't exists"#, path);
         }
     };
 
