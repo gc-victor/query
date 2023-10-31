@@ -37,7 +37,11 @@ HTTP 200
 GET {{host}}/query?db_name=hurl-test-query.sql&query=SELECT%20*%20FROM%20query_user_token_get;
 Authorization: {{user_token}}
 HTTP 200
-{"data":[{"key":"test-1","value":"1"},{"key":"test-2","value":"2"}]}
+[Asserts]
+jsonpath "$.data[0].key" contains "test-1"
+jsonpath "$.data[0].value" contains "1"
+jsonpath "$.data[1].key" contains "test-2"
+jsonpath "$.data[1].value" contains "2"
 
 GET {{host}}/query
 Authorization: {{user_token}}

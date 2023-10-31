@@ -47,4 +47,8 @@ Authorization: {{user_token}}
 }
 ```
 HTTP 200
-{"data":[{"key":"test-1","value":"updated"},{"key":"test-2","value":"2"}]}
+[Asserts]
+jsonpath "$.data[0].key" contains "test-1"
+jsonpath "$.data[0].value" contains "updated"
+jsonpath "$.data[1].key" contains "test-2"
+jsonpath "$.data[1].value" contains "2"

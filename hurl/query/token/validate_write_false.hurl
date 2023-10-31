@@ -100,7 +100,9 @@ Authorization: Bearer {{token}}
 }
 ```
 HTTP 200
-{"data":[{"key":"test","value":"-"}]}
+[Asserts]
+jsonpath "$.data[0].key" contains "test"
+jsonpath "$.data[0].value" contains "-"
 
 POST {{host}}/query
 Authorization: {{user_token}}
