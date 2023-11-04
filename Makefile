@@ -58,14 +58,14 @@ dist-plan:
 # Docs
 
 docs:
-	cargo doc --package=server --open
+	cargo doc --package=query-server --open
 
 # Format
 
 fmt: fmt-server
 
 fmt-server:
-	cargo fmt --all --package=server -- --check
+	cargo fmt --all --package=query-server -- --check
 
 fmt-cli:
 	cargo fmt --all --package=query -- --check
@@ -92,7 +92,7 @@ lint:
 # Release
 
 build-server:
-	cargo build --package=server --release
+	cargo build --package=query-server --release
 
 build-cli:
 	cargo build --package=query --profile dist
@@ -100,13 +100,13 @@ build-cli:
 # Run
 
 run:
-	RUST_LOG=info cargo run --package=server -q | bunyan
+	RUST_LOG=info cargo run --package=query-server -q | bunyan
 
 run-cli:
 	RUST_LOG=info cargo run --package=query
 
 run-release:
-	RUST_LOG=info cargo run --package=server --release -q | bunyan
+	RUST_LOG=info cargo run --package=query-server --release -q | bunyan
 
 run-cli-release:
 	RUST_LOG=info cargo run --package=query --profile dist

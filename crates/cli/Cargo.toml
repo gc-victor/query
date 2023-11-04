@@ -37,5 +37,6 @@ walkdir = "2"
 version = "0.10"
 features = ["vendored"]
 
-[build]
-incremental = true
+[package.metadata.dist]
+installers = ["shell", "powershell"]
+targets = ["x86_64-unknown-linux-gnu", "aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-pc-windows-msvc"]

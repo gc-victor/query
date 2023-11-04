@@ -1,23 +1,23 @@
 [package]
-name = "server"
-version = "0.2.0"
+name = "query-server"
+version = "0.2.1-prerelease"
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
 description = "Server for SQLite databases."
 homepage = "https://github.com/gc-victor/query/tree/main/crates/server"
 repository = "https://github.com/gc-victor/query"
-publish = false
 
 [dependencies]
 anyhow = "1.0"
 argon2 = "0.5"
 chacha20poly1305 = { version = "0.10" }
+deno_core = "0.225.0"
 dotenv = "0.15"
 hyper = { version = "0.14", features = ["full"] }
-jsonwebtoken = "9.0"
+jsonwebtoken = "9.1"
 rbase64 = "2.0"
-regex = "1.9"
+regex = "1.10"
 rusqlite = { version = "0.29", features = [
     "bundled",
     "backup",
@@ -28,7 +28,7 @@ rusqlite = { version = "0.29", features = [
     "trace",
     "serde_json",
 ] }
-rustyscript = { version = "0.1.2", features = ["all"] }
+rustyscript = { version = "0.1.4", features = ["all"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_bytes = "0.11"
 serde_json = "1.0"
@@ -45,7 +45,8 @@ tracing-subscriber = { version = "0.3", features = [
     "std",
 ] }
 url = "2.4"
-uuid = { version = "1.4", features = ["v4"] }
+uuid = { version = "1.5", features = ["v4"] }
 
-[build]
-incremental = true
+[package.metadata.dist]
+installers = ["shell"]
+targets = ["x86_64-unknown-linux-gnu"]

@@ -4,12 +4,12 @@ WORKDIR /root
 RUN --mount=type=cache,target=/usr/local/cargo/registry
 COPY . .
 RUN --mount=type=cache,target=/usr/local/cargo/registry --mount=type=cache,target=/root/target \
-    RUST_LOG=trace cargo build --package server --release && \
-    mv /root/target/release/server /root
+    RUST_LOG=trace cargo build --package query-server --release && \
+    mv /root/target/release/query-server /root
 
 FROM debian:12-slim AS runtime
 
-COPY --from=builder /root/server /
+COPY --from=builder /root/query-server /
 
 ADD litefs.yml /etc/litefs.yml
 COPY --from=flyio/litefs:0.5 /usr/local/bin/litefs /usr/local/bin/litefs
