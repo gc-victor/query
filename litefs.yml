@@ -42,7 +42,7 @@ exec:
   #   if-candidate: true
 
   # Then run the application server on all nodes.
-  - cmd: "/server"
+  - cmd: "/query-server"
 
 proxy:
   # Specifies the bind address of the proxy server.
