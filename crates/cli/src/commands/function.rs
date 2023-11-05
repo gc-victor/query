@@ -235,11 +235,11 @@ mod tests {
 
     #[test]
     #[should_panic(
-        expected = r#"The function file "../../.tests/path/to/functions/post.index.js" doesn't exists"#
+        expected = r#"The function file "../../.tests/path/to/functions/post.not_exist.js" doesn't exists"#
     )]
     fn test_function_builder_file_not_exist() {
         let dir = "../../.tests/path/to/functions".to_string();
-        let path = format!("{dir}/post.index.js");
+        let path = format!("{dir}/post.not_exist.js");
 
         function_builder(&path).unwrap();
     }
