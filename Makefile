@@ -128,6 +128,12 @@ test:
 nextest:
 	cargo nextest run
 
+nextest-query:
+	cargo nextest run --package=query
+
+nextest-query-server:
+	cargo nextest run --package=query-server
+
 nextest-match:
 	cargo nextest run --filter-expr 'test($(ARGUMENTS))'
 
