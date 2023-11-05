@@ -14,7 +14,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-    "db_name": "config.sql",
+    "db_name": "query_config.sql",
     "query": "SELECT * FROM _config_user_token WHERE user_uuid = (SELECT uuid FROM _config_user WHERE email = 'user_token_delete')"
 }
 ```
@@ -38,7 +38,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-    "db_name": "config.sql",
+    "db_name": "query_config.sql",
     "query": "SELECT * FROM _config_user_token WHERE user_uuid = (SELECT uuid FROM _config_user WHERE email = 'user_token_delete')"
 }
 ```

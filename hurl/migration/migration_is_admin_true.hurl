@@ -2,7 +2,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "INSERT INTO
     _config_user(
         email,
@@ -21,7 +21,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "SELECT token FROM _config_user_token WHERE user_uuid = (SELECT uuid FROM _config_user WHERE email = 'query_migration_is_admin');"
 }
 ```
@@ -58,7 +58,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "DELETE FROM _config_user WHERE email = 'query_migration_is_admin';"
 }
 ```

@@ -57,7 +57,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-    "db_name": "config.sql",
+    "db_name": "query_config.sql",
     "query": "DELETE FROM _config_user_token WHERE user_uuid IN ((SELECT uuid FROM _config_user WHERE email = 'user_token_list_1'), (SELECT uuid FROM _config_user WHERE email = 'user_token_list_2'))"
 }
 ```

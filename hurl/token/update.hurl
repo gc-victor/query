@@ -11,7 +11,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "SELECT token FROM _config_token WHERE name = 'token_update_name' AND active = 1 AND write = 1;"
 }
 ```
@@ -33,7 +33,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "SELECT token FROM _config_token WHERE name = 'token_update_name' AND active = 0 AND write = 1;"
 }
 ```
@@ -55,7 +55,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "SELECT token FROM _config_token WHERE name = 'token_update_name' AND active = 0 AND write = 0;"
 }
 ```
@@ -67,7 +67,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "DELETE FROM _config_token WHERE name LIKE 'token_update_name';"
 }
 ```

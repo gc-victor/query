@@ -11,7 +11,7 @@ POST {{host}}/token
 Authorization: {{user_token}}
 ```json
 {
-    "db_name": "config.sql",
+    "db_name": "query_config.sql",
     "name": "token_list_name_2",
     "active": false,
     "write": false
@@ -23,7 +23,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-    "db_name": "config.sql",
+    "db_name": "query_config.sql",
     "query": "SELECT token FROM _config_token WHERE name LIKE 'token_list_name%';"
 }
 ```

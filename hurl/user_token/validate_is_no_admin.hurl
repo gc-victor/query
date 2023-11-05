@@ -3,7 +3,7 @@ Authorization: {{user_token}}
 # Admin false
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "INSERT OR IGNORE INTO
     _config_user(
         email,
@@ -22,7 +22,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "INSERT OR IGNORE INTO
     _config_user_token
         (
@@ -46,7 +46,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "SELECT token FROM _config_user_token WHERE user_uuid = (SELECT uuid FROM _config_user WHERE email = 'user_token_validate_is_no_admin');"
 }
 ```
@@ -93,7 +93,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "DELETE FROM _config_user WHERE email = 'user_token_validate_is_no_admin';"
 }
 ```

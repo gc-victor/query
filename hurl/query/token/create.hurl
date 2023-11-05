@@ -2,7 +2,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "INSERT INTO
         _config_token(
             name,
@@ -27,7 +27,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "SELECT token FROM _config_token WHERE name = 'query_token_create';"
 }
 ```
@@ -61,7 +61,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "DELETE FROM _config_token WHERE name = 'query_token_create';"
 }
 ```

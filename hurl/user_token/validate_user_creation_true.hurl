@@ -2,7 +2,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-  "db_name": "config.sql",
+  "db_name": "query_config.sql",
   "query": "UPDATE _config_option SET value = '1' WHERE name = 'create_user';"
 }
 ```
@@ -32,7 +32,7 @@ POST {{host}}/query
 Authorization: {{user_token}}
 ```json
 {
-    "db_name": "config.sql",
+    "db_name": "query_config.sql",
     "query": "DELETE FROM _config_user_token WHERE user_uuid = (SELECT uuid FROM _config_user WHERE email = 'user_token_validate_user_creation')"
 }
 ```
