@@ -1,7 +1,6 @@
 use crate::sqlite::connect_db::connect_config_db;
-use crate::HttpError;
 
-use super::http_error::{internal_server_error, not_found};
+use super::http_error::{internal_server_error, not_found, HttpError};
 
 pub fn validate_token_creation() -> Result<(), HttpError> {
     // NOTE: configure to allow or not to create users and projects

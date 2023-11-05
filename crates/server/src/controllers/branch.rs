@@ -8,9 +8,7 @@ use serde_json::json;
 use tracing::instrument;
 
 use crate::{
-    sqlite::connect_db::connect_db,
-    utils::{
-        env::Env,
+    controllers::utils::{
         get_body::get_body,
         get_token::get_token,
         http_error::{bad_request, internal_server_error, not_found, HttpError},
@@ -18,6 +16,8 @@ use crate::{
         validate_is_admin::validate_is_admin,
         validate_token::validate_token,
     },
+    env::Env,
+    sqlite::connect_db::connect_db,
 };
 
 #[derive(Deserialize)]

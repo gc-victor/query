@@ -6,8 +6,7 @@ use serde_json::json;
 use tracing::instrument;
 
 use crate::{
-    sqlite::connect_db::connect_config_db,
-    utils::{
+    controllers::utils::{
         current_time::current_time_millis,
         get_body::get_body,
         get_query_string::get_query_string,
@@ -22,6 +21,7 @@ use crate::{
         validate_user_email::validate_user_email,
         validate_user_password::validate_user_password,
     },
+    sqlite::connect_db::connect_config_db,
 };
 
 #[derive(Deserialize)]

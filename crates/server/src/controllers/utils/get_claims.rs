@@ -2,10 +2,9 @@ use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use super::{
-    env::Env,
-    http_error::{unauthorized, HttpError},
-};
+use crate::env::Env;
+
+use super::http_error::{unauthorized, HttpError};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {

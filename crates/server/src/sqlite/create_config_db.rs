@@ -3,7 +3,7 @@ use argon2::{
     Argon2,
 };
 
-use crate::utils::env::Env;
+use crate::env::Env;
 
 use super::connect_db::connect_config_db;
 

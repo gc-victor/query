@@ -13,7 +13,10 @@ macro_rules! db_test {
         fn $test() {
             let _after = $name;
 
-            $crate::utils::db_test_before::before(concat!("../../.tests/", stringify!($test)));
+            $crate::controllers::utils::db_test_before::before(concat!(
+                "../../.tests/",
+                stringify!($test)
+            ));
 
             $action;
         }

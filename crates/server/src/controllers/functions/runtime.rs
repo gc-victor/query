@@ -2,7 +2,7 @@ use std::cell::{OnceCell, RefCell};
 
 use rustyscript::{Runtime, RuntimeOptions};
 
-use crate::ext::{init_handle_response::init_handle_response, init_sqlite::init_sqlite};
+use super::ext::{init_handle_response::init_handle_response, init_sqlite::init_sqlite};
 
 thread_local! {
     static RUNTIME_CELL: OnceCell<RefCell<Runtime>> = OnceCell::new();

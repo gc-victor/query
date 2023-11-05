@@ -9,21 +9,20 @@ use tracing::instrument;
 
 use crate::{
     constants::DB_CONFIG_NAME,
-    sqlite::connect_db::connect_db,
-    utils::{
+    controllers::utils::{
         bind_to_params::{bind_array_to_params, bind_object_to_params},
-        env::Env,
         get_body::get_body,
         get_query_string::get_query_string,
         get_token::get_token,
-        http_error::{bad_request, internal_server_error, not_found},
+        http_error::{bad_request, internal_server_error, not_found, HttpError},
         responses::ok,
         statement_to_vec::statement_to_vec,
         validate_is_admin::is_admin,
         validate_token::validate_token,
         validate_write::validate_write,
     },
-    HttpError,
+    env::Env,
+    sqlite::connect_db::connect_db,
 };
 
 #[derive(Deserialize)]

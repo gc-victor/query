@@ -3,8 +3,8 @@ use std::env;
 use anyhow::{anyhow, Result};
 use rustyscript::deno_core::{self, extension, op2};
 
+use crate::controllers::utils::query_to_json::query_to_json;
 use crate::sqlite::connect_db::connect_db;
-use crate::utils::query_to_json::query_to_json;
 
 #[op2]
 #[string]
@@ -41,5 +41,5 @@ extension!(
     init_sqlite,
     ops = [op_sqlite_query_extension, op_sqlite_execute_extension],
     esm_entry_point = "ext:init_sqlite/init_sqlite.js",
-    esm = [ dir "src/ext", "init_sqlite.js" ],
+    esm = [ dir "src/controllers/functions/ext", "init_sqlite.js" ],
 );

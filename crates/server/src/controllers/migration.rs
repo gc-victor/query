@@ -4,8 +4,7 @@ use serde::Deserialize;
 use tracing::instrument;
 
 use crate::{
-    sqlite::connect_db::connect_db,
-    utils::{
+    controllers::utils::{
         get_body::get_body,
         get_token::get_token,
         http_error::{bad_request, internal_server_error, not_found, unauthorized, HttpError},
@@ -15,6 +14,7 @@ use crate::{
         validate_user_creation::validate_user_creation,
         validate_write::validate_write,
     },
+    sqlite::connect_db::connect_db,
 };
 
 #[derive(Deserialize)]

@@ -43,7 +43,7 @@ mod tests {
 
     use rusqlite::Connection;
 
-    use crate::utils::{statement_to_vec::statement_to_vec, value::Value};
+    use crate::controllers::utils::{statement_to_vec::statement_to_vec, value::Value};
 
     #[test]
     fn test_return_a_vec() {

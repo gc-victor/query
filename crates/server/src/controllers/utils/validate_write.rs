@@ -1,17 +1,15 @@
 use rusqlite::{named_params, Connection};
 use tracing::instrument;
 
-use crate::{
-    sqlite::connect_db::connect_config_db,
-    utils::{
-        get_claims::get_claims,
-        http_error::{internal_server_error, unauthorized},
-    },
-    HttpError,
+use super::{
+    get_claims::get_claims,
+    http_error::{internal_server_error, unauthorized, HttpError},
 };
 
+use crate::sqlite::connect_db::connect_config_db;
+
 #[instrument(err(Debug), skip(token))]
-pub fn validate_token(token: &str) -> Result<(), HttpError> {
+pub fn validate_write(token: &str) -> Result<bool, HttpError> {
     let connect: Result<Connection, HttpError> = match connect_config_db() {
         Ok(c) => Ok(c),
         Err(e) => return Err(internal_server_error(e.to_string())),
@@ -43,7 +41,9 @@ pub fn validate_token(token: &str) -> Result<(), HttpError> {
             AND 
                 (expiration_date > strftime('%s', datetime('now')) OR expiration_date = updated_at)
             AND
-                active = 1;
+                active = 1
+            AND
+                write = 1;
         "
         ),
         named_params! {
@@ -53,15 +53,9 @@ pub fn validate_token(token: &str) -> Result<(), HttpError> {
         },
         |row| row.get(0),
     ) {
-        Ok(Some(0)) => {
-            tracing::error!("0");
-            Err(unauthorized())
-        }
-        Ok(Some(_)) => Ok(()),
-        Ok(None) => {
-            tracing::error!("None");
-            Err(unauthorized())
-        }
+        Ok(Some(0)) => Ok(false),
+        Ok(Some(_)) => Ok(true),
+        Ok(None) => Ok(false),
         Err(e) => {
             tracing::error!("{}", e.to_string());
             Err(internal_server_error(e.to_string()))
@@ -73,14 +67,13 @@ pub fn validate_token(token: &str) -> Result<(), HttpError> {
 mod tests {
     use jsonwebtoken::{encode, EncodingKey, Header};
 
-    use crate::db_test;
-    use crate::utils::get_claims::Claims;
-
     use super::*;
 
+    use crate::{controllers::utils::get_claims::Claims, db_test};
+
     db_test!(
-        test_validate_token_invalid_iss,
-        TestValidateTokenInvalidIss,
+        test_validate_write_invalid_iss,
+        TestValidateWriteInvalidIss,
         {
             let claims = Claims {
                 iss: "invalid_issuer".to_owned(),
@@ -94,7 +87,7 @@ mod tests {
             )
             .unwrap();
 
-            let result = validate_token(&token);
+            let result = validate_write(&token);
 
             assert!(result.is_err());
             assert_eq!(result.unwrap_err(), unauthorized());
@@ -102,8 +95,8 @@ mod tests {
     );
 
     db_test!(
-        test_validate_token_with_expire_equals_update,
-        TestValidateTokenWithExpireEqualsUpdate,
+        test_validate_write_token_with_expire_equals_update,
+        TestValidateWriteTokenWithExpireEqualsUpdate,
         {
             let conn = connect_config_db().unwrap();
 
@@ -134,15 +127,55 @@ mod tests {
                 })
                 .unwrap();
 
-            let result = validate_token(&token);
+            let result = validate_write(&token);
 
-            assert!(result.is_ok());
+            assert!(result.unwrap());
         }
     );
 
     db_test!(
-        test_validate_token_with_greater_expire_date,
-        TestValidateTokenWithGreaterExpireDate,
+        test_validate_write_token_false,
+        TestValidateWriteTokenFalse,
+        {
+            let conn = connect_config_db().unwrap();
+
+            conn.execute(
+            r#"
+            INSERT INTO
+                _config_token(
+                    name,
+                    token,
+                    expiration_date,
+                    write
+                )
+            VALUES
+                (
+                    'test',
+                    token('{"sub": "' || (SELECT uuid()) ||  '", "exp": ' || strftime('%s', datetime('now')) || ', "iat": ' || strftime('%s', datetime('now')) || ', "iss": "token"}'),
+                    strftime('%s', datetime('now')),
+                    0
+                );
+            "#,
+            (),
+        )
+        .unwrap();
+
+            let token: String = conn
+                .query_row("SELECT token FROM _config_token WHERE id = 1", [], |row| {
+                    row.get(0)
+                })
+                .unwrap();
+
+            let result = validate_write(&token);
+
+            assert!(result.is_ok());
+            assert!(!result.unwrap());
+        }
+    );
+
+    db_test!(
+        test_validate_write_token_with_greater_expire_date,
+        TestValidateWriteTokenWithGreaterExpireDate,
         {
             let conn = connect_config_db().unwrap();
 
@@ -173,16 +206,19 @@ mod tests {
                 })
                 .unwrap();
 
-            let result = validate_token(&token);
+            let result = validate_write(&token);
 
             assert!(result.is_ok());
         }
     );
 
-    db_test!(test_validate_token_expired, TestValidateTokenExpired, {
-        let conn = connect_config_db().unwrap();
+    db_test!(
+        test_validate_write_expired_token,
+        TestValidateWriteExpiredToken,
+        {
+            let conn = connect_config_db().unwrap();
 
-        conn.execute(
+            conn.execute(
             r#"
             INSERT OR IGNORE INTO
                 _config_token(name, token, expiration_date, write)
@@ -193,23 +229,13 @@ mod tests {
         )
         .unwrap();
 
-        let token: String = conn
-            .query_row("SELECT token FROM _config_token WHERE id = 1", [], |row| {
-                row.get(0)
-            })
-            .unwrap();
+            let token: String = conn
+                .query_row("SELECT token FROM _config_token WHERE id = 1", [], |row| {
+                    row.get(0)
+                })
+                .unwrap();
 
-        let result = validate_token(&token);
-
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), unauthorized());
-    });
-
-    db_test!(
-        test_validate_token_with_invalid_claim,
-        TestValidateTokenWithInvalidClaim,
-        {
-            let result = validate_token("invalid_token");
+            let result = validate_write(&token);
 
             assert!(result.is_err());
             assert_eq!(result.unwrap_err(), unauthorized());
@@ -217,8 +243,88 @@ mod tests {
     );
 
     db_test!(
-        test_validate_user_token_with_expire_equals_update,
-        TestValidateUserTokenWithExpireEqualsUpdate,
+        test_validate_write_token_with_invalid_claim,
+        TestValidateWriteTokenWithInvalidClaim,
+        {
+            let result = validate_write("invalid_token");
+
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err(), unauthorized());
+        }
+    );
+
+    db_test!(
+        test_validate_write_user_token_false,
+        TestValidateWriteUserTokenFalse,
+        {
+            let conn = connect_config_db().unwrap();
+
+            conn.execute(
+                "
+            INSERT INTO _config_user(
+                email,
+                password,
+                admin
+            ) VALUES (
+                'user-0@test.com',
+                'password',
+                1
+            );
+            ",
+                (),
+            )
+            .unwrap();
+
+            conn.execute(
+                r#"
+            DELETE FROM
+                _config_user_token
+            WHERE
+                user_uuid = (SELECT uuid FROM _config_user WHERE email = 'user-0@test.com');
+            "#,
+                (),
+            )
+            .unwrap();
+
+            conn.execute(
+            r#"
+            INSERT INTO
+                _config_user_token(
+                    user_uuid,
+                    token,
+                    expiration_date,
+                    write
+                )
+            VALUES
+                (
+                    (SELECT uuid FROM _config_user WHERE email = 'user-0@test.com'),
+                    token('{"sub": "' || (SELECT uuid()) ||  '", "exp": ' || strftime('%s', datetime('now')) || ', "iat": ' || strftime('%s', datetime('now')) || ', "iss": "user_token"}'),
+                    strftime('%s', datetime('now')),
+                    0
+                );
+            "#,
+            (),
+        )
+        .unwrap();
+
+            let token: String = conn
+            .query_row(
+                "SELECT token FROM _config_user_token WHERE user_uuid = (SELECT uuid FROM _config_user WHERE email = 'user-0@test.com')",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+
+            let result = validate_write(&token);
+
+            assert!(result.is_ok());
+            assert!(!result.unwrap());
+        }
+    );
+
+    db_test!(
+        test_validate_write_user_token_with_expire_equals_update,
+        TestValidateWriteUserTokenWithExpireEqualsUpdate,
         {
             let conn = connect_config_db().unwrap();
 
@@ -278,15 +384,15 @@ mod tests {
             )
             .unwrap();
 
-            let result = validate_token(&token);
+            let result = validate_write(&token);
 
             assert!(result.is_ok());
         }
     );
 
     db_test!(
-        test_validate_user_token_with_greater_expire_date,
-        TestValidateUserTokenWithGreaterExpireDate,
+        test_validate_write_user_token_with_greater_expire_date,
+        TestValidateWriteUserTokenWithGreaterExpireDate,
         {
             let conn = connect_config_db().unwrap();
 
@@ -346,15 +452,15 @@ mod tests {
             )
             .unwrap();
 
-            let result = validate_token(&token);
+            let result = validate_write(&token);
 
             assert!(result.is_ok());
         }
     );
 
     db_test!(
-        test_validate_user_token_expired,
-        TestValidateUserTokenExpired,
+        test_validate_write_expired_user_token,
+        TestValidateWriteExpiredUserToken,
         {
             let conn = connect_config_db().unwrap();
 
@@ -414,18 +520,18 @@ mod tests {
             )
             .unwrap();
 
-            let result = validate_token(&token);
+            let result = validate_write(&token);
 
-            assert!(result.is_err());
-            assert_eq!(result.unwrap_err(), unauthorized());
+            assert!(result.is_ok());
+            assert!(!result.unwrap());
         }
     );
 
     db_test!(
-        test_validate_user_token_with_invalid_claim,
-        TestValidateUserTokenWithInvalidClaim,
+        test_validate_write_user_token_with_invalid_claim,
+        TestValidateWriteUserTokenWithInvalidClaim,
         {
-            let result = validate_token("invalid_token");
+            let result = validate_write("invalid_token");
 
             assert!(result.is_err());
             assert_eq!(result.unwrap_err(), unauthorized());

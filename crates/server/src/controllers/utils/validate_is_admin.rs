@@ -2,15 +2,12 @@ use anyhow::Result;
 use rusqlite::named_params;
 use tracing::instrument;
 
-use crate::{
-    sqlite::connect_db::connect_config_db,
-    utils::{
-        get_claims::get_claims,
-        http_error::{internal_server_error, unauthorized},
-    },
-};
+use crate::sqlite::connect_db::connect_config_db;
 
-use super::http_error::HttpError;
+use super::{
+    get_claims::get_claims,
+    http_error::{internal_server_error, unauthorized, HttpError},
+};
 
 #[instrument(err(Debug), skip(token))]
 pub fn validate_is_admin(token: &str) -> Result<(), HttpError> {

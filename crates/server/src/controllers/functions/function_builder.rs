@@ -6,8 +6,7 @@ use serde_bytes::ByteBuf;
 use tracing::instrument;
 
 use crate::{
-    sqlite::connect_db::connect_function_db,
-    utils::{
+    controllers::utils::{
         get_body::get_body,
         get_token::get_token,
         http_error::{bad_request, not_implemented, HttpError},
@@ -16,6 +15,7 @@ use crate::{
         validate_token::validate_token,
         validate_token_creation::validate_token_creation,
     },
+    sqlite::connect_db::connect_function_db,
 };
 
 #[derive(Deserialize)]

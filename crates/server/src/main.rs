@@ -1,17 +1,8 @@
 pub mod constants;
 
-mod branch;
-pub mod ext;
-mod function;
-pub mod function_builder;
-mod migration;
-mod query;
-pub mod runtime;
+pub mod controllers;
+pub mod env;
 pub mod sqlite;
-mod token;
-mod user;
-pub mod user_token;
-pub mod utils;
 
 use std::convert::Infallible;
 use std::net::SocketAddr;
@@ -28,13 +19,22 @@ use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{layer::SubscriberExt, Registry};
 
 use crate::{
-    sqlite::{create_config_db::create_config_db, create_function_db::create_function_db},
-    utils::env::Env,
-    utils::http_error::HttpError,
-    utils::responses::{
-        bad_request, internal_server_error, method_not_allowed, not_found, not_implemented,
-        unauthorized,
+    controllers::{
+        branch::branch,
+        functions::{function::function, function_builder::function_builder},
+        migration::migration,
+        query::query,
+        token::token,
+        user::user,
+        user_token::user_token,
+        utils::http_error::HttpError,
+        utils::responses::{
+            bad_request, internal_server_error, method_not_allowed, not_found, not_implemented,
+            unauthorized,
+        },
     },
+    env::Env,
+    sqlite::{create_config_db::create_config_db, create_function_db::create_function_db},
 };
 
 #[tokio::main]
@@ -105,17 +105,17 @@ async fn router(req: &mut Request<Body>, segments: &[&str]) -> Result<Response<B
     }
 
     match segments[0] {
-        "branch" => branch::branch(req, segments).await,
-        "function" => function::function(req).await,
-        "function-builder" => function_builder::function_builder(req, segments).await,
-        "migration" => migration::migration(req, segments).await,
-        "query" => query::query(req, segments).await,
-        "token" => token::token(req, segments).await,
+        "branch" => branch(req, segments).await,
+        "function" => function(req).await,
+        "function-builder" => function_builder(req, segments).await,
+        "migration" => migration(req, segments).await,
+        "query" => query(req, segments).await,
+        "token" => token(req, segments).await,
         "user" => {
             if segments.len() > 1 && segments[1] == "token" {
-                user_token::user_token(req, segments).await
+                user_token(req, segments).await
             } else {
-                user::user(req, segments).await
+                user(req, segments).await
             }
         }
         _ => Err(HttpError {

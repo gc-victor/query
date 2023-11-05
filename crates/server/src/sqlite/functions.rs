@@ -7,7 +7,7 @@ use rusqlite::ffi;
 use rusqlite::{functions::FunctionFlags, Connection, Error, Result};
 use uuid::Uuid;
 
-use crate::utils::env::Env;
+use crate::env::Env;
 
 pub fn _uuid_function(conn: &Connection) -> Result<()> {
     conn.create_scalar_function(

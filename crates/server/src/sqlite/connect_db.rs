@@ -3,7 +3,7 @@ use std::{fs, path::Path};
 use anyhow::Result;
 use rusqlite::{limits::Limit, Connection};
 
-use crate::{constants::DB_CONFIG_NAME, constants::DB_FUNCTION_NAME, utils::env::Env};
+use crate::{constants::DB_CONFIG_NAME, constants::DB_FUNCTION_NAME, env::Env};
 
 use super::functions::{
     _base64_decode_function, _base64_encode_function, _not_allowed_function, _regexp_function,

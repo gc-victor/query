@@ -7,19 +7,18 @@ use serde::Deserialize;
 use serde_json::json;
 use tracing::instrument;
 
-use crate::utils::http_error::bad_request;
-use crate::utils::validate_user_email::validate_user_email;
 use crate::{
-    sqlite::connect_db::connect_config_db,
-    utils::{
+    controllers::utils::{
         get_body::get_body,
         get_token::get_token,
-        http_error::{internal_server_error, not_found, HttpError},
+        http_error::{bad_request, internal_server_error, not_found, HttpError},
         responses::{created, ok},
         statement_to_vec::statement_to_vec,
         validate_is_admin::validate_is_admin,
         validate_token::validate_token,
+        validate_user_email::validate_user_email,
     },
+    sqlite::connect_db::connect_config_db,
 };
 
 #[derive(Deserialize)]

@@ -146,9 +146,9 @@ mod tests {
 
         assert_eq!(
             format!("{:?}", result.0),
-            "ParamsFromIter([Integer(30), Text(\"Alice\")])".to_string()
+            "ParamsFromIter([Text(\"Alice\"), Integer(30)])".to_string()
         );
-        assert_eq!(result.1, "SELECT * FROM users WHERE name = ?2 AND age = ?1");
+        assert_eq!(result.1, "SELECT * FROM users WHERE name = ?1 AND age = ?2");
     }
 
     #[test]

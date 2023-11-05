@@ -1,9 +1,9 @@
 use rusqlite::Connection;
 use tracing::instrument;
 
-use crate::{sqlite::connect_db::connect_config_db, utils::http_error::bad_request};
+use super::http_error::{bad_request, internal_server_error, HttpError};
 
-use super::http_error::{internal_server_error, HttpError};
+use crate::sqlite::connect_db::connect_config_db;
 
 #[instrument(err(Debug))]
 pub fn validate_user_email(email: &str) -> Result<(), HttpError> {

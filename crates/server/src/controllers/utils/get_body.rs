@@ -2,10 +2,7 @@ use hyper::{body::to_bytes, Body, Request};
 use regex::Regex;
 use tracing::instrument;
 
-use crate::{
-    utils::http_error::{bad_request, internal_server_error},
-    HttpError,
-};
+use super::http_error::{bad_request, internal_server_error, HttpError};
 
 #[instrument(err(Debug), skip(req))]
 pub async fn get_body(req: &mut Request<Body>) -> Result<String, HttpError> {
@@ -42,8 +39,7 @@ async fn stringify_body(req: &mut Request<Body>) -> Result<String, String> {
 mod tests {
     use hyper::{Body, Request, StatusCode};
 
-    use crate::utils::get_body::get_body;
-    use crate::HttpError;
+    use crate::controllers::utils::{get_body::get_body, http_error::HttpError};
 
     #[tokio::test]
     async fn test_get_the_body_from_a_request() {

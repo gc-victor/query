@@ -1,7 +1,7 @@
 use hyper::{header::AUTHORIZATION, Body, Request};
 use tracing::instrument;
 
-use crate::{utils::http_error::unauthorized, HttpError};
+use super::http_error::{unauthorized, HttpError};
 
 #[instrument(err(Debug), skip(req))]
 pub fn get_token(req: &Request<Body>) -> Result<String, HttpError> {

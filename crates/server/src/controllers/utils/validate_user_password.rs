@@ -1,9 +1,9 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use tracing::instrument;
 
-use crate::{sqlite::connect_db::connect_config_db, HttpError};
+use super::http_error::{bad_request, HttpError};
 
-use super::http_error::bad_request;
+use crate::sqlite::connect_db::connect_config_db;
 
 #[instrument(err(Debug), skip(password))]
 pub fn validate_user_password(email: &str, password: &str) -> Result<(), HttpError> {

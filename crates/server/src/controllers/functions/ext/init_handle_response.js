@@ -1,12 +1,11 @@
 globalThis.___handleResponse = async function () {
     const response = await ___handleRequestWrapper();
     const body = await response.arrayBuffer();
+    const headers = {};
 
-    let headers = {};
-
-    response.headers.forEach((value, key) => {
+    for (const [key, value] of response.headers) {
         headers[key] = value;
-    });
+    }
 
     return {
         body: body,
