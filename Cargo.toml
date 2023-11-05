@@ -23,9 +23,6 @@ pr-run-mode = "plan"
 # Build only the required packages, and individually
 precise-builds = true
 
-[profile.dev]
-incremental = true
-
 [profile.release]
 codegen-units = 1
 lto = "thin"
