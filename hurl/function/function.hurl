@@ -1,4 +1,4 @@
-POST {{host}}/function-builder
+POST {{host}}/_/function-builder
 Authorization: {{user_token}}
 ```json
 {
@@ -9,7 +9,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-GET {{host}}/function/hurl
+GET {{host}}/_/function/hurl
 Authorization: {{user_token}}
 HTTP 200
 [Asserts]

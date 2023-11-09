@@ -1,4 +1,4 @@
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -17,7 +17,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-GET {{host}}/user
+GET {{host}}/_/user
 Authorization: {{user_token}}
 HTTP 200
 [Asserts]
@@ -26,7 +26,7 @@ jsonpath "$.data[1].password" exists
 jsonpath "$.data[1].admin" == 1
 jsonpath "$.data[1].active" == 1
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

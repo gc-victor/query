@@ -1,4 +1,4 @@
-POST {{host}}/function-builder
+POST {{host}}/_/function-builder
 Authorization: {{user_token}}
 ```json
 {
@@ -9,7 +9,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-DELETE {{host}}/function-builder
+DELETE {{host}}/_/function-builder
 Authorization: {{user_token}}
 ```json
 {
@@ -19,7 +19,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

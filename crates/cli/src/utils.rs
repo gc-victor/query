@@ -72,7 +72,7 @@ pub async fn http_client(path: &str, body: Option<&String>, method: Method) -> R
     } else {
         config_url.clone()
     };
-    let url = &format!("{}{}", config_url, path);
+    let url = &format!("{}/_/{}", config_url, path);
     let url = Url::parse(url)?;
 
     let token: &str = CONFIG.cli.token.as_str();

@@ -1,4 +1,4 @@
-POST {{host}}/user
+POST {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -10,7 +10,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-POST {{host}}/user/token/value
+POST {{host}}/_/user/token/value
 ```json
 {
     "email": "user_token_value",
@@ -21,13 +21,13 @@ HTTP 200
 [Asserts]
 jsonpath "$.data[0].token" exists
 
-GET {{host}}/user/token/value?email=user_token_value
+GET {{host}}/_/user/token/value?email=user_token_value
 Authorization: {{user_token}}
 HTTP 200
 [Asserts]
 jsonpath "$.data[0].token" exists
 
-DELETE {{host}}/user
+DELETE {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -36,7 +36,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

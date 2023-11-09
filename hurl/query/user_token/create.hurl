@@ -1,4 +1,4 @@
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -8,7 +8,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

@@ -1,5 +1,5 @@
 # Create token with active = default (true) and write = default (true)
-POST {{host}}/token
+POST {{host}}/_/token
 Authorization: {{user_token}}
 ```json
 {
@@ -8,7 +8,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -22,7 +22,7 @@ jsonpath "$.data[0].token" exists
 
 # Create token with active = false and write = false
 
-POST {{host}}/token
+POST {{host}}/_/token
 Authorization: {{user_token}}
 ```json
 {
@@ -33,7 +33,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -45,7 +45,7 @@ HTTP 200
 [Asserts]
 jsonpath "$.data[0].token" exists
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

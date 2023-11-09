@@ -1,4 +1,4 @@
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -8,7 +8,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/migration
+POST {{host}}/_/migration
 Authorization: {{user_token}}
 ```json
 {
@@ -23,7 +23,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -42,7 +42,7 @@ jsonpath "$.data[2].value" contains "3"
 jsonpath "$.data[3].key" contains "test-4"
 jsonpath "$.data[3].value" contains "4"
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

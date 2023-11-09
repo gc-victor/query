@@ -37,7 +37,7 @@ struct HandleResponse {
 #[instrument(err(Debug), skip(req))]
 pub async fn function(req: &mut Request<Body>) -> Result<Response<Body>, HttpError> {
     let method = req.method().as_str();
-    let path = req.uri().path().replace("/function", "");
+    let path = req.uri().path().replace("/_/function", "");
     let path = if path.is_empty() {
         "/".to_string()
     } else {

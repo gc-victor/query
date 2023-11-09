@@ -1,4 +1,4 @@
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 # Admin false
 ```json
@@ -18,7 +18,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -42,7 +42,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -54,7 +54,7 @@ HTTP 200
 [Captures]
 token: jsonpath "$['data'][0]['token']"
 
-POST {{host}}/token
+POST {{host}}/_/token
 Authorization: Bearer {{token}}
 ```json
 {
@@ -63,11 +63,11 @@ Authorization: Bearer {{token}}
 ```
 HTTP 401
 
-GET {{host}}/token
+GET {{host}}/_/token
 Authorization: Bearer {{token}}
 HTTP 401
 
-PUT {{host}}/token
+PUT {{host}}/_/token
 Authorization: Bearer {{token}}
 ```json
 {
@@ -77,7 +77,7 @@ Authorization: Bearer {{token}}
 ```
 HTTP 401
 
-DELETE {{host}}/token
+DELETE {{host}}/_/token
 Authorization: Bearer {{token}}
 ```json
 {
@@ -86,7 +86,7 @@ Authorization: Bearer {{token}}
 ```
 HTTP 401
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

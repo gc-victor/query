@@ -1,4 +1,4 @@
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -27,7 +27,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -41,20 +41,20 @@ HTTP 200
 token: jsonpath "$['data'][0]['token']"
 
 # JSON params
-GET {{host}}/query?db_name=query_config.sql&query=SELECT%20token%20FROM%20_config_token%20WHERE%20name%20=%20:name%20AND%20active%20=%201;&params=%7B%22:name%22:%22query_user_token_params%22%7D
+GET {{host}}/_/query?db_name=query_config.sql&query=SELECT%20token%20FROM%20_config_token%20WHERE%20name%20=%20:name%20AND%20active%20=%201;&params=%7B%22:name%22:%22query_user_token_params%22%7D
 Authorization: {{user_token}}
 HTTP 200
 [Captures]
 token: jsonpath "$['data'][0]['token']"
 
 # Array params
-GET {{host}}/query?db_name=query_config.sql&query=SELECT%20token%20FROM%20_config_token%20WHERE%20name%20=%20?%20AND%20active%20=%201;&params=%5B%22query_user_token_params%22%5D
+GET {{host}}/_/query?db_name=query_config.sql&query=SELECT%20token%20FROM%20_config_token%20WHERE%20name%20=%20?%20AND%20active%20=%201;&params=%5B%22query_user_token_params%22%5D
 Authorization: {{user_token}}
 HTTP 200
 [Captures]
 token: jsonpath "$['data'][0]['token']"
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

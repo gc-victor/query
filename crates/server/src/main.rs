@@ -109,21 +109,30 @@ async fn router(req: &mut Request<Body>, segments: &[&str]) -> Result<Response<B
         });
     }
 
-    match segments[0] {
-        // TODO: "q" => {...},
-        "branch" => branch(req, segments).await,
-        "function" => function(req).await,
-        "function-builder" => function_builder(req, segments).await,
-        "migration" => migration(req, segments).await,
-        "query" => query(req, segments).await,
-        "token" => token(req, segments).await,
-        "user" => {
-            if segments.len() > 1 && segments[1] == "token" {
-                user_token(req, segments).await
-            } else {
-                user(req, segments).await
+    let init_segment = segments[0];
+    let segments = &segments[1..];
+
+    match init_segment {
+        "_" => match segments[0] {
+            "branch" => branch(req, segments).await,
+            "function" => function(req).await,
+            "function-builder" => function_builder(req, segments).await,
+            "migration" => migration(req, segments).await,
+            "query" => query(req, segments).await,
+            "token" => token(req, segments).await,
+            "user" => {
+                if segments.len() > 1 && segments[1] == "token" {
+                    user_token(req, segments).await
+                } else {
+                    user(req, segments).await
+                }
             }
-        }
+            _ => Err(HttpError {
+                code: StatusCode::NOT_FOUND,
+                message: StatusCode::NOT_FOUND.to_string(),
+                body: None,
+            }),
+        },
         _ => {
             if Env::proxy() == "true" {
                 return proxy(req).await;

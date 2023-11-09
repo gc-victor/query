@@ -1,4 +1,4 @@
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -8,7 +8,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/user/token
+POST {{host}}/_/user/token
 Authorization: {{user_token}}
 ```json
 {
@@ -19,7 +19,7 @@ Authorization: {{user_token}}
 ```
 HTTP 404
 
-PUT {{host}}/user/token
+PUT {{host}}/_/user/token
 Authorization: {{user_token}}
 ```json
 {
@@ -30,11 +30,11 @@ Authorization: {{user_token}}
 ```
 HTTP 404
 
-GET {{host}}/user/token
+GET {{host}}/_/user/token
 Authorization: {{user_token}}
 HTTP 404
 
-DELETE {{host}}/user/token
+DELETE {{host}}/_/user/token
 Authorization: {{user_token}}
 ```json
 {
@@ -43,7 +43,7 @@ Authorization: {{user_token}}
 ```
 HTTP 404
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -53,7 +53,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/user
+POST {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -65,7 +65,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-POST {{host}}/user/token
+POST {{host}}/_/user/token
 Authorization: {{user_token}}
 ```json
 {
@@ -76,7 +76,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-PUT {{host}}/user/token
+PUT {{host}}/_/user/token
 Authorization: {{user_token}}
 ```json
 {
@@ -87,11 +87,11 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-GET {{host}}/user
+GET {{host}}/_/user
 Authorization: {{user_token}}
 HTTP 200
 
-DELETE {{host}}/user
+DELETE {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -100,7 +100,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

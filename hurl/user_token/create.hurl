@@ -1,4 +1,4 @@
-POST {{host}}/user
+POST {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -10,7 +10,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-DELETE {{host}}/user/token
+DELETE {{host}}/_/user/token
 Authorization: {{user_token}}
 ```json
 {
@@ -19,7 +19,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/user/token
+POST {{host}}/_/user/token
 Authorization: {{user_token}}
 ```json
 {
@@ -30,7 +30,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -45,7 +45,7 @@ jsonpath "$.data[0].token" != ""
 jsonpath "$.data[0].write" == 1
 jsonpath "$.data[0].expiration_date" == {{next_month}}
 
-DELETE {{host}}/user
+DELETE {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -54,7 +54,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
