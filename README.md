@@ -59,7 +59,7 @@ You can use Query as an isolated service or you can use it as a service with a p
 
 ### Query As An Isolated Service
 
-Query allows you to set a service with authentication to access remote SQLite databases and possibility to use [Query CLI](https://github.com/gc-victor/query/blob/main/README.md#cli) or [Query API](https://github.com/gc-victor/query/blob/main/README.md#apis) or  [Query Studio](https://github.com/gc-victor/query-studio).
+Query allows you to set a service with authentication to access remote SQLite databases and possibility to use [Query CLI](https://github.com/gc-victor/query/blob/main/README.md#cli), [Query API](https://github.com/gc-victor/query/blob/main/README.md#apis) and  [Query Studio](https://github.com/gc-victor/query-studio).
 
 ### How to use it
 
@@ -109,7 +109,7 @@ exec:
 
 ### Query Server With Proxy
 
-Query allows you to set a proxy to an App in the same VM. It provides you access to the databases directly from your application while enjoying the benefits of using Query, such as [Query CLI](https://github.com/gc-victor/query/blob/main/README.md#cli) or [Query API](https://github.com/gc-victor/query/blob/main/README.md#apis) or  [Query Studio](https://github.com/gc-victor/query-studio).
+Query allows you to set a proxy to an App in the same VM. It provides you access to the databases directly from your application while enjoying the benefits of using Query, such as [Query CLI](https://github.com/gc-victor/query/blob/main/README.md#cli), [Query API](https://github.com/gc-victor/query/blob/main/README.md#apis) and  [Query Studio](https://github.com/gc-victor/query-studio).
 
 ### How to use it
 
@@ -132,25 +132,21 @@ RUN apt-get update -qq && \
     ca-certificates \
     sqlite3 \
     fuse3 \
-    unzip \
     curl
 
 # Download and installs Query Server
 RUN curl --proto '=https' --tlsv1.2 -LsSf https://github.com/gc-victor/query/releases/latest/download/query-server-installer.sh | sh
 
-RUN curl -fsSL https://bun.sh/install | bash
-
-COPY --link process.sh process.sh # It will execute the Query Server and your App
-COPY --link index.ts /app/index.ts
-COPY --link tsconfig.json /app/tsconfig.json
-COPY --link package.json /app/package.json
-COPY --from=build /app /app
-COPY --from=build /app/node_modules /app/node_modules
-
+# It will execute the Query Server and your App
+COPY --link process.sh process.sh
 RUN chmod +x process.sh
 
-ENV QUERY_SERVER_PROXY="true" # Enable Query Server Proxy
-ENV QUERY_SERVER_PROXY_PORT="3001" # Your App port
+# Enable Query Server Proxy
+ENV QUERY_SERVER_PROXY="true"
+# Your App port
+ENV QUERY_SERVER_PROXY_PORT="3001"
+
+# DO WHATEVER YOU NEED TO INSTALL YOUR APP
 
 EXPOSE 3000
 
@@ -166,9 +162,11 @@ process.sh:
 
 set -m
 ~/.cargo/bin/query-server &
-~/.bun/bin/bun /app/index.ts &
+__START_YOUR_APP__ &
 fg %1
 ```
+
+Please, change `__START_YOUR_APP__` with the command to start your App.
 
 litefs.yml:
 
@@ -182,9 +180,6 @@ exec:
 Please, visit the example/proxy folder to see a working example. You will have to rename the `fly.toml.dist` to `fly.toml` to be able to deploy it and follow the steps from [Run a Query Server](https://github.com/gc-victor/query?tab=readme-ov-file#run-a-query-server) to finalize the process.
 
 ### Fly configuration
-
-
-
 
 If it is the first time using Fly, you can follow the [Hands-on with Fly.io](https://fly.io/docs/hands-on/) guide to install the CLI, sign up and sign in.
 
@@ -790,7 +785,7 @@ The `query` endpoint allows to execute queries in the databases. Using the `GET`
 The `query` endpoint allows to execute a query in the primary database.
 
 ```http
-POST /query
+POST /_/query
 ```
 
 ##### Headers
@@ -838,7 +833,7 @@ Example:
 By using the `GET` method, data can be retrieved with less latency from the database closest to the user's region, thanks to the LiteFS proxy.
 
 ```http
-GET /query?db_name=<DB_NAME>&query=<QUERY>&params=<PARAMS>
+GET /_/query?db_name=<DB_NAME>&query=<QUERY>&params=<PARAMS>
 ```
 
 ##### Headers
@@ -858,7 +853,7 @@ GET /query?db_name=<DB_NAME>&query=<QUERY>&params=<PARAMS>
 Example:
 
 ```http
-GET /query?db_name=example.sql&query=SELECT%20*%20FROM%20example%20WHERE%20id%20%3D%20%3F&params=%5B1%5D
+GET /_/query?db_name=example.sql&query=SELECT%20*%20FROM%20example%20WHERE%20id%20%3D%20%3F&params=%5B1%5D
 ```
 
 ### User Endpoint
@@ -870,7 +865,7 @@ The user endpoint allows to manage the users of the Query Server.
 The `user` endpoint allows to create a new user.
 
 ```http
-POST /user
+POST /_/user
 ```
 
 ##### Headers
@@ -904,7 +899,7 @@ Example:
 The `user` endpoint allows to update a user.
 
 ```http
-PUT /user
+PUT /_/user
 ```
 
 ##### Headers
@@ -940,7 +935,7 @@ Example:
 The `user/password` endpoint allows to update the password of a user. The user is inferred from the token.
 
 ```http
-PUT /user/password
+PUT /_/user/password
 ```
 
 ##### Headers
@@ -968,7 +963,7 @@ Example:
 The user endpoint allows to delete a user.
 
 ```http
-DELETE /user
+DELETE /_/user
 ```
 
 ##### Headers
@@ -1000,7 +995,7 @@ The user token endpoint allows to manage the user tokens of the Query Server.
 The user token endpoint allows to create a new user token.
 
 ```http
-POST /user-token
+POST /_/user-token
 ```
 
 ##### Headers
@@ -1032,7 +1027,7 @@ Example:
 The user token endpoint allows to get a list of all the user tokens.
 
 ```http
-GET /user-token
+GET /_/user-token
 ```
 
 ##### Headers
@@ -1046,7 +1041,7 @@ GET /user-token
 The user token endpoint allows to update a user token.
 
 ```http
-PUT /user-token
+PUT /_/user-token
 ```
 
 ##### Headers
@@ -1078,7 +1073,7 @@ Example:
 The user token endpoint allows to delete a user token.
 
 ```http
-DELETE /user-token
+DELETE /_/user-token
 ```
 
 ##### Headers
@@ -1106,7 +1101,7 @@ Example:
 The user token endpoint allows to get the value of a user token having an access token.
 
 ```http
-GET /user-token/value?email=<EMAIL>
+GET /_/user-token/value?email=<EMAIL>
 ```
 
 ##### Headers
@@ -1124,7 +1119,7 @@ GET /user-token/value?email=<EMAIL>
 Example:
 
 ```http
-GET /user-token/value?email=example@example.com
+GET /_/user-token/value?email=example@example.com
 ```
 
 #### POST Value
@@ -1132,7 +1127,7 @@ GET /user-token/value?email=example@example.com
 The user token endpoint allows to create a new user token without having an access token.
 
 ```http
-POST /user-token/value
+POST /_/user-token/value
 ```
 
 ##### Body
@@ -1160,7 +1155,7 @@ The token endpoint allows to manage the tokens not related to a user.
 The token endpoint allows to create a new token.
 
 ```http
-POST /token
+POST /_/token
 ```
 
 ##### Headers
@@ -1194,7 +1189,7 @@ Example:
 The token endpoint allows to get a list of all the tokens.
 
 ```http
-GET /token
+GET /_/token
 ```
 
 ##### Headers
@@ -1208,7 +1203,7 @@ GET /token
 The token endpoint allows to update a token.
 
 ```http
-PUT /token
+PUT /_/token
 ```
 
 ##### Headers
@@ -1242,7 +1237,7 @@ Example:
 The token endpoint allows to delete a token.
 
 ```http
-DELETE /token
+DELETE /_/token
 ```
 
 ##### Headers
@@ -1262,7 +1257,7 @@ DELETE /token
 The token endpoint allows to get the value of a token.
 
 ```http
-GET /token/value?name=<NAME>
+GET /_/token/value?name=<NAME>
 ```
 
 ##### Headers
@@ -1280,7 +1275,7 @@ GET /token/value?name=<NAME>
 Example:
 
 ```http
-GET /token/value?name=example
+GET /_/token/value?name=example
 ```
 
 ### Migration Endpoint
@@ -1292,7 +1287,7 @@ The migration endpoint allows to manage the migrations of the Query Server.
 The migration endpoint allows to execute a migration in the primary database.
 
 ```http
-POST /migration
+POST /_/migration
 ```
 
 ##### Headers
@@ -1326,7 +1321,7 @@ A branch is a copy of a database. The branch endpoint allows to manage the branc
 The branch endpoint allows to create a new branch.
 
 ```http
-POST /branch
+POST /_/branch
 ```
 
 ##### Headers
@@ -1358,7 +1353,7 @@ The branches has this format: `<db_name>.<branch_name>.branch.sql`. For example,
 The branch endpoint allows to get a list of all the branches.
 
 ```http
-GET /branch
+GET /_/branch
 ```
 
 ##### Headers
@@ -1374,7 +1369,7 @@ To retrieve the list of branches, the system get the list of files in the databa
 The branch endpoint allows to delete a branch.
 
 ```http
-DELETE /branch
+DELETE /_/branch
 ```
 
 ##### Headers
