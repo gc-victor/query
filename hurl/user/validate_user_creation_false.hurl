@@ -1,4 +1,4 @@
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -8,7 +8,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/user
+POST {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -20,11 +20,11 @@ Authorization: {{user_token}}
 ```
 HTTP 404
 
-GET {{host}}/user
+GET {{host}}/_/user
 Authorization: {{user_token}}
 HTTP 404
 
-PUT {{host}}/user
+PUT {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -36,7 +36,7 @@ Authorization: {{user_token}}
 ```
 HTTP 404
 
-DELETE {{host}}/user
+DELETE {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -45,7 +45,7 @@ Authorization: {{user_token}}
 ```
 HTTP 404
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

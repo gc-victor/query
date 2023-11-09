@@ -1,4 +1,4 @@
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -23,7 +23,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -35,7 +35,7 @@ HTTP 200
 [Captures]
 token: jsonpath "$['data'][0]['token']"
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: Bearer {{token}}
 ```json
 {
@@ -45,7 +45,7 @@ Authorization: Bearer {{token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: Bearer {{token}}
 ```json
 {
@@ -57,7 +57,7 @@ HTTP 400
 [Asserts]
 body contains "table query_token_create already exists in CREATE TABLE query_token_create (key TEXT NOT NULL UNIQUE, value TEXT); at offset 13"
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

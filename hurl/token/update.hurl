@@ -1,4 +1,4 @@
-POST {{host}}/token
+POST {{host}}/_/token
 Authorization: {{user_token}}
 ```json
 {
@@ -7,7 +7,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -19,7 +19,7 @@ HTTP 200
 [Asserts]
 jsonpath "$.data[0].token" exists
 
-PUT {{host}}/token
+PUT {{host}}/_/token
 Authorization: {{user_token}}
 ```json
 {
@@ -29,7 +29,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -41,7 +41,7 @@ HTTP 200
 [Asserts]
 jsonpath "$.data[0].token" exists
 
-PUT {{host}}/token
+PUT {{host}}/_/token
 Authorization: {{user_token}}
 ```json
 {
@@ -51,7 +51,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -63,7 +63,7 @@ HTTP 200
 [Asserts]
 jsonpath "$.data[0].token" exists
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

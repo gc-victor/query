@@ -1,4 +1,4 @@
-POST {{host}}/user
+POST {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -10,7 +10,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-POST {{host}}/user
+POST {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -22,7 +22,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-GET {{host}}/user/token
+GET {{host}}/_/user/token
 Authorization: {{user_token}}
 HTTP 200
 [Asserts]
@@ -35,7 +35,7 @@ jsonpath "$.data[2].token" != ""
 jsonpath "$.data[2].write" == 1
 jsonpath "$.data[2].expiration_date" exists
 
-DELETE {{host}}/user
+DELETE {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -44,7 +44,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-DELETE {{host}}/user
+DELETE {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -53,7 +53,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

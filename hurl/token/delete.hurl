@@ -1,5 +1,5 @@
 # Delete Token 1
-POST {{host}}/token
+POST {{host}}/_/token
 Authorization: {{user_token}}
 ```json
 {
@@ -8,7 +8,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -20,7 +20,7 @@ HTTP 200
 [Asserts]
 jsonpath "$.data[0].token" exists
 
-DELETE {{host}}/token
+DELETE {{host}}/_/token
 Authorization: {{user_token}}
 ```json
 {
@@ -31,7 +31,7 @@ HTTP 200
 
 # Delete Token 2
 
-POST {{host}}/token
+POST {{host}}/_/token
 Authorization: {{user_token}}
 ```json
 {
@@ -40,7 +40,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -52,7 +52,7 @@ HTTP 200
 [Asserts]
 jsonpath "$.data[0].token" exists
 
-DELETE {{host}}/token
+DELETE {{host}}/_/token
 Authorization: {{user_token}}
 ```json
 {

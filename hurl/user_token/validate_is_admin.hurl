@@ -1,5 +1,5 @@
 # It is implicit that the user_token is an admin token
-POST {{host}}/user
+POST {{host}}/_/user
 Authorization: {{user_token}}
 ```json
 {
@@ -11,7 +11,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-DELETE {{host}}/user/token
+DELETE {{host}}/_/user/token
 Authorization: {{user_token}}
 ```json
 {
@@ -20,11 +20,11 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-GET {{host}}/user/token
+GET {{host}}/_/user/token
 Authorization: {{user_token}}
 HTTP 200
 
-POST {{host}}/user/token
+POST {{host}}/_/user/token
 Authorization: {{user_token}}
 ```json
 {
@@ -35,7 +35,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-PUT {{host}}/user/token
+PUT {{host}}/_/user/token
 Authorization: {{user_token}}
 ```json
 {
@@ -46,7 +46,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-DELETE {{host}}/user/token
+DELETE {{host}}/_/user/token
 Authorization: {{user_token}}
 ```json
 {
@@ -55,7 +55,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

@@ -1,4 +1,4 @@
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 # Admin false
 ```json
@@ -18,7 +18,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -42,7 +42,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -54,22 +54,11 @@ HTTP 200
 [Captures]
 token: jsonpath "$['data'][0]['token']"
 
-GET {{host}}/user/token
+GET {{host}}/_/user/token
 Authorization: Bearer {{token}}
 HTTP 401
 
-POST {{host}}/user/token
-Authorization: Bearer {{token}}
-```json
-{
-    "email": "user_token_validate_is_no_admin",
-    "expiration_date": {{next_month}},
-    "write": true
-}
-```
-HTTP 401
-
-PUT {{host}}/user/token
+POST {{host}}/_/user/token
 Authorization: Bearer {{token}}
 ```json
 {
@@ -80,7 +69,18 @@ Authorization: Bearer {{token}}
 ```
 HTTP 401
 
-DELETE {{host}}/user/token
+PUT {{host}}/_/user/token
+Authorization: Bearer {{token}}
+```json
+{
+    "email": "user_token_validate_is_no_admin",
+    "expiration_date": {{next_month}},
+    "write": true
+}
+```
+HTTP 401
+
+DELETE {{host}}/_/user/token
 Authorization: Bearer {{token}}
 ```json
 {
@@ -89,7 +89,7 @@ Authorization: Bearer {{token}}
 ```
 HTTP 401
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {

@@ -1,4 +1,4 @@
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -8,7 +8,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/branch
+POST {{host}}/_/branch
 Authorization: {{user_token}}
 ```json
 {
@@ -18,7 +18,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-POST {{host}}/branch
+POST {{host}}/_/branch
 Authorization: {{user_token}}
 ```json
 {
@@ -28,7 +28,7 @@ Authorization: {{user_token}}
 ```
 HTTP 201
 
-GET {{host}}/branch
+GET {{host}}/_/branch
 Authorization: {{user_token}}
 HTTP 200
 [Asserts]
@@ -36,7 +36,7 @@ jsonpath "$.data[*]" count == 2
 jsonpath "$.data[*].branch" includes "hurl-test-branch-list.branch_list_1.branch.sql"
 jsonpath "$.data[*].branch" includes "hurl-test-branch-list.branch_list_2.branch.sql"
 
-DELETE {{host}}/branch
+DELETE {{host}}/_/branch
 Authorization: {{user_token}}
 ```json
 {
@@ -45,7 +45,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-DELETE {{host}}/branch
+DELETE {{host}}/_/branch
 Authorization: {{user_token}}
 ```json
 {

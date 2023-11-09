@@ -1,4 +1,4 @@
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -23,7 +23,7 @@ Authorization: {{user_token}}
 ```
 HTTP 200
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
@@ -35,7 +35,7 @@ HTTP 200
 [Captures]
 token: jsonpath "$['data'][0]['token']"
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: Bearer {{token}}
 ```json
 {
@@ -47,7 +47,7 @@ HTTP 400
 [Asserts]
 body contains "Can't query the config database without being admin"
 
-POST {{host}}/query
+POST {{host}}/_/query
 Authorization: {{user_token}}
 ```json
 {
