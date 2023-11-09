@@ -23,6 +23,7 @@ use crate::{
         branch::branch,
         functions::{function::function, function_builder::function_builder},
         migration::migration,
+        proxy::proxy,
         query::query,
         token::token,
         user::user,
@@ -97,6 +98,10 @@ async fn handle(mut req: Request<Body>) -> Response<Body> {
 
 async fn router(req: &mut Request<Body>, segments: &[&str]) -> Result<Response<Body>, HttpError> {
     if segments.is_empty() {
+        if Env::proxy() == "true" {
+            return proxy(req).await;
+        }
+
         return Err(HttpError {
             code: StatusCode::NOT_FOUND,
             message: StatusCode::NOT_FOUND.to_string(),
@@ -105,6 +110,7 @@ async fn router(req: &mut Request<Body>, segments: &[&str]) -> Result<Response<B
     }
 
     match segments[0] {
+        // TODO: "q" => {...},
         "branch" => branch(req, segments).await,
         "function" => function(req).await,
         "function-builder" => function_builder(req, segments).await,
@@ -118,10 +124,16 @@ async fn router(req: &mut Request<Body>, segments: &[&str]) -> Result<Response<B
                 user(req, segments).await
             }
         }
-        _ => Err(HttpError {
-            code: StatusCode::NOT_FOUND,
-            message: StatusCode::NOT_FOUND.to_string(),
-            body: None,
-        }),
+        _ => {
+            if Env::proxy() == "true" {
+                return proxy(req).await;
+            }
+
+            Err(HttpError {
+                code: StatusCode::NOT_FOUND,
+                message: StatusCode::NOT_FOUND.to_string(),
+                body: None,
+            })
+        }
     }
 }

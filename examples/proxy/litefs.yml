@@ -1,0 +1,63 @@
+# This directory is where your application will access the database.
+fuse:
+  dir: "/mnt/dbs"
+
+# This directory is where LiteFS will store internal data.
+# You must place this directory on a persistent volume.
+data:
+  dir: "/mnt/litefs"
+
+# If true, then LiteFS will not exit if there is a validation
+# issue on startup. This can be useful for debugging issues as
+# it avoids constantly restarting the node on ephemeral hosting.
+exit-on-error: false
+
+lease:
+  type: "consul"
+
+  # Specifies if this node can become primary. The expression below evaluates
+  # to true on nodes that are run in the primary region. Nodes in other regions
+  # act as non-candidate, read-only replicas.
+  candidate: ${FLY_REGION == PRIMARY_REGION}
+
+  # If true, then the node will automatically become primary after it has
+  # connected with the cluster and sync'd up. This makes it easier to run
+  # migrations on start up.
+  promote: false
+
+  # The API URL that other nodes will use to connect to this node.
+  advertise-url: "http://${FLY_ALLOC_ID}.vm.${FLY_APP_NAME}.internal:20202"
+
+  consul:
+    # The URL of the Consul cluster.
+    url: "${FLY_CONSUL_URL}"
+
+    # A unique key shared by all nodes in the LiteFS cluster.
+    # Change this if you are running multiple clusters in a single app!
+    key: "${FLY_APP_NAME}/primary"
+
+exec:
+  # Only run migrations on candidate nodes.
+  # - cmd: "rails db:migrate"
+  #   if-candidate: true
+
+  # Then run the application server on all nodes.
+  - cmd: "./process.sh"
+
+proxy:
+  # Specifies the bind address of the proxy server.
+  addr: ":8080"
+
+  # The hostport of the target application. If blank, proxy is disabled.
+  target: "localhost:3000"
+
+  # The name of the database used for TXID tracking.
+  db: "txid.db"
+
+  # If true, enables verbose logging of requests by the proxy.
+  debug: false
+
+  # List of paths that are ignored by the proxy. The asterisk is
+  # the only available wildcard. These requests are passed
+  # through to the target as-is.
+  passthrough: ["/debug/*", "*.png"]

@@ -18,6 +18,14 @@ impl Env {
         when_dbs_path()
     }
 
+    pub fn proxy() -> String {
+        when_proxy()
+    }
+
+    pub fn proxy_port() -> String {
+        when_proxy_port()
+    }
+
     pub fn token_secret() -> String {
         when_token_secret()
     }
@@ -40,6 +48,14 @@ fn when_port() -> u16 {
 
 fn when_dbs_path() -> String {
     env::var("QUERY_SERVER_DBS_PATH").unwrap_or("/mnt/dbs".to_string())
+}
+
+fn when_proxy() -> String {
+    env::var("QUERY_SERVER_PROXY").unwrap_or("false".to_string())
+}
+
+fn when_proxy_port() -> String {
+    env::var("QUERY_SERVER_PROXY_PORT").unwrap_or("3001".to_string())
 }
 
 fn when_token_secret() -> String {
