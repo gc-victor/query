@@ -1,6 +1,7 @@
 pub mod branch;
 pub mod functions;
 pub mod migration;
+pub mod proxy;
 pub mod query;
 pub mod token;
 pub mod user;

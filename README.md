@@ -1,10 +1,13 @@
 # Query
 
-Query is a Rust server for your remote SQLite databases and a CLI to manage them.
+Query is a Rust server for your remote SQLite databases with a CLI and API to manage them.
 
 ## Table Of Contents
 
-- [Run A Query Server](#run-a-query-server)
+- [Run A Query Server on Fly.io](#run-a-query-server-on-flyio)
+  - [Query As An Isolated Service](#query-as-an-isolated-service)
+  - [Query Server With Proxy](#query-server-with-proxy)
+  - [Fly configuration](#fly-configuration)
 - [CLI](#cli)
   - [Install](#install)
     - [Use The Installer Scripts](#use-the-installer-scripts)
@@ -48,9 +51,140 @@ Query is a Rust server for your remote SQLite databases and a CLI to manage them
   - [Migration Endpoint](#migration-endpoint)
   - [Branch Endpoint](#branch-endpoint)
 
-## Run A Query Server
+## Run A Query Server on Fly.io
 
 We recommend use Query with Fly (<https://fly.io>). It will help you to deploy your server in a few minutes and replicate your databases across the world.
+
+You can use Query as an isolated service or you can use it as a service with a proxy to your App. We will see both options.
+
+### Query As An Isolated Service
+
+Query allows you to set a service with authentication to access remote SQLite databases and possibility to use [Query CLI](https://github.com/gc-victor/query/blob/main/README.md#cli) or [Query API](https://github.com/gc-victor/query/blob/main/README.md#apis) or  [Query Studio](https://github.com/gc-victor/query-studio).
+
+### How to use it
+
+Your Dockerfile must include the Query Server. The Dockerfile could be a multistage one, where the last stage should be an `x86_64-unknown-linux-gnu` compatible image. We recommend using a `debian:<suite>-slim` image.
+
+Please refer to the [LiteFS documentation](https://fly.io/docs/litefs/speedrun/) for more information, as it is a crucial system component.
+
+Dockerfile:
+
+```Dockerfile
+FROM debian:12-slim
+
+ADD litefs.yml /etc/litefs.yml
+COPY --from=flyio/litefs:0.5 /usr/local/bin/litefs /usr/local/bin/litefs
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    sqlite3 \
+    fuse3 \
+    curl
+
+# Download and installs Query Server
+RUN curl --proto '=https' --tlsv1.2 -LsSf https://github.com/gc-victor/query/releases/latest/download/query-server-installer.sh | sh
+
+EXPOSE 3000
+
+CMD ["litefs", "mount"]
+```
+
+process.sh:
+
+```bash
+#!/bin/bash
+
+~/.cargo/bin/query-server
+```
+
+litefs.yml:
+
+```yml
+...
+exec:
+  - cmd: "./process.sh"
+...
+```
+
+### Query Server With Proxy
+
+Query allows you to set a proxy to an App in the same VM. It provides you access to the databases directly from your application while enjoying the benefits of using Query, such as [Query CLI](https://github.com/gc-victor/query/blob/main/README.md#cli) or [Query API](https://github.com/gc-victor/query/blob/main/README.md#apis) or  [Query Studio](https://github.com/gc-victor/query-studio).
+
+### How to use it
+
+In your Dockerfile, you must include the Query Server and your Application together. The Dockerfile could be a multistage one, where the last stage should be an `x86_64-unknown-linux-gnu` compatible image. We recommend using a `debian:<suite>-slim` image.
+
+For this example, we will use Bun as our App. You can use any other language or framework.
+
+Please refer to the [LiteFS documentation](https://fly.io/docs/litefs/speedrun/) for more information, as it is a crucial system component.
+
+Dockerfile:
+
+```Dockerfile
+FROM debian:12-slim AS runtime
+
+ADD litefs.yml /etc/litefs.yml
+COPY --from=flyio/litefs:0.5 /usr/local/bin/litefs /usr/local/bin/litefs
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    sqlite3 \
+    fuse3 \
+    unzip \
+    curl
+
+# Download and installs Query Server
+RUN curl --proto '=https' --tlsv1.2 -LsSf https://github.com/gc-victor/query/releases/latest/download/query-server-installer.sh | sh
+
+RUN curl -fsSL https://bun.sh/install | bash
+
+COPY --link process.sh process.sh # It will execute the Query Server and your App
+COPY --link index.ts /app/index.ts
+COPY --link tsconfig.json /app/tsconfig.json
+COPY --link package.json /app/package.json
+COPY --from=build /app /app
+COPY --from=build /app/node_modules /app/node_modules
+
+RUN chmod +x process.sh
+
+ENV QUERY_SERVER_PROXY="true" # Enable Query Server Proxy
+ENV QUERY_SERVER_PROXY_PORT="3001" # Your App port
+
+EXPOSE 3000
+
+CMD ["litefs", "mount"]
+```
+
+For multi-process applications, you can use the "Just use Bash", as we do in this example, to start the Query Server and your App. [Fly proposes](https://fly.io/docs/app-guides/multiple-processes/) different ways to manage multiple processes, so please use the one you feel more comfortable with.
+
+process.sh:
+
+```bash
+#!/bin/bash
+
+set -m
+~/.cargo/bin/query-server &
+~/.bun/bin/bun /app/index.ts &
+fg %1
+```
+
+litefs.yml:
+
+```yml
+...
+exec:
+  - cmd: "./process.sh"
+...
+```
+
+Please, visit the example/proxy folder to see a working example. You will have to rename the `fly.toml.dist` to `fly.toml` to be able to deploy it and follow the steps from [Run a Query Server](https://github.com/gc-victor/query?tab=readme-ov-file#run-a-query-server) to finalize the process.
+
+### Fly configuration
+
+
+
 
 If it is the first time using Fly, you can follow the [Hands-on with Fly.io](https://fly.io/docs/hands-on/) guide to install the CLI, sign up and sign in.
 
