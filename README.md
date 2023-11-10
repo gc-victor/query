@@ -194,8 +194,12 @@ It is time to set the environment variables for your app. You can do it running 
 Token secret:
 
 ```sh
-fly secrets set QUERY_SERVER_TOKEN_SECRET=USE_AN_ALPHANUMERIC_HASH
+fly secrets set QUERY_SERVER_TOKEN_SECRET=$(openssl rand -hex 32)
 ```
+
+> **Note**: If you don't have openssl installed, you can also use
+> [1Password](https://1password.com/password-generator) to generate a random
+> secret, just replace `$(openssl rand -hex 32)` with the generated secret.
 
 Admin email:
 
