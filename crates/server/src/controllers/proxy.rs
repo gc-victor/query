@@ -8,7 +8,12 @@ use super::utils::http_error::HttpError;
 #[instrument(err(Debug), skip(req))]
 pub async fn proxy(req: &mut Request<Body>) -> Result<Response<Body>, HttpError> {
     let path = req.uri().path().to_string();
-    let target_url = format!("http://localhost:{}{}", Env::proxy_port(), path);
+    let query = match req.uri().query() {
+        Some(query) => format!("?{}", query.to_string()),
+        None => "".to_string(),
+    };
+    let target_url = format!("http://localhost:{}{}{}", Env::proxy_port(), path, query);
+
     let headers = req.headers().clone();
     let body_bytes = match hyper::body::to_bytes(req.body_mut()).await {
         Ok(body_bytes) => body_bytes,
