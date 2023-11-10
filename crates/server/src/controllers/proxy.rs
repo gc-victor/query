@@ -43,24 +43,6 @@ pub async fn proxy(req: &mut Request<Body>) -> Result<Response<Body>, HttpError>
             })
         }
     };
-    let status = response.status();
-    let headers = response.headers().clone();
-    let body = match hyper::body::to_bytes(response.into_body()).await {
-        Ok(body) => body,
-        Err(e) => {
-            return Err(HttpError {
-                code: hyper::StatusCode::BAD_GATEWAY,
-                message: e.to_string(),
-                body: None,
-            })
-        }
-    };
-    let body = String::from_utf8(body.to_vec()).unwrap();
 
-    let mut resp = Response::new(Body::from(body));
-
-    *resp.status_mut() = status;
-    *resp.headers_mut() = headers;
-
-    Ok(resp)
+    Ok(response)
 }
