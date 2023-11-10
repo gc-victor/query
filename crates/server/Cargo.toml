@@ -1,6 +1,6 @@
 [package]
 name = "query-server"
-version = "0.3.1-prerelease"
+version = "0.3.1"
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
