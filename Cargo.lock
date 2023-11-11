@@ -2649,7 +2649,7 @@ dependencies = [
 
 [[package]]
 name = "query-server"
-version = "0.3.2"
+version = "0.3.3-prerelease"
 dependencies = [
  "anyhow",
  "argon2",

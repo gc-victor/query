@@ -76,11 +76,11 @@ async fn main() {
     }
 }
 
-async fn handle(mut req: Request<Body>) -> Response<Body> {
+async fn handle(req: Request<Body>) -> Response<Body> {
     let path = req.uri().path().to_owned();
     let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
 
-    router(&mut req, &segments)
+    router(req, &segments)
         .await
         .unwrap_or_else(|e| -> Response<Body> {
             tracing::error!("{}", e.to_string());
@@ -96,7 +96,7 @@ async fn handle(mut req: Request<Body>) -> Response<Body> {
         })
 }
 
-async fn router(req: &mut Request<Body>, segments: &[&str]) -> Result<Response<Body>, HttpError> {
+async fn router(req: Request<Body>, segments: &[&str]) -> Result<Response<Body>, HttpError> {
     if segments.is_empty() {
         if Env::proxy() == "true" {
             return proxy(req).await;
@@ -112,19 +112,21 @@ async fn router(req: &mut Request<Body>, segments: &[&str]) -> Result<Response<B
     let init_segment = segments[0];
     let segments = &segments[1..];
 
+    let mut req = req;
+
     match init_segment {
         "_" => match segments[0] {
-            "branch" => branch(req, segments).await,
-            "function" => function(req).await,
-            "function-builder" => function_builder(req, segments).await,
-            "migration" => migration(req, segments).await,
-            "query" => query(req, segments).await,
-            "token" => token(req, segments).await,
+            "branch" => branch(&mut req, segments).await,
+            "function" => function(&mut req).await,
+            "function-builder" => function_builder(&mut req, segments).await,
+            "migration" => migration(&mut req, segments).await,
+            "query" => query(&mut req, segments).await,
+            "token" => token(&mut req, segments).await,
             "user" => {
                 if segments.len() > 1 && segments[1] == "token" {
-                    user_token(req, segments).await
+                    user_token(&mut req, segments).await
                 } else {
-                    user(req, segments).await
+                    user(&mut req, segments).await
                 }
             }
             _ => Err(HttpError {
