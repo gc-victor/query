@@ -117,6 +117,14 @@ dev-cli:
 dev:
 	cargo watch --ignore .dbs --shell "make run -s"
 
+dev-proxy:
+	export QUERY_SERVER_PROXY=true && cargo watch --ignore .dbs --shell "make run -s"
+
+dev-bun:
+	touch .dbs/kv.sql
+	export QUERY_SERVER_DBS_PATH=".dbs"
+	bun examples/proxy/index.ts
+
 # Test
 
 install-nextest:

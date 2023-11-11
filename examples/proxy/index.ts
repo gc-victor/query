@@ -9,11 +9,16 @@ const server = Bun.serve({
     async fetch(req) {
         const { pathname } = new URL(req.url);
 
+        console.log("pathname", pathname);
+        console.log("method", req.method);
+
         const query = db.query("SELECT * FROM kv").all();
 
         if (pathname === "/proxy" && req.method === "GET") return new Response(`${JSON.stringify(query)}`);
         if (pathname === "/proxy" && req.method === "POST") {
             const body = await req.json();
+
+            console.log("body", body);
             
             db.run("INSERT OR IGNORE INTO kv (key, value) VALUES (?, ?)", body.key, body.value);
 
