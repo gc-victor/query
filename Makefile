@@ -1,8 +1,17 @@
 ARGUMENTS = $(filter-out $@,$(MAKECMDGOALS))
 
+# Hurl variables
+
 export HURL_prev_month := $(shell date +%s%3N -d '-1 month')
 export HURL_next_month := $(shell date +%s%3N -d '+1 month')
 export HURL_next_year := $(shell date +%s%3N -d '+1 year')
+HURL_user_token := $(shell curl --silent --header \
+	'Content-Type: application/json' \
+	--data '{"email":"admin","password":"admin"}' \
+	'http://localhost:3000/_/user/token/value' | jq -r '.data[0].token')
+HURL_user_token := "Bearer $(HURL_user_token)"
+export HURL_user_token
+export HURL_host = http://localhost:3000
 
 # Clean
 
@@ -76,13 +85,13 @@ install-hurl:
 	cargo install hurl
 
 hurl: clean-hurl-dbs
-	hurl --verbose --continue-on-error --variables-file hurl/.env $(ARGUMENTS)
+	hurl --verbose --continue-on-error $(ARGUMENTS)
 
 hurl-test: clean-hurl-dbs
-	hurl --test --continue-on-error --variables-file hurl/.env $(ARGUMENTS)
+	hurl --test --continue-on-error $(ARGUMENTS)
 
 hurl-test-all: clean-hurl-dbs
-	hurl --test --continue-on-error --variables-file hurl/.env hurl/**/*.hurl hurl/**/**/*.hurl
+	hurl --test --continue-on-error hurl/**/*.hurl hurl/**/**/*.hurl
 
 # Lint
 
