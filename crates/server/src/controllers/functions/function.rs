@@ -172,8 +172,8 @@ fn remove_file_path(e: String) -> Result<String> {
 }
 
 fn path_match(path: &str, method: &str) -> Result<String> {
-    let path = if path.ends_with("/") && path != "/" {
-        path.trim_end_matches("/")
+    let path = if path.ends_with('/') && path != "/" {
+        path.trim_end_matches('/')
     } else {
         path
     };

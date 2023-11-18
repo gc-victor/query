@@ -13,10 +13,9 @@ fn op_sqlite_query_extension(#[string] db_name: String, #[string] query: String)
 
     let statement = connection.prepare(&query);
 
-    if statement.is_err() {
-        Err(anyhow!(format!("Error: {}", statement.unwrap_err())))
-    } else {
-        Ok(query_to_json(statement.unwrap(), []).unwrap().to_string())
+    match statement.is_err() {
+        true => Err(anyhow!(format!("Error: {}", statement.unwrap_err()))),
+        false => Ok(query_to_json(statement.unwrap(), []).unwrap().to_string()),
     }
 }
 
@@ -30,10 +29,9 @@ fn op_sqlite_execute_extension(
 
     let statement = connection.prepare(&query);
 
-    if statement.is_err() {
-        Err(anyhow!(format!("Error: {}", statement.unwrap_err())))
-    } else {
-        Ok(query_to_json(statement.unwrap(), []).unwrap().to_string())
+    match statement.is_err() {
+        true => Err(anyhow!(format!("Error: {}", statement.unwrap_err()))),
+        false => Ok(query_to_json(statement.unwrap(), []).unwrap().to_string()),
     }
 }
 

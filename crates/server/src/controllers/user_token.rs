@@ -328,7 +328,7 @@ fn validate_emails_user_exists(email: &str) -> Result<(), HttpError> {
         [email],
         |row| -> std::result::Result<u64, rusqlite::Error> { row.get(0) },
     ) {
-        Ok(s) if s == 0 => Err(bad_request("There user do not exists".to_string())),
+        Ok(0) => Err(bad_request("There user do not exists".to_string())),
         _ => Ok(()),
     }?;
 

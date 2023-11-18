@@ -9,7 +9,7 @@ use super::utils::http_error::{bad_request, HttpError};
 pub async fn proxy(mut req: Request<Body>) -> Result<Response<Body>, HttpError> {
     let path = req.uri().path().to_string();
     let query = match req.uri().query() {
-        Some(query) => format!("?{}", query.to_string()),
+        Some(query) => format!("?{}", query),
         None => "".to_string(),
     };
 

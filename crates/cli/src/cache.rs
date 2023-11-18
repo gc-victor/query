@@ -15,6 +15,12 @@ type CacheList = Vec<CacheItem>;
 
 pub struct Cache {}
 
+impl Default for Cache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Cache {
     pub fn new() -> Self {
         if !Path::new(&CONFIG.cli.cache_file_path).exists() {

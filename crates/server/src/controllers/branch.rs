@@ -126,7 +126,7 @@ fn list_branches() -> Result<String, HttpError> {
             );
         }
 
-        if hash_map.len() > 0 {
+        if !hash_map.is_empty() {
             values.push(hash_map);
         }
     }

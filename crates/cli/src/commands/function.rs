@@ -140,7 +140,7 @@ pub struct FunctionBuilder {
 }
 
 fn function_builder(file_path: &str) -> Result<FunctionBuilder> {
-    match std::fs::read(&file_path) {
+    match std::fs::read(file_path) {
         Ok(_) => (),
         Err(_) => {
             panic!(r#"The function file "{}" doesn't exists"#, file_path);
@@ -176,7 +176,7 @@ fn function_builder(file_path: &str) -> Result<FunctionBuilder> {
         );
     }
 
-    let function = esbuild(&file_path)?;
+    let function = esbuild(file_path)?;
 
     Ok(FunctionBuilder {
         active: true,
@@ -212,7 +212,7 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
         .output()
         .expect("Failed to execute esbuild");
 
-    let bundle_path = format!("{}/{}", out_dir, function_path.split("/").last().unwrap());
+    let bundle_path = format!("{}/{}", out_dir, function_path.split('/').last().unwrap());
     let function = fs::read_to_string(&bundle_path)?;
     let function = function.replace("var handleRequest", "globalThis.___handleRequest");
     let re = Regex::new(r"export\{(\w) as handleRequest\};\n$").unwrap();
@@ -305,7 +305,7 @@ mod tests {
 
         let function_builder = function_builder(&path).unwrap();
 
-        assert_eq!(function_builder.active, true);
+        assert!(function_builder.active);
         assert_eq!(
             function_builder.function,
             [60, 112, 62, 72, 111, 108, 97, 33, 60, 47, 112, 62]
@@ -327,7 +327,7 @@ mod tests {
 
         let function_builder = function_builder(&path).unwrap();
 
-        assert_eq!(function_builder.active, true);
+        assert!(function_builder.active);
         assert_eq!(
             function_builder.function,
             [60, 112, 62, 72, 111, 108, 97, 33, 60, 47, 112, 62]
