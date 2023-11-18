@@ -2,6 +2,9 @@ name: Tests
 
 on:
   push:
+    branches:
+      - main
+      - 'releases/**'
     tags:
       - '**[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
