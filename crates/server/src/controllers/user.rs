@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
 use chacha20poly1305::aead::OsRng;
-use hyper::{Body, Method, Request, Response};
+use hyper::{body::Incoming, Method, Request, Response};
 use rusqlite::named_params;
 use serde::Deserialize;
 use serde_json::json;
@@ -9,7 +9,6 @@ use tracing::instrument;
 
 use crate::{
     controllers::utils::{
-        get_body::get_body,
         get_token::get_token,
         http_error::{bad_request, internal_server_error, not_found, HttpError},
         responses::{created, ok},
@@ -20,6 +19,8 @@ use crate::{
     },
     sqlite::connect_db::connect_config_db,
 };
+
+use super::utils::body::{Body, BoxBody};
 
 #[derive(Deserialize)]
 struct CreateUserOptions {
@@ -49,7 +50,10 @@ struct UpdateUserPasswordOptions {
 }
 
 #[instrument(err(Debug), skip(req))]
-pub async fn user(req: &mut Request<Body>, segments: &[&str]) -> Result<Response<Body>, HttpError> {
+pub async fn user(
+    req: &mut Request<Incoming>,
+    segments: &[&str],
+) -> Result<Response<BoxBody>, HttpError> {
     match (req.method(), segments) {
         (&Method::GET, ["user"]) => {
             // IMPORTANT! don't remove this validation
@@ -67,7 +71,7 @@ pub async fn user(req: &mut Request<Body>, segments: &[&str]) -> Result<Response
             // IMPORTANT! don't remove this validation
             validate_request(req)?;
 
-            let body = get_body(req).await?;
+            let body = Body::to_string(req.body_mut()).await?;
 
             let options: CreateUserOptions = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
@@ -86,7 +90,7 @@ pub async fn user(req: &mut Request<Body>, segments: &[&str]) -> Result<Response
             // IMPORTANT! don't remove this validation
             validate_request(req)?;
 
-            let body = get_body(req).await?;
+            let body = Body::to_string(req.body_mut()).await?;
 
             let DeleteUserOptions { email } = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
@@ -107,7 +111,7 @@ pub async fn user(req: &mut Request<Body>, segments: &[&str]) -> Result<Response
         (&Method::PUT, ["user"]) => {
             validate_request(req)?;
 
-            let body = get_body(req).await?;
+            let body = Body::to_string(req.body_mut()).await?;
 
             let options: UpdateUserOptions = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
@@ -126,12 +130,12 @@ pub async fn user(req: &mut Request<Body>, segments: &[&str]) -> Result<Response
             // IMPORTANT! don't remove this validation
             validate_user_creation()?;
 
-            let token = get_token(req)?;
+            let token = get_token(req.headers().to_owned())?;
 
             // IMPORTANT! don't remove this validation
             validate_token(&token)?;
 
-            let body = get_body(req).await?;
+            let body = Body::to_string(req.body_mut()).await?;
 
             let options: UpdateUserPasswordOptions = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
@@ -290,11 +294,11 @@ fn get_user_email(token: &str) -> Result<String> {
     }
 }
 
-fn validate_request(req: &Request<Body>) -> Result<(), HttpError> {
+fn validate_request(req: &Request<Incoming>) -> Result<(), HttpError> {
     // IMPORTANT! don't remove this validation
     validate_user_creation()?;
 
-    let token = get_token(req)?;
+    let token = get_token(req.headers().to_owned())?;
 
     // IMPORTANT! don't remove this validation
     validate_token(&token)?;

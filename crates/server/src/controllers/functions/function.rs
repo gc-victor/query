@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::env;
 
 use anyhow::Result;
-use hyper::{http::HeaderName, Body, Method, Request, Response};
+use hyper::{body::Incoming, http::HeaderName, Method, Request, Response};
 use rusqlite::named_params;
 use rustyscript::{json_args, Module};
 use serde::{Deserialize, Serialize};
@@ -12,7 +12,7 @@ use tracing::instrument;
 
 use crate::{
     controllers::utils::{
-        get_body::get_body,
+        body::{Body, BoxBody},
         http_error::{bad_request, internal_server_error, not_found, HttpError},
     },
     sqlite::connect_db::connect_function_db,
@@ -35,7 +35,7 @@ struct HandleResponse {
 }
 
 #[instrument(err(Debug), skip(req))]
-pub async fn function(req: &mut Request<Body>) -> Result<Response<Body>, HttpError> {
+pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, HttpError> {
     let method = req.method().as_str();
     let path = req.uri().path().replace("/_/function", "");
     let path = if path.is_empty() {
@@ -78,7 +78,7 @@ pub async fn function(req: &mut Request<Body>) -> Result<Response<Body>, HttpErr
     let body = if req.method() == Method::GET {
         "".to_string()
     } else {
-        get_body(req).await?
+        Body::to_string(req.body_mut()).await?
     };
 
     let mut headers: Vec<String> = vec![];

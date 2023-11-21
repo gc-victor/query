@@ -1,8 +1,8 @@
 pub mod bind_to_params;
+pub mod body;
 pub mod current_time;
 pub mod db_test;
 pub mod db_test_before;
-pub mod get_body;
 pub mod get_claims;
 pub mod get_query_string;
 pub mod get_token;

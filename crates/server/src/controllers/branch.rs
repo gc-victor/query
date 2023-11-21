@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs, path::Path};
 
 use anyhow::Result;
-use hyper::{Body, Method, Request, Response};
+use hyper::{body::Incoming, Method, Request, Response};
 use rusqlite::limits::Limit;
 use serde::Deserialize;
 use serde_json::json;
@@ -9,7 +9,7 @@ use tracing::instrument;
 
 use crate::{
     controllers::utils::{
-        get_body::get_body,
+        body::{Body, BoxBody},
         get_token::get_token,
         http_error::{bad_request, internal_server_error, not_found, HttpError},
         responses::{created, ok},
@@ -33,9 +33,9 @@ struct DeleteBranchOptions {
 
 #[instrument(err(Debug), skip(req))]
 pub async fn branch(
-    req: &mut Request<Body>,
+    req: &mut Request<Incoming>,
     segments: &[&str],
-) -> Result<Response<Body>, HttpError> {
+) -> Result<Response<BoxBody>, HttpError> {
     match (req.method(), segments) {
         (&Method::GET, ["branch"]) => {
             validate_request(req)?;
@@ -51,8 +51,7 @@ pub async fn branch(
         (&Method::POST, ["branch"]) => {
             validate_request(req)?;
 
-            let body = get_body(req).await?;
-
+            let body = Body::to_string(req.body_mut()).await?;
             let options: CreateBranchOptions = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
                 Err(e) => Err(bad_request(e.to_string())),
@@ -69,8 +68,7 @@ pub async fn branch(
         (&Method::DELETE, ["branch"]) => {
             validate_request(req)?;
 
-            let body = get_body(req).await?;
-
+            let body = Body::to_string(req.body_mut()).await?;
             let options: DeleteBranchOptions = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
                 Err(e) => Err(bad_request(e.to_string())),
@@ -88,8 +86,8 @@ pub async fn branch(
     }
 }
 
-fn validate_request(req: &Request<Body>) -> Result<(), HttpError> {
-    let token = get_token(req)?;
+fn validate_request(req: &Request<Incoming>) -> Result<(), HttpError> {
+    let token = get_token(req.headers().to_owned())?;
 
     // IMPORTANT! don't remove this validation
     validate_token(&token)?;

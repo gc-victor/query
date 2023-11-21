@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use hyper::{Body, Method, Request, Response};
+use hyper::{body::Incoming, Method, Request, Response};
 use rusqlite::named_params;
 use serde::Deserialize;
 use serde_json::json;
@@ -7,8 +7,8 @@ use tracing::instrument;
 
 use crate::{
     controllers::utils::{
+        body::{Body, BoxBody},
         current_time::current_time_millis,
-        get_body::get_body,
         get_query_string::get_query_string,
         get_token::get_token,
         http_error::{bad_request, internal_server_error, not_found, HttpError},
@@ -51,9 +51,9 @@ struct UpdateUserTokenOptions {
 
 #[instrument(err(Debug), skip(req))]
 pub async fn user_token(
-    req: &mut Request<Body>,
+    req: &mut Request<Incoming>,
     segments: &[&str],
-) -> Result<Response<Body>, HttpError> {
+) -> Result<Response<BoxBody>, HttpError> {
     match (req.method(), segments) {
         (&Method::GET, ["user", "token"]) => {
             // IMPORTANT! don't remove this validation
@@ -71,7 +71,7 @@ pub async fn user_token(
             // IMPORTANT! don't remove this validation
             validate_request(req)?;
 
-            let body = get_body(req).await?;
+            let body = Body::to_string(req.body_mut()).await?;
 
             let options: CreateUserTokenOptions = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
@@ -113,7 +113,7 @@ pub async fn user_token(
             // IMPORTANT! don't remove this validation
             validate_token_creation()?;
 
-            let body = get_body(req).await?;
+            let body = Body::to_string(req.body_mut()).await?;
 
             let options: GetUserTokenValueWithoutTokenOptions = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
@@ -134,7 +134,7 @@ pub async fn user_token(
         (&Method::DELETE, ["user", "token"]) => {
             validate_request(req)?;
 
-            let body = get_body(req).await?;
+            let body = Body::to_string(req.body_mut()).await?;
 
             let DeleteUserTokenOptions { email } = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
@@ -156,7 +156,7 @@ pub async fn user_token(
         (&Method::PUT, ["user", "token"]) => {
             validate_request(req)?;
 
-            let body = get_body(req).await?;
+            let body = Body::to_string(req.body_mut()).await?;
 
             let options: UpdateUserTokenOptions = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
@@ -303,14 +303,14 @@ fn update_user_token(options: UpdateUserTokenOptions) -> Result<(), HttpError> {
     Ok(())
 }
 
-fn validate_request(req: &Request<Body>) -> Result<(), HttpError> {
+fn validate_request(req: &Request<Incoming>) -> Result<(), HttpError> {
     // IMPORTANT! don't remove this validation
     validate_user_creation()?;
 
     // IMPORTANT! don't remove this validation
     validate_token_creation()?;
 
-    let token = get_token(req)?;
+    let token = get_token(req.headers().to_owned())?;
 
     // IMPORTANT! don't remove this validation
     validate_token(&token)?;

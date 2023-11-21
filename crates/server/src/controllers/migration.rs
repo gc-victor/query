@@ -1,11 +1,11 @@
 use anyhow::Result;
-use hyper::{Body, Method, Request, Response};
+use hyper::{body::Incoming, Method, Request, Response};
 use serde::Deserialize;
 use tracing::instrument;
 
 use crate::{
     controllers::utils::{
-        get_body::get_body,
+        body::{Body, BoxBody},
         get_token::get_token,
         http_error::{bad_request, internal_server_error, not_found, unauthorized, HttpError},
         responses::created,
@@ -25,15 +25,15 @@ struct MigrationOptions {
 
 #[instrument(err(Debug), skip(req))]
 pub async fn migration(
-    req: &mut Request<Body>,
+    req: &mut Request<Incoming>,
     segments: &[&str],
-) -> Result<Response<Body>, HttpError> {
+) -> Result<Response<BoxBody>, HttpError> {
     match (req.method(), segments) {
         (&Method::POST, ["migration"]) => {
             // IMPORTANT! don't remove this validation
             validate_user_creation()?;
 
-            let token = get_token(req)?;
+            let token = get_token(req.headers().to_owned())?;
 
             // IMPORTANT! don't remove this validation
             validate_is_admin(&token)?;
@@ -47,7 +47,7 @@ pub async fn migration(
                 return Err(unauthorized());
             }
 
-            let body = get_body(req).await?;
+            let body = Body::to_string(req.body_mut()).await?;
 
             let MigrationOptions { db_name, query } = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
