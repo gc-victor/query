@@ -127,7 +127,7 @@ dev:
 	cargo watch --ignore .dbs --shell "make run -s"
 
 dev-proxy:
-	export QUERY_SERVER_PROXY=true && cargo watch --ignore .dbs --shell "make run -s"
+	export QUERY_SERVER_PROXY=true && cargo watch --ignore .dbs --shell "make run -s" & make dev-bun
 
 dev-bun:
 	touch .dbs/kv.sql

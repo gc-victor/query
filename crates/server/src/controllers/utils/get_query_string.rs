@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
-use hyper::{Body, Request};
+use hyper::{body::Incoming, Request};
 use url::form_urlencoded;
 
-pub fn get_query_string(req: &Request<Body>, param: &str) -> Result<String> {
+pub fn get_query_string(req: &Request<Incoming>, param: &str) -> Result<String> {
     let queries = match req.uri().query() {
         Some(v) => Ok(v),
         None => Err(anyhow!("Missing query string")),

@@ -1,12 +1,11 @@
-use hyper::{header::AUTHORIZATION, Body, Request};
+use hyper::{header::AUTHORIZATION, HeaderMap};
 use tracing::instrument;
 
 use super::http_error::{unauthorized, HttpError};
 
-#[instrument(err(Debug), skip(req))]
-pub fn get_token(req: &Request<Body>) -> Result<String, HttpError> {
-    let token = req
-        .headers()
+#[instrument(err(Debug), skip(headers))]
+pub fn get_token(headers: HeaderMap) -> Result<String, HttpError> {
+    let token = headers
         .get(AUTHORIZATION)
         .ok_or_else(unauthorized)?
         .to_str()
@@ -25,28 +24,33 @@ pub fn get_token(req: &Request<Body>) -> Result<String, HttpError> {
 
 #[cfg(test)]
 mod tests {
-    use hyper::header;
+    use hyper::header::{self, HeaderValue};
 
     use super::*;
 
     #[test]
     fn test_get_token() {
-        let req = Request::builder()
-            .header(header::AUTHORIZATION, "Bearer token")
-            .body(Body::empty())
-            .unwrap();
-        let result = get_token(&req);
+        let mut headers = HeaderMap::new();
+
+        headers.append(
+            header::AUTHORIZATION,
+            HeaderValue::from_static("Bearer token"),
+        );
+
+        let result = get_token(headers);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "token");
     }
 
     #[test]
     fn test_invalid_authorization_header() {
-        let req = Request::builder()
-            .header(header::AUTHORIZATION, "invalid_header")
-            .body(Body::empty())
-            .unwrap();
-        let result = get_token(&req);
+        let mut headers = HeaderMap::new();
+
+        headers.append(
+            header::AUTHORIZATION,
+            HeaderValue::from_static("invalid_value"),
+        );
+        let result = get_token(headers);
 
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), unauthorized());
@@ -54,8 +58,8 @@ mod tests {
 
     #[test]
     fn test_missing_authorization_header() {
-        let req = Request::builder().body(Body::empty()).unwrap();
-        let result = get_token(&req);
+        let headers = HeaderMap::new();
+        let result = get_token(headers);
 
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), unauthorized());
@@ -63,11 +67,10 @@ mod tests {
 
     #[test]
     fn test_missing_token() {
-        let req = Request::builder()
-            .header(header::AUTHORIZATION, "Bearer ")
-            .body(Body::empty())
-            .unwrap();
-        let result = get_token(&req);
+        let mut headers = HeaderMap::new();
+
+        headers.append(header::AUTHORIZATION, HeaderValue::from_static("Bearer "));
+        let result = get_token(headers);
 
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), unauthorized());

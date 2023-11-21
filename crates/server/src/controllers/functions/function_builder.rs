@@ -1,5 +1,5 @@
 use anyhow::Result;
-use hyper::{Body, Method, Request, Response};
+use hyper::{body::Incoming, Method, Request, Response};
 use rusqlite::named_params;
 use serde::Deserialize;
 use serde_bytes::ByteBuf;
@@ -7,7 +7,7 @@ use tracing::instrument;
 
 use crate::{
     controllers::utils::{
-        get_body::get_body,
+        body::{Body, BoxBody},
         get_token::get_token,
         http_error::{bad_request, not_implemented, HttpError},
         responses::ok,
@@ -33,15 +33,15 @@ struct DeleteFunctionOptions<'a> {
 
 #[instrument(err(Debug), skip(req))]
 pub async fn function_builder(
-    req: &mut Request<Body>,
+    req: &mut Request<Incoming>,
     segments: &[&str],
-) -> Result<Response<Body>, HttpError> {
+) -> Result<Response<BoxBody>, HttpError> {
     match (req.method(), segments) {
         (&Method::DELETE, ["function-builder"]) => {
             // IMPORTANT! don't remove this validation
             validate_request(req)?;
 
-            let body = get_body(req).await?;
+            let body = Body::to_string(req.body_mut()).await?;
 
             let options: DeleteFunctionOptions = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
@@ -57,7 +57,7 @@ pub async fn function_builder(
             // IMPORTANT! don't remove this validation
             validate_request(req)?;
 
-            let body = get_body(req).await?;
+            let body = Body::to_string(req.body_mut()).await?;
 
             let options: AddFunctionOptions = match serde_json::from_str(&body) {
                 Ok(v) => Ok(v),
@@ -129,11 +129,11 @@ fn delete_function(options: DeleteFunctionOptions) -> Result<(), HttpError> {
     }
 }
 
-fn validate_request(req: &Request<Body>) -> Result<(), HttpError> {
+fn validate_request(req: &Request<Incoming>) -> Result<(), HttpError> {
     // IMPORTANT! don't remove this validation
     validate_token_creation()?;
 
-    let token = get_token(req)?;
+    let token = get_token(req.headers().to_owned())?;
 
     // IMPORTANT! don't remove this validation
     validate_token(&token)?;

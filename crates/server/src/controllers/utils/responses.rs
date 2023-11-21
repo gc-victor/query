@@ -1,31 +1,33 @@
 use anyhow::Result;
-use hyper::{Body, Response, StatusCode};
+use hyper::{Response, StatusCode};
 
-pub fn ok<S: Into<String>>(body: S) -> Result<Response<Body>> {
+use super::body::{Body, BoxBody};
+
+pub fn ok<S: Into<String>>(body: S) -> Result<Response<BoxBody>> {
     Ok(Response::builder()
         .status(StatusCode::OK)
         .body(Body::from(body.into()))?)
 }
 
-pub fn created() -> Result<Response<Body>> {
+pub fn created() -> Result<Response<BoxBody>> {
     Ok(Response::builder()
         .status(StatusCode::CREATED)
         .body(Body::empty())?)
 }
 
-pub fn no_content() -> Result<Response<Body>> {
+pub fn no_content() -> Result<Response<BoxBody>> {
     Ok(Response::builder()
         .status(StatusCode::NO_CONTENT)
         .body(Body::empty())?)
 }
 
-pub fn unauthorized() -> Result<Response<Body>> {
+pub fn unauthorized() -> Result<Response<BoxBody>> {
     Ok(Response::builder()
         .status(StatusCode::UNAUTHORIZED)
         .body(Body::empty())?)
 }
 
-pub fn not_found() -> Result<Response<Body>> {
+pub fn not_found() -> Result<Response<BoxBody>> {
     let body = StatusCode::NOT_FOUND.to_string();
 
     Ok(Response::builder()
@@ -33,25 +35,25 @@ pub fn not_found() -> Result<Response<Body>> {
         .body(Body::from(body))?)
 }
 
-pub fn method_not_allowed() -> Result<Response<Body>> {
+pub fn method_not_allowed() -> Result<Response<BoxBody>> {
     Ok(Response::builder()
         .status(StatusCode::METHOD_NOT_ALLOWED)
         .body(Body::empty())?)
 }
 
-pub fn not_implemented() -> Result<Response<Body>> {
+pub fn not_implemented() -> Result<Response<BoxBody>> {
     Ok(Response::builder()
         .status(StatusCode::NOT_IMPLEMENTED)
         .body(Body::empty())?)
 }
 
-pub fn bad_request(text: String) -> Result<Response<Body>> {
+pub fn bad_request(text: String) -> Result<Response<BoxBody>> {
     Ok(Response::builder()
         .status(StatusCode::BAD_REQUEST)
         .body(Body::from(text))?)
 }
 
-pub fn internal_server_error(body: Option<String>) -> Result<Response<Body>> {
+pub fn internal_server_error(body: Option<String>) -> Result<Response<BoxBody>> {
     let body = body.unwrap_or_else(|| "Internal Server Error".to_string());
 
     Ok(Response::builder()
@@ -61,7 +63,7 @@ pub fn internal_server_error(body: Option<String>) -> Result<Response<Body>> {
 
 #[cfg(test)]
 mod tests {
-    use hyper::{Body, StatusCode};
+    use hyper::StatusCode;
 
     use super::*;
 
@@ -148,7 +150,6 @@ mod tests {
         let resp = not_implemented().unwrap();
 
         assert_eq!(format!("{:?}", Body::empty()), format!("{:?}", resp.body()));
-
         assert_eq!(
             format!("{:?}", StatusCode::NOT_IMPLEMENTED),
             format!("{:?}", resp.status())

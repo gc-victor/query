@@ -1,6 +1,6 @@
 use std::{fs, path::Path};
 
-use hyper::{Body, Method, Request, Response};
+use hyper::{body::Incoming, Method, Request, Response};
 use serde::Deserialize;
 
 use anyhow::Result;
@@ -11,7 +11,7 @@ use crate::{
     constants::DB_CONFIG_NAME,
     controllers::utils::{
         bind_to_params::{bind_array_to_params, bind_object_to_params},
-        get_body::get_body,
+        body::{Body, BoxBody},
         get_query_string::get_query_string,
         get_token::get_token,
         http_error::{bad_request, internal_server_error, not_found, HttpError},
@@ -34,12 +34,12 @@ struct QueryOptions {
 
 #[instrument(err(Debug), skip(req))]
 pub async fn query(
-    req: &mut Request<Body>,
+    req: &mut Request<Incoming>,
     segments: &[&str],
-) -> Result<Response<Body>, HttpError> {
+) -> Result<Response<BoxBody>, HttpError> {
     match (req.method(), segments) {
         (&Method::GET, ["query"]) => {
-            let token = get_token(req)?;
+            let token = get_token(req.headers().to_owned())?;
 
             // IMPORTANT! don't remove this validation
             validate_token(&token)?;
@@ -90,12 +90,12 @@ pub async fn query(
         }
 
         (&Method::POST, ["query"]) => {
-            let token = get_token(req)?;
+            let token = get_token(req.headers().to_owned())?;
 
             // IMPORTANT! don't remove this validation
             validate_token(&token)?;
 
-            let body = get_body(req).await?;
+            let body = Body::to_string(req.body_mut()).await?;
 
             let QueryOptions {
                 db_name,

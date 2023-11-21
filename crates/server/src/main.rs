@@ -7,12 +7,13 @@ pub mod sqlite;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 
-use anyhow::Result;
+use controllers::utils::body::{Body, BoxBody};
 use dotenv::dotenv;
-use hyper::{
-    service::{make_service_fn, service_fn},
-    Body, Request, Response, Server, StatusCode,
-};
+use hyper::server::conn::http1;
+use hyper::service::service_fn;
+use hyper::{body::Incoming as IncomingBody, Request, Response, StatusCode};
+use hyper_util::rt::TokioIo;
+use tokio::net::TcpListener;
 use tracing::{subscriber::set_global_default, Instrument};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::EnvFilter;
@@ -39,7 +40,7 @@ use crate::{
 };
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), std::io::Error> {
     let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
     let formatting_layer = BunyanFormattingLayer::new("query-server".into(), std::io::stdout);
     let subscriber = Registry::default()
@@ -58,31 +59,38 @@ async fn main() {
     create_function_db();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], Env::port()));
+    // We create a TcpListener and bind it to 127.0.0.1:3000
+    let listener = TcpListener::bind(addr).await?;
 
     eprintln!("\nListening on {addr}\n");
 
-    let make_service = make_service_fn(|_| async {
-        Ok::<_, Infallible>(service_fn(|req: Request<Body>| async {
-            let request_id = uuid::Uuid::new_v4().to_string();
-            let span = tracing::info_span!("request", request_id = %request_id);
-            let _enter = span.enter();
+    loop {
+        let (stream, _) = listener.accept().await?;
+        let io = TokioIo::new(stream);
 
-            Ok::<_, Infallible>(handle(req).instrument(span.clone()).await)
-        }))
-    });
+        tokio::task::spawn(async move {
+            let service = service_fn(move |req| async {
+                let request_id = uuid::Uuid::new_v4().to_string();
+                let span = tracing::info_span!("request", request_id = %request_id);
+                let _enter = span.enter();
 
-    if let Err(err) = Server::bind(&addr).serve(make_service).await {
-        tracing::error!("Server error: {err}");
+                Ok::<_, Infallible>(handler(req).instrument(span.clone()).await)
+            });
+
+            if let Err(err) = http1::Builder::new().serve_connection(io, service).await {
+                tracing::error!("Server error: {err}");
+            }
+        });
     }
 }
 
-async fn handle(req: Request<Body>) -> Response<Body> {
+async fn handler(req: Request<IncomingBody>) -> Response<BoxBody> {
     let path = req.uri().path().to_owned();
     let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
 
     router(req, &segments)
         .await
-        .unwrap_or_else(|e| -> Response<Body> {
+        .unwrap_or_else(|e: HttpError| -> Response<BoxBody> {
             tracing::error!("{}", e.to_string());
 
             match e.code {
@@ -96,7 +104,10 @@ async fn handle(req: Request<Body>) -> Response<Body> {
         })
 }
 
-async fn router(req: Request<Body>, segments: &[&str]) -> Result<Response<Body>, HttpError> {
+async fn router(
+    req: Request<IncomingBody>,
+    segments: &[&str],
+) -> Result<Response<BoxBody>, HttpError> {
     if segments.is_empty() {
         if Env::proxy() == "true" {
             return proxy(req).await;
