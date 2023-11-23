@@ -1,4 +1,4 @@
-# Query
+# ![Query](/docs/query-logo.svg)
 
 Query is a Rust server for your remote SQLite databases with a CLI and API to manage them.
 
