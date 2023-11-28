@@ -2560,7 +2560,7 @@ dependencies = [
 
 [[package]]
 name = "query"
-version = "0.3.4-prerelease"
+version = "0.3.4"
 dependencies = [
  "anyhow",
  "bincode",
