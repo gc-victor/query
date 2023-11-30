@@ -2560,7 +2560,7 @@ dependencies = [
 
 [[package]]
 name = "query"
-version = "0.3.4-prerelease"
+version = "0.3.4"
 dependencies = [
  "anyhow",
  "bincode",
@@ -2586,7 +2586,7 @@ dependencies = [
 
 [[package]]
 name = "query-server"
-version = "0.3.4-prerelease"
+version = "0.3.4"
 dependencies = [
  "anyhow",
  "argon2",
