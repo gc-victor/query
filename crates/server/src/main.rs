@@ -7,6 +7,7 @@ pub mod sqlite;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 
+use controllers::asset_builder::asset_builder;
 use controllers::utils::body::{Body, BoxBody};
 use dotenv::dotenv;
 use hyper::server::conn::http1;
@@ -19,6 +20,7 @@ use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{layer::SubscriberExt, Registry};
 
+use crate::sqlite::create_asset_db::create_asset_db;
 use crate::{
     controllers::{
         branch::branch,
@@ -57,6 +59,8 @@ async fn main() -> Result<(), std::io::Error> {
     create_config_db();
     // NOTE: Create the function database
     create_function_db();
+    // NOTE: Create the asset database
+    create_asset_db();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], Env::port()));
     // We create a TcpListener and bind it to 127.0.0.1:3000
@@ -127,6 +131,8 @@ async fn router(
 
     match init_segment {
         "_" => match segments[0] {
+            "asset" => Ok(Response::new(Body::from("OK"))),
+            "asset-builder" => asset_builder(&mut req, segments).await,
             "branch" => branch(&mut req, segments).await,
             "function" => function(&mut req).await,
             "function-builder" => function_builder(&mut req, segments).await,
