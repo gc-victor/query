@@ -23,7 +23,7 @@ mime_guess = "2.0.4"
 rbase64 = "2.0"
 regex = "1.10"
 reqwest = { version = "0.11" }
-rustyline = { version = "12" } 
+rustyline = { version = "13" } 
 serde =  { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
 serde_json = "1.0"
