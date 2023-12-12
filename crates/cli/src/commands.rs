@@ -1,4 +1,5 @@
 #![allow(clippy::module_inception)]
+pub mod asset;
 pub mod branch;
 pub mod commands;
 pub mod function;

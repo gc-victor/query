@@ -19,6 +19,7 @@ clap = { version = "4.4", features = ["derive"] }
 inquire = "0.6"
 lazy_static = "1.4"
 liquid = "0.26"
+mime_guess = "2.0.4"
 rbase64 = "2.0"
 regex = "1.10"
 reqwest = { version = "0.11" }

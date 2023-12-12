@@ -8,7 +8,7 @@ use std::fs;
 
 use clap::{command, Parser};
 use commands::{
-    branch::command_branch, commands::Commands, function::command_function,
+    asset::command_assets, branch::command_branch, commands::Commands, function::command_function,
     migration::command_migration, settings::command_settings, shell::command_shell,
     token::command_token, user::command_user, user_token::command_user_token,
 };
@@ -40,6 +40,7 @@ async fn main() {
     std::panic::set_hook(Box::new(tracing_error));
 
     match &command {
+        Commands::Assets(command) => command_assets(command).await.unwrap(),
         Commands::Branch(command) => command_branch(command).await.unwrap(),
         Commands::Function(command) => command_function(command).await.unwrap(),
         Commands::Migration(command) => command_migration(command).await,

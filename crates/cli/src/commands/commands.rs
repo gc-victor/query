@@ -2,6 +2,10 @@ use clap::{Args, Subcommand};
 
 #[derive(Subcommand)]
 pub enum Commands {
+    /// Push all the assets without setting a path
+    /// or an asset defining a file path
+    #[clap(verbatim_doc_comment)]
+    Assets(AssetsArgs),
     /// Manage branches
     Branch(BranchArgs),
     /// Push all the functions without setting a path
@@ -25,6 +29,20 @@ pub enum Commands {
     User(UserArgs),
     /// Manage users tokens
     UserToken(UserTokenArgs),
+}
+
+#[derive(Args)]
+pub struct AssetsArgs {
+    /// Activate status of the asset
+    #[arg(short, long, default_value_t = String::from("true"))]
+    pub active: String,
+    /// Delete the asset
+    /// It is mandatory to provide the path to the asset
+    #[arg(short, long, default_value_t = false)]
+    pub delete: bool,
+    /// Path to the assets
+    #[arg(short, long)]
+    pub path: String,
 }
 
 #[derive(Args)]
