@@ -10,7 +10,7 @@ pub(crate) fn create_asset_db() {
 
 fn asset() -> String {
     r#"
-        CREATE TABLE asset(
+        CREATE TABLE IF NOT EXISTS asset(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             active BOOLEAN NOT NULL,
             data BLOB NOT NULL,
