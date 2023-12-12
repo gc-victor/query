@@ -7,6 +7,7 @@ pub mod sqlite;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 
+use controllers::asset::asset;
 use controllers::asset_builder::asset_builder;
 use controllers::utils::body::{Body, BoxBody};
 use dotenv::dotenv;
@@ -131,7 +132,7 @@ async fn router(
 
     match init_segment {
         "_" => match segments[0] {
-            "asset" => Ok(Response::new(Body::from("OK"))),
+            "asset" => asset(&mut req, segments).await,
             "asset-builder" => asset_builder(&mut req, segments).await,
             "branch" => branch(&mut req, segments).await,
             "function" => function(&mut req).await,

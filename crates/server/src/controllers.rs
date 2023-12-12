@@ -1,3 +1,4 @@
+pub mod asset;
 pub mod asset_builder;
 pub mod branch;
 pub mod functions;
