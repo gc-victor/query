@@ -656,7 +656,7 @@ Usage:
 query branch list
 ```
 
-## Function
+### Function
 
 A function is a JavaScript function that is executed in the Query Server and it has access to the databases.
 
@@ -690,7 +690,7 @@ A `query` and an `execute` can have params. The params are bound to the paramete
 
 As Query uses [LiteFS proxy](https://fly.io/docs/litefs/config/#http-proxy-server), you have to remember to use `GET` to read data and `DELETE|POST|PUT|PATCH` to write data.
 
-### Handle Request Example
+#### Handle Request Example
 
 ```js
 // get.index.js
@@ -710,7 +710,7 @@ export async function handleRequest(req) {
 
 Query CLI provides an API to resolving routes against file-system paths and using the file names. To use functions it is required to follow the next structure:
 
-### Folder Structure Example
+#### Folder Structure Example
 
 ```sh
 functions
@@ -730,7 +730,7 @@ It is important to note that the method used in a file is determined by the pref
 
 To define the different segments of the route, you must use the folder structure. For example, if you want to use the path `/example/:slug`, you have to create a folder called `example` and inside it a file called `get.[slug].js`. If you want to use the route `/:slug`, you have to create a folder called `[slug]` and inside of it a file called `get.index.js`. If you want to use the route `/`, you must create a file called `get.index.js`.
 
-### Usage
+#### Usage
 
 Query uses under the hood [esbuild](https://esbuild.github.io) to bundle the functions. So, first you have to install esbuild globally:
 
@@ -752,7 +752,7 @@ query function <PATH>
 
 The path is optional. If you don't provide it, it will use the default path `functions`. You can use the path to point to another folder or a function file.
 
-### Example
+#### Example
 
 ```sh
 query function
