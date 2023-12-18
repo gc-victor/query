@@ -108,6 +108,9 @@ build-cli:
 
 # Run
 
+install-watch:
+	cargo install cargo-watch
+
 run:
 	RUST_LOG=info cargo run --package=query-server -q | bunyan
 
@@ -121,10 +124,10 @@ run-cli-release:
 	RUST_LOG=info cargo run --package=query --profile dist
 
 dev-cli:
-	cargo watch --ignore .dbs --shell "make run-cli -s"
+	cargo watch --ignore .dbs -x check -x clippy --shell "make run-cli -s"
 
 dev:
-	cargo watch --ignore .dbs --shell "make run -s"
+	cargo watch -c --ignore .dbs -x check -x clippy --shell "RUST_LOG=debug cargo run --package=query-server | bunyan"
 
 dev-proxy:
 	export QUERY_SERVER_PROXY=true && cargo watch --ignore .dbs --shell "make run -s" & make dev-bun
