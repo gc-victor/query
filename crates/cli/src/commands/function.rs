@@ -30,10 +30,12 @@ const ESBUILD: &str = "esbuild";
 
 pub async fn command_function(command: &FunctionArgs) -> Result<()> {
     let is_delete = command.delete;
-    let path = command.path.clone().unwrap_or("".to_string());
+    let path = command
+        .path
+        .clone()
+        .unwrap_or(CONFIG.structure.functions_folder.clone());
     let metadata = fs::metadata(&path)?;
     let is_file = metadata.is_file();
-    let is_dir = metadata.is_dir();
 
     if is_file {
         let FunctionBuilder {
@@ -79,12 +81,7 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
             Err(err) => panic!("{}", err),
         };
     } else {
-        let functions_folder = if is_dir {
-            env::current_dir()?.join(path).to_str().unwrap().to_string()
-        } else {
-            CONFIG.structure.functions_folder.clone()
-        };
-
+        let functions_folder = env::current_dir()?.join(path).to_str().unwrap().to_string();
         for entry in WalkDir::new(functions_folder) {
             let entry = entry?;
 
@@ -98,11 +95,24 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
                     path,
                 } = function_builder(&file_path)?;
 
+                let body_path = path.replace(
+                    &env::current_dir()?
+                        .join(CONFIG.structure.functions_folder.clone())
+                        .to_str()
+                        .unwrap()
+                        .to_string(),
+                    "",
+                );
+                let body_path = if body_path.is_empty() {
+                    "/".to_string()
+                } else {
+                    body_path
+                };
                 let body = json!({
                     "active": active,
                     "function": function,
                     "method": method,
-                    "path": path,
+                    "path": body_path,
                 })
                 .to_string();
 
