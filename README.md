@@ -718,9 +718,9 @@ functions
 ├── post.index.js // POST "/"
 ├── example
     ├── get.index.js // GET "/example"
-    ├── get.[slug].js // GET "/example/:slug"
-    [slug]
-    ├── get.index.js  // GET "/:slug"
+    └── get.[slug].js // GET "/example/:slug"
+├── [slug]
+    └── get.index.js  // GET "/:slug"
 ...
 ```
 
