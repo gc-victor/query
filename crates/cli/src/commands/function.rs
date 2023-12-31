@@ -1,4 +1,6 @@
 #[allow(unused_imports)]
+use anyhow::anyhow;
+#[allow(unused_imports)]
 use std::{
     env, fs,
     process::{exit, Command},
@@ -157,7 +159,8 @@ fn function_builder(file_path: &str) -> Result<FunctionBuilder> {
         }
     };
     let reg =
-        Regex::new(r#"^(.*)\/(delete|get|patch|put|post)\.(index|\[slug\])\.(js|ts)$"#).unwrap();
+        Regex::new(r#"^(.*)\/(delete|get|patch|put|post)\.(index|\[slug\])\.(js|jsx|ts|tsx)$"#)
+            .unwrap();
     let name: String = reg.replace(file_path, "$3").to_string();
     if name != "index" && name != "[slug]" {
         panic!(
@@ -223,7 +226,15 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
         .expect("Failed to execute esbuild");
 
     let bundle_path = format!("{}/{}", out_dir, function_path.split('/').last().unwrap());
+    let re = Regex::new(r"(\.tsx|\.ts)$").unwrap();
+    let bundle_path = re.replace(&bundle_path, ".js").to_string();
     let function = fs::read_to_string(&bundle_path)?;
+
+    if function.is_empty() {
+        tracing::error!("The function {function_path} is empty.");
+        exit(1)
+    }
+
     let function = function.replace("var handleRequest", "globalThis.___handleRequest");
     let re = Regex::new(r"export\{(\w) as handleRequest\};\n$").unwrap();
     let var: &str = re.captures(&function).unwrap().get(1).unwrap().as_str();
