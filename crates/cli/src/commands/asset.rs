@@ -134,7 +134,7 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
 }
 
 fn asset_builder(file_path: &str) -> Result<Asset> {
-    let asset: String = match fs::read_to_string(&file_path) {
+    let asset: String = match fs::read_to_string(file_path) {
         Ok(s) => s,
         Err(_) => {
             panic!(r#"The asset file "{}" doesn't exists"#, file_path);

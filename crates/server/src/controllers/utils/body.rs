@@ -22,7 +22,7 @@ impl Body {
     pub async fn to_bytes(incoming_body: &mut Incoming) -> Result<Bytes, HttpError> {
         match BodyExt::collect(incoming_body).await {
             Ok(c) => Ok(c.to_bytes()),
-            Err(e) => return Err(internal_server_error(e.to_string())),
+            Err(e) => Err(internal_server_error(e.to_string())),
         }
     }
 
