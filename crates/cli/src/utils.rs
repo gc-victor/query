@@ -48,7 +48,7 @@ pub fn json_to_table(value: &Value) -> Result<String> {
         key.to_uppercase()
     });
 
-    builder.set_header(keys);
+    builder.push_record(keys);
 
     for object in array {
         let values = object.as_object().unwrap().values();
