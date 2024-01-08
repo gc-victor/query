@@ -12,6 +12,9 @@ pub enum Commands {
     /// or a function defining a file path
     #[clap(verbatim_doc_comment)]
     Function(FunctionArgs),
+    /// Create code automatically
+    #[clap(verbatim_doc_comment)]
+    Generate(GenerateArgs),
     /// Push migrations using a migration file
     /// - The migration file should be in the format of <version>_<name>_<type>.db|.sql
     /// - The version should be in the format of YYYYMMDD
@@ -67,6 +70,13 @@ pub struct FunctionArgs {
     /// Delete the function definition
     #[arg(short, long, default_value_t = false)]
     pub delete: bool,
+}
+
+#[derive(Args)]
+pub struct GenerateArgs {
+    pub database: String,
+    pub table: String,
+    pub columns: Vec<String>,
 }
 
 #[derive(Args)]

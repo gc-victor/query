@@ -1,19 +1,30 @@
+#[allow(unused_imports)]
+use lazy_static::lazy_static;
+#[allow(unused_imports)]
+use once_cell::sync::Lazy;
+use regex::Regex;
+use serde_derive::Deserialize;
 use std::fs::{metadata, File};
 use std::io::prelude::*;
 use std::process::exit;
 use std::{env, fs};
-
-use lazy_static::lazy_static;
-use regex::Regex;
-use serde_derive::Deserialize;
 use toml;
 use tracing::{error, info};
 
 use crate::utils::read_file_content;
 
+#[cfg(not(test))]
 lazy_static! {
     pub static ref CONFIG: Config = config();
 }
+
+#[cfg(test)]
+pub static CONFIG: Lazy<Config> = Lazy::new(|| Config {
+    cli: CLI::default(),
+    current_exe: String::new(),
+    server: Server::default(),
+    structure: Structure::default(),
+});
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
@@ -59,15 +70,17 @@ impl Default for Server {
 
 #[derive(Debug, Deserialize)]
 pub struct Structure {
-    pub migrations_folder: String,
     pub functions_folder: String,
+    pub migrations_folder: String,
+    pub templates_folder: String,
 }
 
 impl Default for Structure {
     fn default() -> Self {
         Structure {
-            migrations_folder: "src/migrations".to_string(),
             functions_folder: "src/functions".to_string(),
+            migrations_folder: "src/migrations".to_string(),
+            templates_folder: "templates".to_string(),
         }
     }
 }
@@ -101,8 +114,9 @@ impl Default for InnerServer {
 
 #[derive(Debug, Default, Deserialize)]
 pub struct InnerStructure {
-    pub migrations_folder: Option<String>,
     pub functions_folder: Option<String>,
+    pub migrations_folder: Option<String>,
+    pub templates_folder: Option<String>,
 }
 
 pub fn config() -> Config {
@@ -165,12 +179,15 @@ pub fn config() -> Config {
 
     let inner_config_structure = inner_config.structure.unwrap_or_default();
     let structure = Structure {
-        migrations_folder: inner_config_structure
-            .migrations_folder
-            .unwrap_or(Structure::default().migrations_folder),
         functions_folder: inner_config_structure
             .functions_folder
             .unwrap_or(Structure::default().functions_folder),
+        migrations_folder: inner_config_structure
+            .migrations_folder
+            .unwrap_or(Structure::default().migrations_folder),
+        templates_folder: inner_config_structure
+            .templates_folder
+            .unwrap_or(Structure::default().templates_folder),
     };
 
     let mut current_exe = env::current_exe().unwrap();
