@@ -2,7 +2,10 @@ use std::cell::{OnceCell, RefCell};
 
 use rustyscript::{Runtime, RuntimeOptions};
 
-use super::ext::{init_handle_response::init_handle_response, init_sqlite::init_sqlite};
+use super::ext::{
+    init_handle_response::init_handle_response, init_process::init_process,
+    init_sqlite::init_sqlite,
+};
 
 thread_local! {
     static RUNTIME_CELL: OnceCell<RefCell<Runtime>> = OnceCell::new();
@@ -16,6 +19,7 @@ pub fn with_runtime<T, F: FnMut(&mut Runtime) -> T>(mut callback: F) -> T {
                     extensions: vec![
                         init_handle_response::init_ops_and_esm(),
                         init_sqlite::init_ops_and_esm(),
+                        init_process::init_ops_and_esm(),
                     ],
                     ..Default::default()
                 })
