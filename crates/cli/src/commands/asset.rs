@@ -177,7 +177,7 @@ mod tests {
 
         let expected_data = b"Asset file content".to_vec();
         let expected_name = "file.txt".to_string();
-        let expected_file_hash = "65115115101116321021051081013299111110116101110116".to_string();
+        let expected_file_hash = "10334933136645715414".to_string();
         let expected_mime_type = "text/plain".to_string();
 
         let result = asset_builder(&path).unwrap();
