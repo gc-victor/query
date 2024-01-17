@@ -104,10 +104,19 @@ pub async fn asset(
                 HeaderValue::from_bytes(length.as_bytes()).unwrap(),
             );
 
-            if has_hash {
-                let hash = hash.unwrap().get(1).unwrap().as_str();
+            if has_hash || asset_name.contains("/cache/") {
+                let etag = if has_hash {
+                    hash.unwrap().get(1).unwrap().as_str().to_string()
+                } else {
+                    let data_bytes: &[u8] = &data_owned;
+                    let mut hasher = DefaultHasher::new();
+                    Hash::hash_slice(data_bytes, &mut hasher);
+                    let etag = hasher.finish();
 
-                headers.insert(ETAG, HeaderValue::from_str(hash).unwrap());
+                    etag.to_string()
+                };
+
+                headers.insert(ETAG, HeaderValue::from_str(&etag).unwrap());
                 headers.insert(
                     CACHE_CONTROL,
                     HeaderValue::from_static("public, max-age=31536000000, immutable"),
