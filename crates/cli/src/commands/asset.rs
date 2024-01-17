@@ -1,4 +1,9 @@
-use std::{env, fs, path};
+use std::{
+    collections::hash_map::DefaultHasher,
+    fs,
+    hash::{Hash, Hasher},
+    path,
+};
 
 use anyhow::Result;
 use liquid::ValueView;
@@ -77,13 +82,7 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
             Err(err) => panic!("{}", err),
         };
     } else {
-        let assets_folder = env::current_dir()?
-            .join(&path)
-            .to_str()
-            .unwrap()
-            .to_string();
-
-        for entry in WalkDir::new(assets_folder) {
+        for entry in WalkDir::new(path) {
             let entry = entry?;
 
             if entry.file_type().is_file() {
@@ -148,14 +147,14 @@ fn asset_builder(file_path: &str) -> Result<Asset> {
         .last()
         .unwrap()
         .to_string();
-    let mime_type = mime_guess::from_path(&name)
+    let mime_type = mime_guess::from_path(name)
         .first_or_text_plain()
         .to_string();
 
     Ok(Asset {
         data: asset.as_bytes().to_vec(),
-        name,
-        file_hash: data.to_kstr().to_string(),
+        name: file_path.to_string(),
+        file_hash,
         mime_type,
     })
 }
