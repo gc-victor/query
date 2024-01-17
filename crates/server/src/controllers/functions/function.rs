@@ -1,12 +1,15 @@
-use std::collections::HashMap;
 use std::env;
+use std::{collections::HashMap, vec};
 
 use anyhow::Result;
-use hyper::{body::Incoming, http::HeaderName, Method, Request, Response};
+use hyper::{body::Incoming, header::CONTENT_TYPE, http::HeaderName, Method, Request, Response};
+use mime_guess::mime;
+use regex::Regex;
 use rusqlite::named_params;
 use rustyscript::{json_args, Module};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
+use serde_json::json;
 use tokio::task;
 use tracing::instrument;
 
@@ -75,14 +78,27 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         Err(_) => Err(not_found()),
     }?;
 
-    let body = if req.method() == Method::GET {
-        "".to_string()
-    } else {
-        Body::to_string(req.body_mut()).await?
-    };
-
     let mut headers: Vec<String> = vec![];
+    let mut boundary = String::new();
+
     for (key, value) in req.headers() {
+        let key = key.as_str().to_lowercase();
+
+        if key == "content-type" {
+            let content_type_header = req.headers().get(CONTENT_TYPE).unwrap();
+            let content_type = content_type_header
+                .to_str()
+                .map_err(|e| internal_server_error(e.to_string()))?;
+
+            if content_type.contains("multipart/form-data") {
+                boundary = content_type
+                    .split(';')
+                    .find_map(|part| part.trim().strip_prefix("boundary="))
+                    .ok_or_else(|| bad_request("Can't find the boundary".to_string()))?
+                    .to_string();
+            }
+        }
+
         headers.push(format!(
             r#""{key}": "{}""#,
             // NOTE: workaround to fix an error in the js-engine caused by sec-ch-ua
@@ -90,24 +106,59 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         ));
     }
 
+    let body = if req.method() == Method::GET {
+        "''".to_string()
+    } else {
+        let body = Body::to_string(req.body_mut()).await?;
+
+        if headers.iter().any(|e| e.contains("multipart/form-data")) {
+            form_data_to_json(&body, &boundary)?
+        } else {
+            format!("'{body}'")
+        }
+    };
+
     let host = req.headers().get("host").unwrap();
     let uri = req.uri().to_string();
     let handle_request = format!(
-        "
+        r#"
         {function}
         globalThis.___handleRequestWrapper = () => {{
-            const request = new Request('{url}', {{
+            const options = {{
                 headers: {{ {headers} }},
                 method: '{method}',
                 url: '{url}',
-            }});
+            }};
+
             if (!/GET|HEAD/.test('{method}')) {{
-                request.body = '{body}';
+                if (/multipart\/form-data/.test(options.headers['content-type'])) {{
+                    const object = {body};
+                    const formData = new FormData();
+            
+                    for (const key in object) {{
+                        let value = object[key];
+
+                        try {{
+                            value = JSON.parse(value);
+                            formData.append(key, new Blob([value.content], {{ type: value.type }}), value.filename);
+                        }} catch (e) {{
+                            formData.append(key, value);
+                        }}
+                    }}
+            
+                    options.body = formData;
+                    // NOTE: workaround to allow Request to create a boundary
+                    delete options.headers['content-type'];
+                }} else {{
+                    options.body = {body};
+                }}
             }}
+
+            const request = new Request('{url}', options);
 
             return ___handleRequest(request);
         }};
-        ",
+        "#,
         body = body,
         headers = headers.join(", "),
         method = req.method().as_str(),
@@ -230,4 +281,49 @@ fn path_match(path: &str, method: &str) -> Result<String> {
     }
 
     Ok(result)
+}
+
+fn form_data_to_json(form_data: &str, boundary: &str) -> Result<String> {
+    let boundary = format!("--{}", boundary);
+    let mut map = HashMap::new();
+    let parts: Vec<&str> = form_data.split(&boundary).collect();
+    let re = Regex::new(r".*; name=").unwrap();
+    let re_key_value = Regex::new(r#""(.*)"(.*)"#).unwrap();
+
+    for part in parts {
+        if !part.contains("name=") {
+            continue;
+        }
+
+        let key_value = re.replace(part, "").to_string();
+        let key_value = re_key_value.captures(&key_value).unwrap();
+        let mut key = key_value.get(1).unwrap().as_str().to_string();
+        let mut value = key_value.get(2).unwrap().as_str().to_string();
+
+        if value.starts_with("Content-Type") {
+            let split = key.split(r#""; filename=""#).collect::<Vec<&str>>();
+            let filename = split[1];
+            let key_part = split[0].to_string();
+
+            let content_type = match mime_guess::from_path(filename).first() {
+                Some(v) => v,
+                None => mime::APPLICATION_OCTET_STREAM,
+            };
+
+            let content = value
+                .replace(&(format!("Content-Type: {}", content_type)), "")
+                .trim()
+                .to_string();
+            value = format!(
+                r#"{{"content": "{}", "type": "{}", "filename": "{}"}}"#,
+                content, content_type, filename
+            );
+
+            key = key_part;
+        }
+
+        map.insert(key, value);
+    }
+
+    Ok(json!(map).to_string())
 }

@@ -85,13 +85,13 @@ install-hurl:
 	cargo install hurl
 
 hurl: clean-hurl-dbs
-	hurl --verbose --continue-on-error $(ARGUMENTS)
+	hurl --verbose --continue-on-error --file-root hurl $(ARGUMENTS)
 
 hurl-test: clean-hurl-dbs
-	hurl --test --continue-on-error $(ARGUMENTS)
+	hurl --test --continue-on-error --file-root hurl $(ARGUMENTS)
 
 hurl-test-all: clean-hurl-dbs
-	hurl --test --continue-on-error hurl/**/*.hurl hurl/**/**/*.hurl
+	hurl --test --continue-on-error --file-root hurl hurl/**/*.hurl hurl/**/**/*.hurl
 
 # Lint
 
