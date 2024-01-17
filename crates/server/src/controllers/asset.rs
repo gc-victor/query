@@ -39,7 +39,7 @@ pub async fn asset(
 ) -> Result<Response<BoxBody>, HttpError> {
     match req.method() {
         &Method::GET => {
-            let asset_name = segments.last().unwrap();
+            let asset_name = segments[1..].join("/");
 
             let asset: Asset = match connect_asset_db()?.query_row(
                 r#"
