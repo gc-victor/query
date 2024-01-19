@@ -2,7 +2,7 @@ use std::{
     collections::hash_map::DefaultHasher,
     fs,
     hash::{Hash, Hasher},
-    path,
+    path, str,
 };
 
 use anyhow::Result;
@@ -133,14 +133,12 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
 }
 
 fn asset_builder(file_path: &str) -> Result<Asset> {
-    let asset: String = match fs::read_to_string(file_path) {
-        Ok(s) => s,
-        Err(_) => {
-            panic!(r#"The asset file "{}" doesn't exists"#, file_path);
+    let data = match fs::read(file_path) {
+        Ok(data) => data,
+        Err(e) => {
+            panic!(r#"The asset file "{file_path}" issue. Error: {e}"#);
         }
     };
-
-    let data = asset.as_bytes().to_vec();
 
     let name = file_path
         .split(path::MAIN_SEPARATOR)
@@ -152,7 +150,7 @@ fn asset_builder(file_path: &str) -> Result<Asset> {
         .to_string();
 
     Ok(Asset {
-        data: asset.as_bytes().to_vec(),
+        data,
         name: file_path.to_string(),
         file_hash,
         mime_type,
