@@ -46,4 +46,4 @@ tracing-subscriber = { version = "0.3", features = [
     "std",
 ] }
 url = "2.5"
-uuid = { version = "1.6", features = ["v4"] }
+uuid = { version = "1.7", features = ["v4"] }
