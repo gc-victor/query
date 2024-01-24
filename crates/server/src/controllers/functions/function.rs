@@ -3,7 +3,6 @@ use std::{collections::HashMap, vec};
 
 use anyhow::Result;
 use hyper::{body::Incoming, header::CONTENT_TYPE, http::HeaderName, Method, Request, Response};
-use mime_guess::mime;
 use regex::Regex;
 use rusqlite::named_params;
 use rustyscript::{json_args, Module};
@@ -109,10 +108,11 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
     let body = if req.method() == Method::GET {
         "''".to_string()
     } else {
-        let body = Body::to_string(req.body_mut()).await?;
+        let bytes = Body::to_bytes(req.body_mut()).await?;
+        let body = String::from_utf8(bytes.to_vec()).expect("response was not valid utf-8");
 
         if headers.iter().any(|e| e.contains("multipart/form-data")) {
-            form_data_to_json(&body, &boundary)?
+            formdata_to_json(&body, &boundary)?
         } else {
             format!("'{body}'")
         }
@@ -283,43 +283,47 @@ fn path_match(path: &str, method: &str) -> Result<String> {
     Ok(result)
 }
 
-fn form_data_to_json(form_data: &str, boundary: &str) -> Result<String> {
+fn formdata_to_json(formdata: &str, boundary: &str) -> Result<String> {
     let boundary = format!("--{}", boundary);
     let mut map = HashMap::new();
-    let parts: Vec<&str> = form_data.split(&boundary).collect();
-    let re = Regex::new(r".*; name=").unwrap();
-    let re_key_value = Regex::new(r#""(.*)"(.*)"#).unwrap();
+    let parts: Vec<&str> = formdata.split(&boundary).collect();
 
     for part in parts {
         if !part.contains("name=") {
             continue;
         }
 
-        let key_value = re.replace(part, "").to_string();
-        let key_value = re_key_value.captures(&key_value).unwrap();
-        let mut key = key_value.get(1).unwrap().as_str().to_string();
-        let mut value = key_value.get(2).unwrap().as_str().to_string();
+        let key_re = Regex::new(r#"; name="([^"]*)""#).unwrap();
+        let captures: regex::Captures<'_> = key_re.captures(part).unwrap();
+        let key = captures.get(1).unwrap().as_str().to_string();
+        let re = Regex::new(r#"name="[^"]*"\r\n([\s\S]*)$"#).unwrap();
+        let captures: regex::Captures<'_> = re.captures(part).unwrap();
+        let value = captures.get(1).unwrap().as_str();
+        let value = value.strip_prefix("\r\n").unwrap_or(value);
+        let mut value = value.strip_suffix("\r\n").unwrap_or(value).to_string();
 
-        if value.starts_with("Content-Type") {
-            let split = key.split(r#""; filename=""#).collect::<Vec<&str>>();
-            let filename = split[1];
-            let key_part = split[0].to_string();
+        if value.starts_with("Content-Type:") {
+            let filename_re = Regex::new(r#"; filename="([^"]*)""#).unwrap();
+            let content_type_re = Regex::new(r#"Content-Type: ([\w/]+)"#).unwrap();
+            let content_re = Regex::new(r#"\r\n\r\n([\s\S]*)$"#).unwrap();
 
-            let content_type = match mime_guess::from_path(filename).first() {
-                Some(v) => v,
-                None => mime::APPLICATION_OCTET_STREAM,
-            };
+            let filename = filename_re
+                .captures(part)
+                .and_then(|caps| caps.get(1))
+                .map_or("", |m| m.as_str());
+            let content_type = content_type_re
+                .captures(&value)
+                .and_then(|caps| caps.get(1))
+                .map_or("", |m| m.as_str());
+            let content = content_re
+                .captures(&value)
+                .and_then(|caps| caps.get(1))
+                .map_or("", |m| m.as_str());
 
-            let content = value
-                .replace(&(format!("Content-Type: {}", content_type)), "")
-                .trim()
-                .to_string();
             value = format!(
                 r#"{{"content": "{}", "type": "{}", "filename": "{}"}}"#,
                 content, content_type, filename
             );
-
-            key = key_part;
         }
 
         map.insert(key, value);
