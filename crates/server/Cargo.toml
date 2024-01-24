@@ -17,7 +17,6 @@ hyper = { version = "1.1", features = ["full"] }
 hyper-util = { version = "0.1", features = ["full"] }
 http-body-util = "0.1"
 jsonwebtoken = "9.2"
-mime_guess = "2.0"
 rbase64 = "2.0"
 regex = "1.10"
 rusqlite = { version = "0.30", features = [

@@ -2592,7 +2592,6 @@ dependencies = [
  "hyper 1.1.0",
  "hyper-util",
  "jsonwebtoken",
- "mime_guess",
  "rbase64",
  "regex",
  "rusqlite",
