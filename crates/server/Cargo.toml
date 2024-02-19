@@ -19,7 +19,7 @@ http-body-util = "0.1"
 jsonwebtoken = "9.2"
 rbase64 = "2.0"
 regex = "1.10"
-rusqlite = { version = "0.30", features = [
+rusqlite = { version = "0.31", features = [
     "bundled",
     "backup",
     "limits",
