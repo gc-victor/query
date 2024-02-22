@@ -7,6 +7,7 @@ Query is a Rust server for your remote SQLite databases with a CLI and API to ma
 - [Run A Query Server on Fly.io](#run-a-query-server-on-flyio)
   - [Query As An Isolated Service](#query-as-an-isolated-service)
   - [Query Server With Proxy](#query-server-with-proxy)
+  - [Query Server App](#query-server-app)
   - [Fly configuration](#fly-configuration)
 - [CLI](#cli)
   - [Install](#install)
@@ -180,6 +181,20 @@ exec:
 ```
 
 Please, visit the example/proxy folder to see a working example. You will have to rename the `fly.toml.dist` to `fly.toml` to be able to deploy it and follow the steps from [Run a Query Server](https://github.com/gc-victor/query?tab=readme-ov-file#run-a-query-server) to finalize the process.
+
+### Query Server App
+
+Removing the `/_/function` prefix using an environment variable is possible. This can be useful when using the Query Server to serve Pages and APIs. You can set this configuration using the following environment variable:
+
+```sh
+QUERY_SERVER_APP=true
+```
+
+You can now access pages using `/rest_of_the_path` instead of `/_/function/pages/rest_of_the_path`. Similarly, APIs will be `/api/rest_of_the_path` instead of `/_/function/api/rest_of_the_path`. As usual, every function will be served using the `/_/function` prefix.
+
+It is important to note that the `QUERY_SERVER_APP` environment variable is optional. The`/_/function` path will be used for every case if you don't provide it.
+
+[More information about the Function feature](#function).
 
 ### Fly configuration
 
