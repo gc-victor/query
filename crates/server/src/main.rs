@@ -118,6 +118,12 @@ async fn router(
             return proxy(req).await;
         }
 
+        if Env::app() == "true" {
+            let mut req = req;
+
+            return function(&mut req).await;
+        }
+
         return Err(HttpError {
             code: StatusCode::NOT_FOUND,
             message: StatusCode::NOT_FOUND.to_string(),
@@ -157,6 +163,10 @@ async fn router(
         _ => {
             if Env::proxy() == "true" {
                 return proxy(req).await;
+            }
+
+            if Env::app() == "true" {
+                return function(&mut req).await;
             }
 
             Err(HttpError {

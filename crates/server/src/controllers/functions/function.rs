@@ -12,6 +12,7 @@ use serde_json::json;
 use tokio::task;
 use tracing::instrument;
 
+use crate::env::Env;
 use crate::{
     controllers::utils::{
         body::{Body, BoxBody},
@@ -39,12 +40,17 @@ struct HandleResponse {
 #[instrument(err(Debug), skip(req))]
 pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, HttpError> {
     let method = req.method().as_str();
-    let path = req.uri().path().replace("/_/function", "");
-    let path = if path.is_empty() {
-        "/".to_string()
-    } else {
-        path
-    };
+    let mut path = req.uri().path().to_string();
+
+    if Env::app() == "true" && !path.starts_with("/api") && !path.starts_with("/_/") {
+        path.insert_str(0, "/pages");
+    }
+
+    path = path.replace("/_/function", "");
+
+    if path.is_empty() {
+        path = "/".to_string();
+    }
 
     let path = path_match(&path, method)?;
 
@@ -111,11 +117,9 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         let bytes = Body::to_bytes(req.body_mut()).await?;
         let body = String::from_utf8(bytes.to_vec()).expect("response was not valid utf-8");
 
-        if headers.iter().any(|e| e.contains("multipart/form-data")) {
-            formdata_to_json(&body, &boundary)?
-        } else {
-            format!("'{body}'")
-        }
+        format!("`{}`", body)
+    } else {
+        "''".to_string()
     };
 
     let host = req.headers().get("host").unwrap();

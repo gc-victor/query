@@ -18,11 +18,15 @@ impl Env {
         when_dbs_path()
     }
 
+    pub fn app() -> String {
+        when_app()
+    }
+
     pub fn proxy() -> String {
         when_proxy()
     }
 
-    pub fn proxy_port() -> String {
+    pub fn proxy_port() -> u16 {
         when_proxy_port()
     }
 
@@ -50,12 +54,19 @@ fn when_dbs_path() -> String {
     env::var("QUERY_SERVER_DBS_PATH").unwrap_or("/mnt/dbs".to_string())
 }
 
+fn when_app() -> String {
+    env::var("QUERY_SERVER_APP").unwrap_or("false".to_string())
+}
+
 fn when_proxy() -> String {
     env::var("QUERY_SERVER_PROXY").unwrap_or("false".to_string())
 }
 
-fn when_proxy_port() -> String {
-    env::var("QUERY_SERVER_PROXY_PORT").unwrap_or("3001".to_string())
+fn when_proxy_port() -> u16 {
+    env::var("QUERY_SERVER_PROXY_PORT")
+        .unwrap_or("3001".to_string())
+        .parse::<u16>()
+        .unwrap()
 }
 
 fn when_token_secret() -> String {
@@ -118,6 +129,60 @@ mod tests {
         env::remove_var("QUERY_SERVER_DBS_PATH");
 
         assert_eq!(Env::dbs_path(), "/mnt/dbs");
+    }
+
+    #[test]
+    fn test_app() {
+        before();
+
+        env::set_var("QUERY_SERVER_APP", "true");
+
+        assert_eq!(Env::app(), "true");
+    }
+
+    #[test]
+    fn test_app_with_default() {
+        before();
+
+        env::remove_var("QUERY_SERVER_APP");
+
+        assert_eq!(Env::app(), "false");
+    }
+
+    #[test]
+    fn test_proxy() {
+        before();
+
+        env::set_var("QUERY_SERVER_PROXY", "true");
+
+        assert_eq!(Env::proxy(), "true");
+    }
+
+    #[test]
+    fn test_proxy_with_default() {
+        before();
+
+        env::remove_var("QUERY_SERVER_PROXY");
+
+        assert_eq!(Env::proxy(), "false");
+    }
+
+    #[test]
+    fn test_proxy_port() {
+        before();
+
+        env::set_var("QUERY_SERVER_PROXY_PORT", "3002");
+
+        assert_eq!(Env::proxy_port(), 3002);
+    }
+
+    #[test]
+    fn test_proxy_port_with_default() {
+        before();
+
+        env::remove_var("QUERY_SERVER_PROXY_PORT");
+
+        assert_eq!(Env::proxy_port(), 3001);
     }
 
     #[test]
