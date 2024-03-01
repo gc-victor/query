@@ -66,11 +66,11 @@ pub fn json_to_table(value: &Value) -> Result<String> {
 }
 
 pub async fn http_client(path: &str, body: Option<&String>, method: Method) -> Result<Value> {
-    let config_url = CONFIG.server.url.clone();
+    let config_url = &CONFIG.server.url;
     let config_url = if !config_url.ends_with('/') {
         format!("{}/", config_url)
     } else {
-        config_url.clone()
+        config_url.to_owned()
     };
     let url = &format!("{}_/{}", config_url, path);
     let url = Url::parse(url)?;

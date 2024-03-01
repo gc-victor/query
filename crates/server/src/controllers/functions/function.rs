@@ -111,9 +111,17 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         ));
     }
 
-    let body = if req.method() == Method::GET {
-        "''".to_string()
+    let body_multi_part = if !boundary.is_empty() {
+        let bytes = Body::to_bytes(req.body_mut()).await?;
+        let body_bytes = bytes.to_vec();
+        let body = String::from_utf8_lossy(&body_bytes);
+
+        formdata_to_json(&body, &boundary)?
     } else {
+        "{}".to_string()
+    };
+
+    let body = if req.method() != Method::GET && boundary.is_empty() {
         let bytes = Body::to_bytes(req.body_mut()).await?;
         let body = String::from_utf8(bytes.to_vec()).expect("response was not valid utf-8");
 
@@ -123,7 +131,14 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
     };
 
     let host = req.headers().get("host").unwrap();
+    let host = host.to_str().unwrap();
     let uri = req.uri().to_string();
+    let scheme = if host.starts_with("localhost") || host.starts_with("0.0.0.0") {
+        "http"
+    } else {
+        "https"
+    };
+
     let handle_request = format!(
         r#"
         {function}
@@ -136,22 +151,27 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
 
             if (!/GET|HEAD/.test('{method}')) {{
                 if (/multipart\/form-data/.test(options.headers['content-type'])) {{
-                    const object = {body};
+                    const object = {body_multi_part};
                     const formData = new FormData();
             
                     for (const key in object) {{
                         let value = object[key];
 
                         try {{
-                            value = JSON.parse(value);
-                            formData.append(key, new Blob([value.content], {{ type: value.type }}), value.filename);
-                        }} catch (e) {{
+                            const o = JSON.parse(value);
+                            value = o && typeof o === "object" ? o : value;
+                        }} catch {{}}
+
+                        if (value.content && value.type && value.filename) {{
+                            formData.append(key, new Blob([new Uint8Array(value.content)], {{ type: value.type }}), value.filename);
+                        }} else {{
                             formData.append(key, value);
                         }}
                     }}
-            
+
                     options.body = formData;
-                    // NOTE: workaround to allow Request to create a boundary
+
+                    // NOTE: it allows to the Request to create a new boundary
                     delete options.headers['content-type'];
                 }} else {{
                     options.body = {body};
@@ -164,9 +184,10 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         }};
         "#,
         body = body,
+        body_multi_part = body_multi_part,
         headers = headers.join(", "),
         method = req.method().as_str(),
-        url = format!("https://{}{}", host.to_str().unwrap(), uri),
+        url = format!("{}://{}{}", scheme, host, uri),
     );
 
     let res: HandleResponse = match task::spawn_blocking(move || {
@@ -319,15 +340,30 @@ fn formdata_to_json(formdata: &str, boundary: &str) -> Result<String> {
                 .captures(&value)
                 .and_then(|caps| caps.get(1))
                 .map_or("", |m| m.as_str());
+            // NOTE: Workaround to receive binary data as it fails when isn't a valid UTF-8 string
+            // It expects to receive a string, so we have to convert the binary data to a stringify-array and set it back to the formData.
+            // Example:
+            // ```javascript
+            // const arrayBuffer = await file.arrayBuffer();
+            // const uint8Array = new Uint8Array(arrayBuffer);
+            // formData.set(fieldName, new Blob([JSON.stringify(Array.from(uint8Array))], { type: file.type }), file.name);
+            // ```
             let content = content_re
                 .captures(&value)
                 .and_then(|caps| caps.get(1))
                 .map_or("", |m| m.as_str());
 
-            value = format!(
-                r#"{{"content": "{}", "type": "{}", "filename": "{}"}}"#,
-                content, content_type, filename
-            );
+            if content_type.starts_with("text") {
+                let content = content.as_bytes();
+
+                value = format!(
+                    r#"{{"content": {content:?}, "type": "{content_type}", "filename": "{filename}"}}"#
+                );
+            } else {
+                value = format!(
+                    r#"{{"content": {content}, "type": "{content_type}", "filename": "{filename}"}}"#
+                );
+            }
         }
 
         map.insert(key, value);

@@ -13,6 +13,7 @@ Query is a Rust server for your remote SQLite databases with a CLI and API to ma
   - [Install](#install)
     - [Use The Installer Scripts](#use-the-installer-scripts)
     - [Download The Binary](#download-the-binary)
+  - [Configuration](#configuration)
   - [Commands](#commands)
     - [Settings](#settings)
       - [URL](#url)
@@ -40,12 +41,15 @@ Query is a Rust server for your remote SQLite databases with a CLI and API to ma
       - [Create Branch](#create-branch)
       - [Delete Branch](#delete-branch)
       - [List Branches](#list-branches)
+    - [Generator](#generator)
+      - [How it works](#how-it-works)
+        - [Database migrations](#database-migrations)
+        - [Templates](#templates)
     - [Function](#function)
       - [Handle Request Example](#handle-request-example)
       - [Folder Structure Example](#folder-structure-example)
       - [Usage](#usage)
     - [Asset](#asset)
-      - [Usage](#usage-1)
 - [APIs](#apis)
   - [Query Endpoint](#query-endpoint)
   - [User Endpoint](#user-endpoint)
@@ -290,6 +294,35 @@ irm https://github.com/gc-victor/query/releases/latest/download/query-installer.
 
 <https://github.com/gc-victor/query/releases/latest>
 
+### Configuration
+
+The configuration file is located in the **/.query** folder. It is a TOML file named **Query\.toml**. The file format is as follows:
+
+```toml
+[server]
+url = "http://localhost:3000"
+
+[structure]
+functions_folder = "src"
+migrations_folder = "migrations"
+
+[esbuild]
+"loader:.html" = "text"
+"loader:.svg" = "text"
+```
+
+#### Options
+
+- **server** - The settings of the server to deploy
+  - **url** - The URL of the server to deploy. It will be requested during the settings process
+- **structure** - The structure of the project
+  - **migrations_folder** - The folder where the migrations are stored. (Default: src/migrations)
+  - **functions_folder** - The folder where the functions are stored. (Default: src/functions)
+  - **templates_folder** - The folder where the templates are stored. (Default: templates)
+- **esbuild** - The esbuild CLI params configuration for the functions. You can find more information in the [esbuild documentation](https://esbuild.github.io/api/).
+
+
+
 ### Commands
 
 Following we will see the commands you can use with the CLI.
@@ -308,7 +341,7 @@ It will ask you the following questions:
 
 - What is the server URL?
 
-If you don't know it, you can run the following command to get it:
+You can use a local one for development, or if you want to use Fly for your development deploys or access your remote databases, you can run the following command to get your Fly URL:
 
 ```sh
 fly status
@@ -645,7 +678,7 @@ It will ask you for the following information:
 - Which database would you like to use for creating a branch?
 - What is the branch name?
 
-The branches has this format: <db_name>.<branch_name>.branch.sql. For example, if the database name is example.sql and the branch name is dev, the branch will be example.dev.branch.sql. Notice that the extension is removed from the database name to be used as a prefix.
+The branches has this format: "**<db_name>.<branch_name>.branch.sql**". For example, if the database name is example.sql and the branch name is dev, the branch will be example.dev.branch.sql. Notice that the extension is removed from the database name to be used as a prefix.
 
 #### Delete Branch
 
@@ -670,6 +703,230 @@ Usage:
 ```sh
 query branch list
 ```
+
+### Generator
+
+Query's generator is a tool that helps you create a set of files using a simple command that represents a table's structure. It lets you quickly and easily create the needed files without writing everything from scratch.
+
+Example:
+
+```sh
+query generator blog.sql post title:string content:text
+```
+
+Format:
+
+```sh
+query generator <DATABA> <TABLE> <COLUMNS[COLUMN:TYPE]>
+```
+
+#### Column Types
+
+The following table illustrates the mapping between Column Types, TypeScript, and SQLite data types:
+
+| ColumnType | TypeScript | SQLite  |
+|------------|------------|---------|
+| blog       | Blob       | BLOB    |
+| boolean    | boolean    | BOOLEAN |
+| number     | number     | INTEGER |
+| integer    | number     | INTEGER |
+| float      | number     | REAL    |
+| real       | number     | REAL    |
+| timestamp  | string     | INTEGER DEFAULT (strftime('%s', 'now')) |
+| string     | string     | TEXT    |
+| text       | string     | TEXT    |
+| uuid       | string     | TEXT UNIQUE CHECK ({column_name} != '') DEFAULT (uuid()) |
+
+TODO: Add a link to the query-app project
+
+#### How it works
+
+The generator does two things:
+
+- Generate the database migrations files to update your database
+- Generate a set of files based on templates
+
+##### Database migrations
+
+The migration generated will use the command to create the table and the columns. The migration will be stored in the **/migrations** folder inside a folder with the database name (Ex. blog.sql). It will generate two files with the format of **`<version>_<name>_<type>.sql`**. The version will have the format of YYYYMMDDHHMMSS, the name should be in the format of `<name>_<description>`, and the types will be **up** and **down**.
+
+You can find more information about migrations in the [Migration](#migration) section.
+
+##### Templates
+
+The templates used to generate files are stored in the **/templates** folder or a custom folder specified in the Query's config file.
+
+```toml
+[structure]
+templates_folder = other-template-folder
+```
+
+Query uses a basic template system that we will describe in detail below.
+
+There are some dynamic variables based on the command params that you can use to generate the file content:
+
+- **{{ database }}**: The database where the migration will be executed
+- **{{ table }}**<sup>1</sup>: The name of the table
+- **{{ columnsLength }}**: The number of the columns
+- **{{ columns }}**: The list of columns specified
+  - **{{ columnIndex }}**: The index value in the loop
+  - **{{ columnFirst }}**: The first column in the loop
+  - **{{ columnLast }}**: The last column in the loop
+  - **{{ columnName }}**<sup>2</sup> <sup>1</sup>: The name of the column
+  - **{{ columnTypeMatchTS }}: The match of the type of the column with the TypeScript type
+  - **{{ columnsListOfUniqueTSTypes}}: A list of the matches between column type and TypeScript type in lowercase
+  - **{{ columnType }}**<sup>2</sup> <sup>1</sup>: The type of the column
+
+<sub>1 The table, the columnName, and the columnType have name variants you can use in your templates.</sub>
+
+<sub>2 To get the columnName and columnType, it is required to iterate over the columns.</sub>
+
+As we have commented, you can use some name variants in your templates for the table, columnName, and columnType. The name variants are based on the command that you will use to generate the files.
+
+**Variants:**
+
+- **camelCase** (Ex. testName)
+- **hyphenCase** (Ex. test-name)
+- **snakeCase** (Ex. test_name)
+- **dotCase** (Ex. test.name)
+- **pathCase** (Ex. test/name)
+- **constantCase** (Ex. TEST_NAME)
+- **pascalCase** (Ex. TestName)
+- **capitalCase** (Ex. Test Name)
+- **lowerCase** (Ex. test name)
+- **sentenceCase** (Ex. Test name)
+- **upperCase** (Ex. TEST NAME)
+- **upperCaseFirst** (Ex. Test name)
+- **lowerCaseFirst** (Ex. test name)
+
+**Variables:**
+
+```tmpl
+{{ tableCamelCase }}
+{{ tableHyphenCase }}
+{{ tableSnakeCase }}
+{{ tableDotCase }}
+{{ tablePathCase }}
+{{ tableConstantCase }}
+{{ tablePascalCase }}
+{{ tableCapitalCase }}
+{{ tableLowerCase }}
+{{ tableSentenceCase }}
+{{ tableUpperCase }}
+{{ tableUpperCaseFirst }}
+{{ tableLowerCaseFirst }}
+{{ columnNameCamelCase }}
+{{ columnNameHyphenCase }}
+{{ columnNameSnakeCase }}
+{{ columnNameDotCase }}
+{{ columnNamePathCase }}
+{{ columnNameConstantCase }}
+{{ columnNamePascalCase }}
+{{ columnNameCapitalCase }}
+{{ columnNameLowerCase }}
+{{ columnNameSentenceCase }}
+{{ columnNameUpperCase }}
+{{ columnNameUpperCaseFirst }}
+{{ columnNameLowerCaseFirst }}
+{{ columnTypeCamelCase }}
+{{ columnTypeHyphenCase }}
+{{ columnTypeSnakeCase }}
+{{ columnTypeDotCase }}
+{{ columnTypePathCase }}
+{{ columnTypeConstantCase }}
+{{ columnTypePascalCase }}
+{{ columnTypeCapitalCase }}
+{{ columnTypeLowerCase }}
+{{ columnTypeSentenceCase }}
+{{ columnTypeUpperCase }}
+{{ columnTypeUpperCaseFirst }}
+{{ columnTypeLowerCaseFirst }}
+```
+
+The template system provides two operations to use in your templates:
+
+**If:**
+
+```html
+{% if table == "post" %}
+  <p>This is a Post.</p>
+{% else %}
+  <p>This isn't a Post.</p>
+{% endif %}
+```
+
+**For:**
+
+```html
+{% for column in columns %}
+  <p>{% column.columnName %}</p>
+{% endfor %}
+```
+
+With the previous information, you can create a set of files based on the table's schema. These files should be placed in the templates folder, with the folder structure used to generate files in their respective locations. The templates folder structure should match that of the *functions_folder*, which is typically configured as */src*, although you will need to configure it yourself. You can find more information about the configuration process in the [Configuration](#configuration) section.
+
+Example from the [query-app](https://github.com/gc-victor/query-app) project:
+
+API:
+
+```sh
+templates
+├── api
+│   ├── admin
+│   │   ├── login
+│   │   │   └── **.index.ts
+│   │   └── **
+│   │       ├── delete.index.ts
+│   │       ├── get.index.ts
+│   │       ├── post.index.ts
+│   │       ├── put.index.ts
+│   │       └── uuid
+│   │           └── get.[slug].ts
+│   └── **
+│       ├── delete.index.ts
+│       ├── get.index.ts
+│       ├── post.index.ts
+│       ├── put.index.ts
+│       └── uuid
+│           └── get.[slug].ts
+└── ...
+```
+
+Pages:
+
+```sh
+templates
+├── pages
+│   ├── admin
+│   │   ├── components
+│   │   │   └── ...
+│   │   ├── get.index.ts
+│   │   ├── login
+│   │   │   └── ...
+│   │   ├── **
+│   │   │   ├── get.index.tsx
+│   │   │   ├── island
+│   │   │   │   └── **.island.ts
+│   │   │   ├── **.form.view.tsx
+│   │   │   └── **.view.tsx
+│   │   └── utils
+│   │       └── ..
+│   ├── components
+│   │   └── ..
+│   ├── get.index.tsx
+│   ├── layouts
+│   │   └── ...
+│   ├── **
+│   │   ├── excerpt.tsx
+│   │   ├── get.index.tsx
+│   │   └── [slug]
+│   │       ├── get.index.tsx
+│   │       └── **.tsx
+│   └── styles.css
+└── ...
+```
+
+Notice that the **"\*\*"** is a placeholder for that will be replaced by the table name of the command.
 
 ### Function
 
