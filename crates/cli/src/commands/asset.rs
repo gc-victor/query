@@ -6,7 +6,6 @@ use std::{
 };
 
 use anyhow::Result;
-use liquid::ValueView;
 use reqwest::Method;
 use serde::Deserialize;
 use serde_json::json;
@@ -136,7 +135,7 @@ fn asset_builder(file_path: &str) -> Result<Asset> {
     let data = match fs::read(file_path) {
         Ok(data) => data,
         Err(e) => {
-            panic!(r#"The asset file "{file_path}" issue. Error: {e}"#);
+            panic!(r#"The asset file "{file_path}" error: {e}"#);
         }
     };
 
@@ -148,6 +147,10 @@ fn asset_builder(file_path: &str) -> Result<Asset> {
     let mime_type = mime_guess::from_path(name)
         .first_or_text_plain()
         .to_string();
+
+    let mut hasher = DefaultHasher::new();
+    Hash::hash_slice(&data, &mut hasher);
+    let file_hash = hasher.finish().to_string();
 
     Ok(Asset {
         data,
@@ -173,7 +176,7 @@ mod tests {
         std::fs::write(&path, "Asset file content").unwrap();
 
         let expected_data = b"Asset file content".to_vec();
-        let expected_name = "file.txt".to_string();
+        let expected_name = "../../.tests/path/to/asset/file.txt".to_string();
         let expected_file_hash = "10334933136645715414".to_string();
         let expected_mime_type = "text/plain".to_string();
 
@@ -189,7 +192,7 @@ mod tests {
 
     #[test]
     #[should_panic(
-        expected = r#"The asset file "/path/to/non_existing_asset/file.txt" doesn't exists"#
+        expected = r#"The asset file "/path/to/non_existing_asset/file.txt" error: No such file or directory"#
     )]
     fn test_asset_non_exist() {
         let non_existing_file_path = "/path/to/non_existing_asset/file.txt";

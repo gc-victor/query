@@ -1,13 +1,18 @@
-#[allow(unused_imports)]
-use anyhow::anyhow;
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+};
+
 #[allow(unused_imports)]
 use std::{
     env, fs,
     process::{exit, Command},
 };
 
+#[allow(unused_imports)]
+use anyhow::anyhow;
+
 use anyhow::Result;
-use liquid::ValueView;
 use regex::Regex;
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
@@ -35,7 +40,7 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
     let path = command
         .path
         .clone()
-        .unwrap_or(CONFIG.structure.functions_folder.clone());
+        .unwrap_or(CONFIG.structure.functions_folder.to_owned());
     let metadata = fs::metadata(&path)?;
     let is_file = metadata.is_file();
 
@@ -88,53 +93,83 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
             let entry = entry?;
 
             if entry.file_type().is_file() {
-                let file_path = entry.path().display().to_string();
+                if let Some(file_name) = entry.file_name().to_str() {
+                    if file_name.starts_with("connect.index")
+                        || file_name.starts_with("connect.[slug]")
+                        || file_name.starts_with("delete.index")
+                        || file_name.starts_with("delete.[slug]")
+                        || file_name.starts_with("get.index")
+                        || file_name.starts_with("get.[slug]")
+                        || file_name.starts_with("head.index")
+                        || file_name.starts_with("head.[slug]")
+                        || file_name.starts_with("options.index")
+                        || file_name.starts_with("options.[slug]")
+                        || file_name.starts_with("patch.index")
+                        || file_name.starts_with("patch.[slug]")
+                        || file_name.starts_with("post.index")
+                        || file_name.starts_with("post.[slug]")
+                        || file_name.starts_with("put.index")
+                        || file_name.starts_with("put.[slug]")
+                        || file_name.starts_with("trace.index")
+                        || file_name.starts_with("trace.[slug]")
+                    {
+                        let file_path = entry.path().display().to_string();
 
-                let FunctionBuilder {
-                    active,
-                    function,
-                    method,
-                    path,
-                } = function_builder(&file_path)?;
+                        let FunctionBuilder {
+                            active,
+                            function,
+                            method,
+                            path,
+                        } = function_builder(&file_path)?;
 
-                let body_path = path.replace(
-                    &env::current_dir()?
-                        .join(CONFIG.structure.functions_folder.clone())
-                        .to_str()
-                        .unwrap()
-                        .to_string(),
-                    "",
-                );
-                let body_path = if body_path.is_empty() {
-                    "/".to_string()
-                } else {
-                    body_path
-                };
-                let body = json!({
-                    "active": active,
-                    "function": function,
-                    "method": method,
-                    "path": body_path,
-                })
-                .to_string();
+                        let body_path = path.replace(
+                            &env::current_dir()?
+                                .join(&CONFIG.structure.functions_folder)
+                                .to_str()
+                                .unwrap()
+                                .to_string(),
+                            "",
+                        );
+                        let body_path = if body_path.is_empty() {
+                            "/".to_string()
+                        } else {
+                            body_path
+                        };
+                        let body = json!({
+                            "active": active,
+                            "function": function,
+                            "method": method,
+                            "path": body_path,
+                        })
+                        .to_string();
 
-                let mut cache = Cache::new();
-                let value = function.to_vec().to_kstr().to_string();
-                let is_cached = match cache.get(&path) {
-                    Some(cache_item) => cache_item.value == value,
-                    None => false,
-                };
+                        let mut cache = Cache::new();
+                        let mut hasher = DefaultHasher::new();
+                        Hash::hash_slice(&function, &mut hasher);
+                        let value = hasher.finish().to_string();
 
-                if !is_cached {
-                    match http_client("function-builder", Some(&body), Method::POST).await {
-                        Ok(_) => {
-                            info!("Function updated: {}", file_path);
-                            cache.set(CacheItem { key: path, value })?;
+                        let is_cached = match cache.get(&file_path) {
+                            Some(cache_item) => cache_item.value == value,
+                            None => false,
+                        };
+
+                        if !is_cached {
+                            match http_client("function-builder", Some(&body), Method::POST).await {
+                                Ok(_) => {
+                                    info!("Function updated: {}", file_path);
+                                    cache.set(CacheItem {
+                                        key: file_path,
+                                        value,
+                                    })?;
+                                }
+                                Err(err) => panic!("{}", err),
+                            };
+                        } else {
+                            info!("Function cached: {file_path}");
                         }
-                        Err(err) => panic!("{}", err),
-                    };
+                    }
                 } else {
-                    info!("Function cached: {file_path}");
+                    continue;
                 }
             }
         }
@@ -155,23 +190,30 @@ fn function_builder(file_path: &str) -> Result<FunctionBuilder> {
     match std::fs::read(file_path) {
         Ok(_) => (),
         Err(_) => {
-            panic!(r#"The function file "{}" doesn't exists"#, file_path);
+            panic!(r#"The file "{}" doesn't exists"#, file_path);
         }
     };
+
     let reg =
-        Regex::new(r#"^(.*)\/(delete|get|patch|put|post)\.(index|\[slug\])\.(js|jsx|ts|tsx)$"#)
+        Regex::new(r#"^(.*)\/(get|head|post|put|delete|connect|options|trace|patch)\.(index|\[slug\])\.(js|jsx|ts|tsx)$"#)
             .unwrap();
     let name: String = reg.replace(file_path, "$3").to_string();
     if name != "index" && name != "[slug]" {
         panic!(
-            r#"The file "{}" doesn't have a valid name. It should be "index" or "[slug]". Ex. "get.index.js" or "post.[slug].js""#,
+            r#"The file "{}" doesn't have a valid name. It should be "index" or "[slug]". Ex. "get.index.(js|jsx|ts|tsx)" or "post.[slug].(js|jsx|ts|tsx)""#,
             file_path
         );
     }
+
+    let functions_folder = &CONFIG.structure.functions_folder;
     let path: String = reg.replace(file_path, "$1$3").to_string();
-    let path = path.split("/functions").last().unwrap().to_string();
     let path = path
-        .replace("functions", "")
+        .split(&format!("/{functions_folder}"))
+        .last()
+        .unwrap()
+        .to_string();
+    let path = path
+        .replace(functions_folder, "")
         .replace("index", "")
         .replacen("/[slug]", "/:slug", 10)
         .replacen("[slug]", "/:slug", 10);
@@ -180,6 +222,7 @@ fn function_builder(file_path: &str) -> Result<FunctionBuilder> {
     } else {
         path
     };
+
     let method = reg.replace(file_path, "$2").to_uppercase();
     let re = Regex::new(r"^(GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)$").unwrap();
     if !re.is_match(&method) {
@@ -211,19 +254,38 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
 
     let path = function_path;
 
-    Command::new(ESBUILD)
-        .args([
-            &path,
-            "--bundle",
-            "--format=esm",
-            "--legal-comments=none",
-            "--minify=true",
-            "--target=esnext",
-            "--platform=browser",
-            out_dir_flag,
-        ])
-        .output()
-        .expect("Failed to execute esbuild");
+    let mut args = vec![
+        path.to_string(),
+        "--bundle".to_string(),
+        "--format=esm".to_string(),
+        "--legal-comments=none".to_string(),
+        "--minify=true".to_string(),
+        "--target=esnext".to_string(),
+        "--platform=browser".to_string(),
+        out_dir_flag.to_string(),
+    ];
+
+    let config_esbuild = &CONFIG.esbuild;
+
+    for (key, value) in config_esbuild {
+        let flag = format!("--{}={}", key, value);
+        args.push(flag);
+    }
+
+    match Command::new(ESBUILD).args(&args).output() {
+        Ok(output) => {
+            let output = std::str::from_utf8(&output.stderr)?;
+
+            if output.contains("[ERROR]") {
+                eprintln!("{:?}", output);
+                exit(1);
+            }
+        }
+        Err(e) => {
+            eprintln!("{:?}", e);
+            exit(1);
+        }
+    };
 
     let bundle_path = format!("{}/{}", out_dir, function_path.split('/').last().unwrap());
     let re = Regex::new(r"(\.tsx|\.ts)$").unwrap();
@@ -236,12 +298,8 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
     }
 
     let function = function.replace("var handleRequest", "globalThis.___handleRequest");
-    let re = Regex::new(r"export\{(\w) as handleRequest\};\n$").unwrap();
-    let var: &str = re.captures(&function).unwrap().get(1).unwrap().as_str();
-    let function = re.replace(
-        &function,
-        &format!("globalThis.___handleRequest = {};", var),
-    );
+    let re_export = Regex::new(r"export\{([\S]+) as handleRequest\};\n$").unwrap();
+    let function = re_export.replace(&function, format!("globalThis.___handleRequest = $1;"));
 
     fs::remove_file(bundle_path)?;
 
@@ -256,10 +314,10 @@ mod tests {
 
     #[test]
     #[should_panic(
-        expected = r#"The function file "../../.tests/path/to/functions/post.not_exist.js" doesn't exists"#
+        expected = r#"The file "../../.tests/src/functions/post.not_exist.js" doesn't exists"#
     )]
     fn test_function_builder_file_not_exist() {
-        let dir = "../../.tests/path/to/functions".to_string();
+        let dir = "../../.tests/src/functions".to_string();
         let path = format!("{dir}/post.not_exist.js");
 
         function_builder(&path).unwrap();
@@ -269,18 +327,18 @@ mod tests {
 
     impl Drop for TestFunctionBuilderFileNameNoValidName {
         fn drop(&mut self) {
-            std::fs::remove_file("../../.tests/path/to/functions/post.no_index.js").unwrap();
+            std::fs::remove_file("../../.tests/src/functions/post.no_index.js").unwrap();
         }
     }
 
     #[test]
     #[should_panic(
-        expected = r#"The file "../../.tests/path/to/functions/post.no_index.js" doesn't have a valid name. It should be "index" or "[slug]". Ex. "get.index.js" or "post.[slug].js""#
+        expected = r#"The file "../../.tests/src/functions/post.no_index.js" doesn't have a valid name. It should be "index" or "[slug]". Ex. "get.index.(js|jsx|ts|tsx)" or "post.[slug].(js|jsx|ts|tsx)""#
     )]
     fn test_function_builder_file_name_no_valid_name() {
         let _after = TestFunctionBuilderFileNameNoValidName;
 
-        let dir = "../../.tests/path/to/functions".to_string();
+        let dir = "../../.tests/src/functions".to_string();
         let path = format!("{dir}/post.no_index.js");
 
         create_dir_all(dir).unwrap();
@@ -294,18 +352,18 @@ mod tests {
 
     impl Drop for TestFunctionBuilderFileNameInvalidPrefix {
         fn drop(&mut self) {
-            std::fs::remove_file("../../.tests/path/to/functions/invalid_prefix.js").unwrap();
+            std::fs::remove_file("../../.tests/src/functions/invalid_prefix.js").unwrap();
         }
     }
 
     #[test]
     #[should_panic(
-        expected = r#"The file "../../.tests/path/to/functions/invalid_prefix.js" doesn't have a valid name. It should be "index" or "[slug]". Ex. "get.index.js" or "post.[slug].js""#
+        expected = r#"The file "../../.tests/src/functions/invalid_prefix.js" doesn't have a valid name. It should be "index" or "[slug]". Ex. "get.index.(js|jsx|ts|tsx)" or "post.[slug].(js|jsx|ts|tsx)""#
     )]
     fn test_function_builder_invalid_prefix() {
         let _after = TestFunctionBuilderFileNameInvalidPrefix;
 
-        let dir = "../../.tests/path/to/functions".to_string();
+        let dir = "../../.tests/src/functions".to_string();
         let path = format!("{dir}/invalid_prefix.js");
 
         create_dir_all(dir).unwrap();
@@ -317,7 +375,7 @@ mod tests {
 
     #[test]
     fn test_function_builder() {
-        let dir = "../../.tests/path/to/functions".to_string();
+        let dir = "../../.tests/src/functions".to_string();
         let path = format!("{dir}/post.index.js");
 
         create_dir_all(dir).unwrap();
@@ -339,7 +397,7 @@ mod tests {
 
     #[test]
     fn test_function_builder_with_slug() {
-        let dir = "../../.tests/path/to/functions/test".to_string();
+        let dir = "../../.tests/src/functions/test".to_string();
         let path = format!("{dir}/get.[slug].ts");
 
         create_dir_all(dir).unwrap();
