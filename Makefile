@@ -1,4 +1,5 @@
 ARGUMENTS = $(filter-out $@,$(MAKECMDGOALS))
+GET_ARGUMENT = $(strip $(call word,$(1),$(ARGUMENTS)))
 
 # Hurl variables
 
@@ -159,6 +160,24 @@ nextest-match:
 
 test-watch:
 	cargo watch -c -s "make test"
+
+# Tag
+
+tag:
+	perl -pi -e 's/version = "$(call GET_ARGUMENT,1)"/version = "$(call GET_ARGUMENT,2)"/g' ./Cargo.toml
+	perl -pi -e 's/version = "$(call GET_ARGUMENT,1)"/version = "$(call GET_ARGUMENT,2)"/g' ./crates/cli/src/main.rs
+	cargo check --workspace
+	git add Cargo.lock
+	git add Cargo.toml
+	git add crates/cli/src/main.rs
+	git commit -m "release: version $(call GET_ARGUMENT,2)"
+	git push --force-with-lease
+	git tag v$(call GET_ARGUMENT,2)
+	git push --tags
+
+tag-delete:
+	git tag -d v$(ARGUMENTS)
+	git push origin --delete v$(ARGUMENTS)
 
 # catch anything and do nothing
 %:
