@@ -726,7 +726,7 @@ The following table illustrates the mapping between Column Types, TypeScript, an
 
 | ColumnType | TypeScript | SQLite  |
 |------------|------------|---------|
-| blog       | Blob       | BLOB    |
+| blob       | Blob       | BLOB    |
 | boolean    | boolean    | BOOLEAN |
 | number     | number     | INTEGER |
 | integer    | number     | INTEGER |
@@ -736,8 +736,6 @@ The following table illustrates the mapping between Column Types, TypeScript, an
 | string     | string     | TEXT    |
 | text       | string     | TEXT    |
 | uuid       | string     | TEXT UNIQUE CHECK ({column_name} != '') DEFAULT (uuid()) |
-
-TODO: Add a link to the query-app project
 
 #### How it works
 
