@@ -88,7 +88,9 @@ fn generate_migration(command: &GenerateArgs) -> Result<GenerateFiles> {
 
             acc.push_str(&format!(
                 "{} {} NOT NULL,{}",
-                column_name, column_type, extra_space
+                snake_case(column_name),
+                column_type,
+                extra_space
             ));
 
             acc
@@ -97,11 +99,12 @@ fn generate_migration(command: &GenerateArgs) -> Result<GenerateFiles> {
 
     let database = &command.database;
     let table = &command.table;
+    let table_snake_case = snake_case(table);
     let prefix = now();
 
     let up_content = format!(
         r#"
-            CREATE TABLE IF NOT EXISTS {table}(
+            CREATE TABLE IF NOT EXISTS {table_snake_case}(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 uuid TEXT UNIQUE CHECK (uuid != '') DEFAULT (uuid()) NOT NULL,
                 {columns}
@@ -109,10 +112,10 @@ fn generate_migration(command: &GenerateArgs) -> Result<GenerateFiles> {
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             );
 
-            CREATE TRIGGER IF NOT EXISTS trigger_{table}_update 
-                AFTER UPDATE ON {table}
+            CREATE TRIGGER IF NOT EXISTS trigger_{table_snake_case}_update 
+                AFTER UPDATE ON {table_snake_case}
                 BEGIN
-                    UPDATE {table}
+                    UPDATE {table_snake_case}
                     SET updated_at=(strftime('%s', 'now'))
                     WHERE id=OLD.id;
                 END;
@@ -124,7 +127,7 @@ fn generate_migration(command: &GenerateArgs) -> Result<GenerateFiles> {
         .join(database)
         .join(format!("{prefix}-{table}-up.sql"));
 
-    let down_content = format!(r#"DROP TABLE {table};"#);
+    let down_content = format!(r#"DROP TABLE {table_snake_case};"#);
 
     let down_file_path = Path::new(migrations_folder)
         .join(database)
@@ -770,7 +773,7 @@ mod tests {
     #[test]
     fn test_command_generate() -> Result<()> {
         let command = &GenerateArgs {
-            table: "users".to_string(),
+            table: "test-table".to_string(),
             columns: vec![
                 "blob:blob".to_string(),
                 "boolean:boolean".to_string(),
@@ -787,7 +790,7 @@ mod tests {
         };
 
         let expected_up_content = r#"
-            CREATE TABLE IF NOT EXISTS users(
+            CREATE TABLE IF NOT EXISTS test_table(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 uuid TEXT UNIQUE CHECK (uuid != '') DEFAULT (uuid()) NOT NULL,
                 blob BLOB NOT NULL,
@@ -804,15 +807,15 @@ mod tests {
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             );
 
-            CREATE TRIGGER IF NOT EXISTS trigger_users_update 
-                AFTER UPDATE ON users
+            CREATE TRIGGER IF NOT EXISTS trigger_test_table_update 
+                AFTER UPDATE ON test_table
                 BEGIN
-                    UPDATE users
+                    UPDATE test_table
                     SET updated_at=(strftime('%s', 'now'))
                     WHERE id=OLD.id;
                 END;
         "#;
-        let expected_down_content = r#"DROP TABLE users;"#;
+        let expected_down_content = r#"DROP TABLE test_table;"#;
 
         let database = &command.database;
         let migrations_folder = &CONFIG.structure.migrations_folder.clone();
