@@ -771,8 +771,8 @@ There are some dynamic variables based on the command params that you can use to
   - **{{ columnFirst }}**: The first column in the loop
   - **{{ columnLast }}**: The last column in the loop
   - **{{ columnName }}**<sup>2</sup> <sup>1</sup>: The name of the column
-  - **{{ columnTypeMatchTS }}: The match of the type of the column with the TypeScript type
-  - **{{ columnsListOfUniqueTSTypes}}: A list of the matches between column type and TypeScript type in lowercase
+  - **{{ columnTypeMatchTS }}**: The match of the type of the column with the TypeScript type
+  - **{{ columnsListOfUniqueTSTypes }}**: A list of the matches between column type and TypeScript type in lowercase
   - **{{ columnType }}**<sup>2</sup> <sup>1</sup>: The type of the column
 
 <sub>1 The table, the columnName, and the columnType have name variants you can use in your templates.</sub>
