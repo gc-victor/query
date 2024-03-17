@@ -79,7 +79,7 @@ Dockerfile:
 ```Dockerfile
 FROM debian:12-slim
 
-ADD litefs.yml /etc/litefs.yml
+COPY litefs.yml /etc/litefs.yml
 COPY --from=flyio/litefs:0.5 /usr/local/bin/litefs /usr/local/bin/litefs
 
 RUN apt-get update -qq && \
@@ -92,6 +92,13 @@ RUN apt-get update -qq && \
 # Download and installs Query Server
 RUN curl --proto '=https' --tlsv1.2 -LsSf https://github.com/gc-victor/query/releases/latest/download/query-server-installer.sh | sh
 
+# It will execute the Query Server and your App
+COPY process.sh process.sh
+RUN chmod +x process.sh
+
+# Queries databases path
+ENV QUERY_SERVER_DBS_PATH="/mnt/dbs"
+
 EXPOSE 3000
 
 CMD ["litefs", "mount"]
@@ -102,7 +109,7 @@ process.sh:
 ```bash
 #!/bin/bash
 
-~/.cargo/bin/query-server
+/root/.cargo/bin/query-server
 ```
 
 litefs.yml:
@@ -131,7 +138,7 @@ Dockerfile:
 ```Dockerfile
 FROM debian:12-slim AS runtime
 
-ADD litefs.yml /etc/litefs.yml
+COPY litefs.yml /etc/litefs.yml
 COPY --from=flyio/litefs:0.5 /usr/local/bin/litefs /usr/local/bin/litefs
 
 RUN apt-get update -qq && \
@@ -145,9 +152,11 @@ RUN apt-get update -qq && \
 RUN curl --proto '=https' --tlsv1.2 -LsSf https://github.com/gc-victor/query/releases/latest/download/query-server-installer.sh | sh
 
 # It will execute the Query Server and your App
-COPY --link process.sh process.sh
+COPY process.sh process.sh
 RUN chmod +x process.sh
 
+# Queries databases path
+ENV QUERY_SERVER_DBS_PATH="/mnt/dbs"
 # Enable Query Server Proxy
 ENV QUERY_SERVER_PROXY="true"
 # Your App port
@@ -168,7 +177,7 @@ process.sh:
 #!/bin/bash
 
 set -m
-~/.cargo/bin/query-server &
+/root/.cargo/bin/query-server &
 __START_YOUR_APP__ &
 fg %1
 ```
