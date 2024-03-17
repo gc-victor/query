@@ -8,6 +8,9 @@ description = "Server for SQLite databases."
 homepage = "https://github.com/gc-victor/query/tree/main/crates/server"
 repository = "https://github.com/gc-victor/query"
 
+[features]
+vendored-openssl = ["openssl/vendored"]
+
 [dependencies]
 anyhow = "1.0"
 argon2 = "0.5"
@@ -47,3 +50,7 @@ tracing-subscriber = { version = "0.3", features = [
 ] }
 url = "2.5"
 uuid = { version = "1.6", features = ["v4"] }
+
+[dependencies.openssl]
+version = "0.10"
+features = ["vendored"]
