@@ -1,17 +1,24 @@
+use tracing::error;
+
 use super::connect_db::connect_function_db;
 
 pub fn create_function_db() {
-    connect_function_db()
-        .expect("Can't connect to the function database")
-        .execute_batch(
-            &[
-                "BEGIN;".to_string(),
-                create_function_table(),
-                "COMMIT;".to_string(),
-            ]
-            .join("\n"),
-        )
-        .expect("Can't create config database");
+    match connect_function_db() {
+        Ok(connection) => {
+            match connection.execute_batch(
+                &[
+                    "BEGIN;".to_string(),
+                    create_function_table(),
+                    "COMMIT;".to_string(),
+                ]
+                .join("\n"),
+            ) {
+                Ok(_) => (),
+                Err(err) => error!("Can't create function database: {}", err),
+            }
+        }
+        Err(err) => error!("Can't connect to the function database: {}", err),
+    }
 }
 
 fn create_function_table() -> String {

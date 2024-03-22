@@ -1,11 +1,19 @@
+use tracing::error;
+
 use super::connect_db::connect_asset_db;
 
 pub(crate) fn create_asset_db() {
-    // TODO: remove expects and add a proper error handling
-    connect_asset_db()
-        .expect("Can't connect to the asset database")
-        .execute_batch(&["BEGIN;".to_string(), asset(), "COMMIT;".to_string()].join("\n"))
-        .expect("Can't create asset database");
+    match connect_asset_db() {
+        Ok(connection) => {
+            match connection
+                .execute_batch(&["BEGIN;".to_string(), asset(), "COMMIT;".to_string()].join("\n"))
+            {
+                Ok(_) => (),
+                Err(error) => error!("Can't create asset database: {}", error),
+            }
+        }
+        Err(error) => error!("Can't connect to the asset database: {}", error),
+    }
 }
 
 fn asset() -> String {
