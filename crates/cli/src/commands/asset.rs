@@ -9,6 +9,7 @@ use anyhow::Result;
 use reqwest::Method;
 use serde::Deserialize;
 use serde_json::json;
+use tracing::error;
 use tracing::info;
 use walkdir::WalkDir;
 
@@ -57,7 +58,7 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
                     info!("Successfully asset deleted!!!!");
                     line_break();
                 }
-                Err(err) => panic!("{}", err),
+                Err(err) => error!("{}", err),
             };
 
             return Ok(());
@@ -78,7 +79,7 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
                 info!("Successfully asset updated!!!!");
                 line_break();
             }
-            Err(err) => panic!("{}", err),
+            Err(err) => error!("{}", err),
         };
     } else {
         for entry in WalkDir::new(path) {
@@ -119,7 +120,7 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
                                 value,
                             })?;
                         }
-                        Err(err) => panic!("{}", err),
+                        Err(err) => error!("{}", err),
                     };
                 } else {
                     info!("Asset cached: {file_path}");
