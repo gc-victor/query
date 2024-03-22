@@ -2,28 +2,34 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
     Argon2,
 };
+use tracing::error;
 
 use crate::env::Env;
 
 use super::connect_db::connect_config_db;
 
 pub fn create_config_db() {
-    connect_config_db()
-        .expect("Can't connect to the config database")
-        .execute_batch(
-            &[
-                "BEGIN;".to_string(),
-                create_user_table(),
-                insert_admin_user(),
-                create_user_token_table(),
-                insert_admin_user_token(),
-                create_token_table(),
-                options(),
-                "COMMIT;".to_string(),
-            ]
-            .join("\n"),
-        )
-        .expect("Can't create config database");
+    match connect_config_db() {
+        Ok(connection) => {
+            match connection.execute_batch(
+                &[
+                    "BEGIN;".to_string(),
+                    create_user_table(),
+                    insert_admin_user(),
+                    create_user_token_table(),
+                    insert_admin_user_token(),
+                    create_token_table(),
+                    options(),
+                    "COMMIT;".to_string(),
+                ]
+                .join("\n"),
+            ) {
+                Ok(_) => (),
+                Err(err) => error!("Can't create config database: {}", err),
+            }
+        }
+        Err(err) => error!("Can't create config database: {}", err),
+    };
 }
 
 fn create_user_table() -> String {
