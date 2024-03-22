@@ -17,6 +17,7 @@ use regex::Regex;
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use tracing::error;
 use tracing::info;
 use walkdir::WalkDir;
 
@@ -65,7 +66,7 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
                     info!("Successfully function deleted!!!!");
                     line_break();
                 }
-                Err(err) => panic!("{}", err),
+                Err(err) => error!("{}", err),
             };
 
             return Ok(());
@@ -85,7 +86,7 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
                 info!("Successfully function updated!!!!");
                 line_break();
             }
-            Err(err) => panic!("{}", err),
+            Err(err) => error!("{}", err),
         };
     } else {
         let functions_folder = env::current_dir()?.join(path).to_str().unwrap().to_string();
@@ -162,7 +163,7 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
                                         value,
                                     })?;
                                 }
-                                Err(err) => panic!("{}", err),
+                                Err(err) => error!("{}", err),
                             };
                         } else {
                             info!("Function cached: {file_path}");
