@@ -5,8 +5,8 @@ use tracing::{error, info};
 
 use crate::{
     prompts::{
-        confirm_optional_prompt, confirm_prompt, integer_optional_prompt, text_prompt,
-        PROMPT_EMAIL_MESSAGE, PROMPT_EXPIRATION_DATE_MESSAGE, PROMPT_WRITE_MESSAGE,
+        confirm_optional_prompt, confirm_prompt, integer_optional_prompt, password_prompt,
+        text_prompt, PROMPT_EMAIL_MESSAGE, PROMPT_EXPIRATION_DATE_MESSAGE, PROMPT_WRITE_MESSAGE,
     },
     utils::{http_client, json_to_table, line_break},
 };
@@ -97,9 +97,11 @@ pub async fn command_user_token(command: &UserTokenArgs) -> Result<()> {
         }
         UserTokenCommands::Value => {
             let email = text_prompt(PROMPT_EMAIL_MESSAGE)?;
+            let password = password_prompt()?;
 
             let body = json!({
-                "email": email
+                "email": email,
+                "password": password,
             })
             .to_string();
 
