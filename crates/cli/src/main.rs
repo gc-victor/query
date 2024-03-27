@@ -17,7 +17,7 @@ use tracing_subscriber::FmtSubscriber;
 
 #[derive(Parser)]
 #[command(name = "Query")]
-#[command(version = "0.5.4")]
+#[command(version = "0.5.5")]
 #[command(about = "The CLI to manage your Query Server instance", long_about = None)]
 struct Cli {
     #[command(subcommand)]
