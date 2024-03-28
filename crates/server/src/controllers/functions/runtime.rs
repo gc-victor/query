@@ -1,10 +1,14 @@
-use std::cell::{OnceCell, RefCell};
+use std::{
+    cell::{OnceCell, RefCell},
+    time::Duration,
+};
 
 use rustyscript::{Runtime, RuntimeOptions};
 
 use super::ext::{
-    init_argon2::init_argon2, init_handle_response::init_handle_response,
-    init_process::init_process, init_sqlite::init_sqlite,
+    init_argon2::init_argon2, init_global_this_backup::init_global_this_backup,
+    init_handle_response::init_handle_response, init_process::init_process,
+    init_sqlite::init_sqlite,
 };
 
 thread_local! {
@@ -18,10 +22,12 @@ pub fn with_runtime<T, F: FnMut(&mut Runtime) -> T>(mut callback: F) -> T {
                 Runtime::new(RuntimeOptions {
                     extensions: vec![
                         init_argon2::init_ops_and_esm(),
+                        init_global_this_backup::init_ops_and_esm(),
                         init_handle_response::init_ops_and_esm(),
                         init_process::init_ops_and_esm(),
                         init_sqlite::init_ops_and_esm(),
                     ],
+                    timeout: Duration::from_millis(1000),
                     ..Default::default()
                 })
                 .expect("could not create the runtime"),
