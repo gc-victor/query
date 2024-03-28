@@ -5,7 +5,7 @@ use anyhow::Result;
 use hyper::{body::Incoming, header::CONTENT_TYPE, http::HeaderName, Method, Request, Response};
 use regex::Regex;
 use rusqlite::named_params;
-use rustyscript::{json_args, Module};
+use rustyscript::{json_args, Module, ModuleHandle, Runtime};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 use serde_json::json;
@@ -22,6 +22,9 @@ use crate::{
 };
 
 use super::runtime::with_runtime;
+
+// For functions returning nothing
+pub type Undefined = serde_json::Value;
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -199,7 +202,27 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
                 Err(e) => return Err(e),
             };
 
-            runtime.call_function(&module_handle, "___handleResponse", json_args!())
+            match runtime.call_function::<Undefined>(
+                &ModuleHandle::default(),
+                "init_global_this_backup",
+                Runtime::EMPTY_ARGS,
+            ) {
+                Ok(_) => (),
+                Err(e) => return Err(e),
+            };
+
+            let res = runtime.call_function(&module_handle, "___handleResponse", json_args!());
+
+            match runtime.call_function::<Undefined>(
+                &ModuleHandle::default(),
+                "reset_global_this_backup",
+                Runtime::EMPTY_ARGS,
+            ) {
+                Ok(_) => (),
+                Err(e) => return Err(e),
+            };
+
+            res
         }) {
             Ok(v) => Ok(v),
             Err(e) => Err(e),
