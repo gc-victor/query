@@ -1,5 +1,5 @@
-globalThis.___handleResponse = async function () {
-    const response = await ___handleRequestWrapper();
+export async function ___handleResponse(handleRequestWrapper) {
+    const response = await handleRequestWrapper();
     const body = await response.arrayBuffer();
     const headers = {};
 

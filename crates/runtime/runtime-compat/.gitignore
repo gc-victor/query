@@ -1,0 +1,13 @@
+# Node.js runtime environment
+node_modules/
+
+# Query
+.env
+
+.dbs/
+.query/.cache
+.query/.history
+.query/.token
+
+# Runtime Compatibility
+download/

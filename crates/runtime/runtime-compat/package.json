@@ -1,0 +1,7 @@
+{
+    "private": true,
+    "devDependencies": {
+        "@mdn/browser-compat-data": "5.5.16",
+        "@types/node": "^20.11"
+    }
+}

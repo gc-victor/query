@@ -1,0 +1,10 @@
+[server]
+url = "http://localhost:3000"
+
+[structure]
+functions_folder = "src"
+
+[esbuild]
+"loader:.html" = "text"
+"loader:.svg" = "text"
+"loader:.json" = "text"

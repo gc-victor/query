@@ -1,15 +1,14 @@
-use std::env;
-use std::{collections::HashMap, vec};
+use std::collections::HashMap;
 
 use anyhow::Result;
 use hyper::{body::Incoming, header::CONTENT_TYPE, http::HeaderName, Method, Request, Response};
 use regex::Regex;
-use rusqlite::named_params;
-use rustyscript::{json_args, Module};
+use rquickjs::promise::Promise;
+use rquickjs::{async_with, ArrayBuffer, Function, Object, Value};
+use rusqlite::{named_params, Row};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 use serde_json::json;
-use tokio::task;
 use tracing::instrument;
 
 use crate::env::Env;
@@ -21,7 +20,7 @@ use crate::{
     sqlite::connect_db::connect_function_db,
 };
 
-use super::runtime::with_runtime;
+use super::runtime::runtime;
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -37,7 +36,7 @@ struct HandleResponse {
     pub url: String,
 }
 
-#[instrument(err(Debug), skip(req))]
+#[instrument(err(Debug))]
 pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, HttpError> {
     let method = req.method().as_str();
     let mut path = req.uri().path().to_string();
@@ -53,6 +52,13 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
     }
 
     let path = path_match(&path, method)?;
+
+    let row_to_function = |row: &Row| -> Result<String, rusqlite::Error> {
+        let function: Vec<u8> = row.get(0)?;
+        let function = String::from_utf8(function).unwrap();
+
+        Ok(function)
+    };
 
     let function: String = match connect_function_db()?.query_row(
         r#"
@@ -72,12 +78,7 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
             ":method": method,
             ":path": path,
         },
-        |row| {
-            let function: Vec<u8> = row.get(0)?;
-            let function = String::from_utf8(function).unwrap();
-
-            Ok(function)
-        },
+        row_to_function,
     ) {
         Ok(v) => Ok(v),
         Err(_) => Err(not_found()),
@@ -139,10 +140,34 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         "https"
     };
 
-    let handle_request = format!(
+    let handle_response = format!(
         r#"
+        import {{ ___handleResponse as ___hr }} from 'js/handle-response';
+        import 'js/sqlite';
+        import 'polyfill/fetch';
+        import 'polyfill/file';
+        import 'polyfill/form-data';
+        import 'polyfill/request';   
+        import 'polyfill/response';   
+        import {{
+            ReadableStream,
+            ReadableStreamBYOBReader,
+            ReadableStreamDefaultReader,
+            TransformStream,
+            WritableStream,
+            WritableStreamDefaultWriter,
+        }} from 'polyfill/web-streams';
+
+        globalThis.ReadableStream = ReadableStream;
+        globalThis.ReadableStreamBYOBReader = ReadableStreamBYOBReader;
+        globalThis.ReadableStreamDefaultReader = ReadableStreamDefaultReader;
+        globalThis.TransformStream = TransformStream;
+        globalThis.WritableStream = WritableStream;
+        globalThis.WritableStreamDefaultWriter = WritableStreamDefaultWriter;
+
         {function}
-        globalThis.___handleRequestWrapper = () => {{
+
+        function ___handleRequestWrapper() {{
             const options = {{
                 headers: {{ {headers} }},
                 method: '{method}',
@@ -163,7 +188,7 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
                         }} catch {{}}
 
                         if (value.content && value.type && value.filename) {{
-                            formData.append(key, new Blob([new Uint8Array(value.content)], {{ type: value.type }}), value.filename);
+                            formData.append(key, new Blob([new Uint8Array(value.content).buffer], {{ type: value.type }}), value.filename);
                         }} else {{
                             formData.append(key, value);
                         }}
@@ -181,7 +206,9 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
             const request = new Request('{url}', options);
 
             return ___handleRequest(request);
-        }};
+        }}
+
+        export const ___handleResponse = ___hr.bind(null, ___handleRequestWrapper);
         "#,
         body = body,
         body_multi_part = body_multi_part,
@@ -190,29 +217,82 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         url = format!("{}://{}{}", scheme, host, uri),
     );
 
-    let res: HandleResponse = match task::spawn_blocking(move || {
-        match with_runtime(move |runtime| {
-            let module = Module::new("function.js", &handle_request);
+    let rt = runtime().await;
+    let ctx = rt.ctx.clone();
 
-            let module_handle = match runtime.load_module(&module) {
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
+    let res = async_with!(ctx => |ctx| {
+        let m = ctx.compile("script", handle_response).unwrap();
+        let func: Function = match m.get("___handleResponse") {
+            Ok(f) => f,
+            Err(e) => {
+                tracing::error!("Error: {:?}", e);
 
-            runtime.call_function(&module_handle, "___handleResponse", json_args!())
-        }) {
-            Ok(v) => Ok(v),
-            Err(e) => Err(e),
+                return HandleResponse {
+                    body_used: false,
+                    body: None,
+                    headers: None,
+                    ok: false,
+                    redirected: false,
+                    status: 500,
+                    status_text: "Internal Server Error".to_string(),
+                    r#type: "error".to_string(),
+                    url: "".to_string(),
+                };
+            }
+        };
+
+        let promise: Promise<Object> = func.call(()).unwrap();
+        let response = match promise.await {
+            Ok(r) => r,
+            Err(e) => {
+                tracing::error!("Error: {:?}", e.to_string());
+
+                return HandleResponse {
+                    body_used: false,
+                    body: None,
+                    headers: None,
+                    ok: false,
+                    redirected: false,
+                    status: 500,
+                    status_text: "Internal Server Error".to_string(),
+                    r#type: "error".to_string(),
+                    url: "".to_string(),
+                };
+            }
+        };
+
+        let body: Value = response.get("body").unwrap();
+        let bytes = if body.is_object() {
+            let body = body.as_object().unwrap();
+            let buffer: ArrayBuffer = body.get("buffer").unwrap();
+
+            buffer.as_bytes().unwrap().to_vec()
+        } else {
+            vec![]
+        };
+
+        let body_used = response.get("bodyUsed").unwrap();
+        let headers = response.get("headers").unwrap();
+        let ok = response.get("ok").unwrap();
+        let redirected = response.get("redirected").unwrap();
+        let status = response.get("status").unwrap();
+        let status_text = response.get("statusText").unwrap();
+        let r#type = response.get("type").unwrap();
+        let url = response.get("url").unwrap();
+
+        HandleResponse {
+            body_used,
+            body: Some(ByteBuf::from(bytes)),
+            headers,
+            ok,
+            redirected,
+            status,
+            status_text,
+            r#type,
+            url,
         }
     })
-    .await
-    {
-        Ok(v) => match v {
-            Ok(v) => Ok(v),
-            Err(e) => Err(bad_request(remove_file_path(e.to_string())?)),
-        },
-        Err(e) => Err(bad_request(remove_file_path(e.to_string())?)),
-    }?;
+    .await;
 
     let body = res
         .body
@@ -241,10 +321,6 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
     }
 
     Ok(response)
-}
-
-fn remove_file_path(e: String) -> Result<String> {
-    Ok(e.replace(&env::current_dir()?.to_string_lossy().to_string(), ""))
 }
 
 fn path_match(path: &str, method: &str) -> Result<String> {

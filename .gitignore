@@ -9,9 +9,16 @@ target/
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
+# Node.js runtime environment
+node_modules/
+
+# Query
 .env
 fly.toml
 
 .dbs/
-.query/
+.query/.cache
+.query/.history
+.query/.token
+.query/Query.toml
 .tests/

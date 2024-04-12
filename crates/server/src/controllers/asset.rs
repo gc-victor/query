@@ -12,7 +12,7 @@ use hyper::{
     },
     Method, Request, Response, StatusCode,
 };
-use rusqlite::named_params;
+use rusqlite::{named_params, Row};
 use serde::Deserialize;
 use tracing::instrument;
 
@@ -41,6 +41,19 @@ pub async fn asset(
         &Method::GET => {
             let asset_name = segments[1..].join("/");
 
+            let row_to_asset = |row: &Row| -> Result<Asset, rusqlite::Error> {
+                let data: Vec<u8> = row.get(0)?;
+                let name: String = row.get(1)?;
+                let mime_type: String = row.get(2)?;
+
+                Ok(Asset {
+                    data,
+                    name_hashed: name.to_string(),
+                    mime_type,
+                    name,
+                })
+            };
+
             let asset: Asset = match connect_asset_db()?.query_row(
                 r#"
                     SELECT
@@ -59,18 +72,7 @@ pub async fn asset(
                 named_params! {
                     ":name": asset_name,
                 },
-                |row| {
-                    let data: Vec<u8> = row.get(0)?;
-                    let name: String = row.get(1)?;
-                    let mime_type: String = row.get(2)?;
-
-                    Ok(Asset {
-                        data,
-                        name_hashed: name.to_string(),
-                        mime_type,
-                        name,
-                    })
-                },
+                row_to_asset,
             ) {
                 Ok(r) => r,
                 Err(e) => {
