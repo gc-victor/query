@@ -124,11 +124,14 @@ run-release:
 run-cli-release:
 	RUST_LOG=info cargo run --package=query --profile dist
 
-dev-cli:
-	cargo watch --ignore .dbs -x check -x clippy --shell "make run-cli -s"
-
 dev:
 	cargo watch -c --ignore .dbs -x check -x clippy --shell "RUST_LOG=debug cargo run --package=query-server | bunyan"
+
+dev-build:
+	cargo watch -c --ignore .dbs -x check -x clippy --shell "cargo build --package=query-server"
+
+dev-cli:
+	cargo watch --ignore .dbs -x check -x clippy --shell "make run-cli -s"
 
 dev-proxy:
 	export QUERY_SERVER_PROXY=true && cargo watch --ignore .dbs --shell "make run -s" & make dev-bun
@@ -165,19 +168,39 @@ test-watch:
 
 tag:
 	perl -pi -e 's/version = "$(call GET_ARGUMENT,1)"/version = "$(call GET_ARGUMENT,2)"/g' ./Cargo.toml
-	perl -pi -e 's/version = "$(call GET_ARGUMENT,1)"/version = "$(call GET_ARGUMENT,2)"/g' ./crates/cli/src/main.rs
+	@if [ "$(findstring prerelease,$(call GET_ARGUMENT,2))" = "prerelease" ]; then \
+		perl -pi -e 's/targets = \["aarch64\-apple\-darwin", "x86_64\-apple\-darwin", "x86_64\-unknown\-linux\-gnu", "x86_64\-pc\-windows\-msvc"\]/targets = \["x86_64\-unknown\-linux\-gnu"\]/g' ./Cargo.toml; \
+    fi
 	cargo check --workspace
 	git add Cargo.lock
 	git add Cargo.toml
-	git add crates/cli/src/main.rs
 	git commit -m "release: version $(call GET_ARGUMENT,2)"
 	git push --force-with-lease
 	git tag v$(call GET_ARGUMENT,2)
 	git push --tags
 
 tag-delete:
-	git tag -d v$(ARGUMENTS)
-	git push origin --delete v$(ARGUMENTS)
+	@read -p "Are you sure you want to delete the tag version $(ARGUMENTS)? [Y/n] " REPLY; \
+	if [ "$$REPLY" = "Y" ] || [ "$$REPLY" = "y" ] || [ "$$REPLY" = "" ]; then \
+		git tag -d v$(ARGUMENTS); \
+		git push origin --delete v$(ARGUMENTS); \
+	else \
+		echo "Aborted."; \
+	fi
+
+tag-rollback:
+	@read -p "Are you sure you want to rollback the tag version $(ARGUMENTS)? [Y/n] " REPLY; \
+    if [ "$$REPLY" = "Y" ] || [ "$$REPLY" = "y" ] || [ "$$REPLY" = "" ]; then \
+        git reset --soft HEAD~1; \
+		git reset HEAD Cargo.lock; \
+		git reset HEAD Cargo.toml; \
+		git checkout -- Cargo.lock; \
+		git checkout -- Cargo.toml; \
+		git tag -d v$(ARGUMENTS); \
+		git push origin --delete v$(ARGUMENTS); \
+    else \
+        echo "Aborted."; \
+    fi
 
 # catch anything and do nothing
 %:

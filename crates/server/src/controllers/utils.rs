@@ -7,7 +7,6 @@ pub mod get_claims;
 pub mod get_query_string;
 pub mod get_token;
 pub mod http_error;
-pub mod query_to_json;
 pub mod responses;
 pub mod statement_to_vec;
 pub mod validate_is_admin;

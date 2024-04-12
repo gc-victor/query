@@ -45,7 +45,7 @@ fn _merge(prev: &mut JsonValue, next: &JsonValue) {
 mod tests {
     use rusqlite::Connection;
 
-    use crate::controllers::utils::bind_to_params::{bind_array_to_params, bind_object_to_params};
+    use crate::utils::bind_to_params::{bind_array_to_params, bind_object_to_params};
 
     use super::*;
 

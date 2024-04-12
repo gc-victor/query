@@ -15,9 +15,11 @@ use commands::{
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[derive(Parser)]
 #[command(name = "Query")]
-#[command(version = "0.5.4")]
+#[command(version = VERSION)]
 #[command(about = "The CLI to manage your Query Server instance", long_about = None)]
 struct Cli {
     #[command(subcommand)]

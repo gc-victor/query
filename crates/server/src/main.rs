@@ -42,6 +42,8 @@ use crate::{
     sqlite::{create_config_db::create_config_db, create_function_db::create_function_db},
 };
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
@@ -67,7 +69,7 @@ async fn main() -> Result<(), std::io::Error> {
     // We create a TcpListener and bind it to 127.0.0.1:3000
     let listener = TcpListener::bind(addr).await?;
 
-    eprintln!("\nListening on {addr}\n");
+    eprintln!("\nListening on {addr} - v{VERSION}\n");
 
     loop {
         let (stream, _) = listener.accept().await?;
