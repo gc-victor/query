@@ -1686,7 +1686,7 @@ dependencies = [
 
 [[package]]
 name = "query"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1711,7 +1711,7 @@ dependencies = [
 
 [[package]]
 name = "query-runtime"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "base64-simd",
@@ -1745,7 +1745,7 @@ dependencies = [
 
 [[package]]
 name = "query-server"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "argon2",
