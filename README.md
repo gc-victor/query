@@ -48,6 +48,7 @@ Query is a Rust server for your remote SQLite databases with a CLI and API to ma
     - [Function](#function)
       - [Handle Request Example](#handle-request-example)
       - [Folder Structure Example](#folder-structure-example)
+      - [Query Cache Control](#query-cache-control)
       - [Usage](#usage)
     - [Asset](#asset)
 - [APIs](#apis)
@@ -1008,6 +1009,27 @@ By default the folder to contain the functions has to be called `functions`. You
 It is important to note that the method used in a file is determined by the prefix `(delete|get|patch|post|put).*`, while the remaining part of the file name defines the final segment of the route. For instance, if the file name ends with `index`, it will be the root of the route, and if it is `[slug]`, it will be a route with a slug. The slug is a placeholder for a value used in the route.
 
 To define the different segments of the route, you must use the folder structure. For example, if you want to use the path `/example/:slug`, you have to create a folder called `example` and inside it a file called `get.[slug].js`. If you want to use the route `/:slug`, you have to create a folder called `[slug]` and inside of it a file called `get.index.js`. If you want to use the route `/`, you must create a file called `get.index.js`.
+
+#### Query Cache Control
+
+The Query Server has a feature that helps avoid compiling functions that have not been modified, which in turn speeds up each response. This feature is managed using the `Query-Cache-Control` header and specifying the `max-age`, in milliseconds, in the header response of the `handleRequest` function. The function response is stored in the `cache_function` table of the `query_cache_function.sql` database. If needed, the cache can be purged by either deleting the row related to a path or by deleting the entire cache from the `cache_function` table.
+
+```js
+// get.index.js
+export async function handleRequest(req) {
+    const db = new Database("example.sql");
+
+    const result = await db.query("SELECT * FROM example WHERE id = ?", [1]);
+
+    return new Response(JSON.stringify({data: result}), {
+      status: 200,
+      headers: {
+          "Content-Type": "application/json",
+          "Query-Cache-Control": "max-age=3600000", // 1 hour
+      },
+  });
+}
+```
 
 #### Usage
 

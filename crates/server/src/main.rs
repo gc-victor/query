@@ -22,6 +22,7 @@ use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{layer::SubscriberExt, Registry};
 
 use crate::sqlite::create_asset_db::create_asset_db;
+use crate::sqlite::create_cache_function_db::create_cache_function_db;
 use crate::{
     controllers::{
         branch::branch,
@@ -58,12 +59,14 @@ async fn main() -> Result<(), std::io::Error> {
 
     Env::validate(); // NOTE: Panic if the required env variables aren't set
 
+    // NOTE: Create the asset database
+    create_asset_db();
+    // NOTE: Create the cache_function database
+    create_cache_function_db();
     // NOTE: Create the config database
     create_config_db();
     // NOTE: Create the function database
     create_function_db();
-    // NOTE: Create the asset database
-    create_asset_db();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], Env::port()));
     // We create a TcpListener and bind it to 127.0.0.1:3000
