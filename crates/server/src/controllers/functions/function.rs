@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
 use hyper::{body::Incoming, header::CONTENT_TYPE, http::HeaderName, Method, Request, Response};
@@ -12,6 +13,7 @@ use serde_json::json;
 use tracing::instrument;
 
 use crate::env::Env;
+use crate::sqlite::connect_db::connect_cache_function_db;
 use crate::{
     controllers::utils::{
         body::{Body, BoxBody},
@@ -25,15 +27,17 @@ use super::runtime::runtime;
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct HandleResponse {
-    pub body_used: bool,
     pub body: Option<ByteBuf>,
     pub headers: Option<HashMap<String, String>>,
-    pub ok: bool,
-    pub redirected: bool,
-    pub status_text: String,
     pub status: u16,
-    pub r#type: String,
-    pub url: String,
+}
+
+#[derive(Debug)]
+struct CacheFunction {
+    pub body: Vec<u8>,
+    pub expires_at: usize,
+    pub headers: String,
+    pub status: u16,
 }
 
 #[instrument(err(Debug))]
@@ -49,6 +53,101 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
 
     if path.is_empty() {
         path = "/".to_string();
+    }
+
+    if method == "GET" {
+        if path == "/pages/" {
+            path = "/pages".to_string();
+        }
+
+        let row_to_cache_function =
+            |row: &rusqlite::Row| -> Result<CacheFunction, rusqlite::Error> {
+                let body: String = row.get(0)?;
+                let expires_at: usize = row.get(1)?;
+                let headers: String = row.get(2)?;
+                let status: u16 = row.get(3)?;
+
+                Ok(CacheFunction {
+                    body: body.as_bytes().to_vec(),
+                    expires_at,
+                    headers,
+                    status,
+                })
+            };
+
+        let cache_function: CacheFunction = match connect_cache_function_db()?.query_row(
+            r#"
+                SELECT
+                    body,
+                    expires_at,
+                    headers,
+                    status
+                FROM
+                    cache_function
+                WHERE
+                    path = :path
+            "#,
+            named_params! {
+                ":path": path,
+            },
+            row_to_cache_function,
+        ) {
+            Ok(v) => v,
+            Err(e) => {
+                tracing::info!("No Cached: {} - {:?}", path, e);
+
+                CacheFunction {
+                    body: vec![],
+                    expires_at: 0,
+                    headers: "".to_string(),
+                    status: 0,
+                }
+            }
+        };
+
+        if cache_function.expires_at > 0 {
+            let now = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .map(|t| t.as_millis() as usize)
+                .unwrap_or(0);
+
+            if now < cache_function.expires_at {
+                let mut response = match Response::builder()
+                    .status(cache_function.status)
+                    .body(Body::from(cache_function.body))
+                {
+                    Ok(r) => Ok(r),
+                    Err(e) => Err(internal_server_error(e.to_string())),
+                }?;
+
+                let headers: HashMap<String, String> =
+                    serde_json::from_str(&cache_function.headers)
+                        .map_err(|e| internal_server_error(e.to_string()))?;
+
+                for (key, value) in headers {
+                    let key = key.to_uppercase();
+
+                    response.headers_mut().insert(
+                        HeaderName::from_bytes(key.as_bytes()).unwrap(),
+                        value.parse().unwrap(),
+                    );
+                }
+
+                response.headers_mut().insert(
+                    HeaderName::from_bytes("Query-Cache-Hit".as_bytes()).unwrap(),
+                    "true".parse().unwrap(),
+                );
+
+                return Ok(response);
+            } else if cache_function.status != 0 && is_primary() {
+                match connect_cache_function_db()?
+                    .execute(r#"DELETE FROM cache_function WHERE path = ?"#, [&path])
+                {
+                    Ok(_) => tracing::info!("Cache Deleted: {}", path),
+                    Err(e) => tracing::error!("Error: {:?}", e),
+                };
+            }
+        }
     }
 
     let path = path_match(&path, method)?;
@@ -228,15 +327,9 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
                 tracing::error!("Error: {:?}", e);
 
                 return HandleResponse {
-                    body_used: false,
                     body: None,
                     headers: None,
-                    ok: false,
-                    redirected: false,
                     status: 500,
-                    status_text: "Internal Server Error".to_string(),
-                    r#type: "error".to_string(),
-                    url: "".to_string(),
                 };
             }
         };
@@ -248,15 +341,9 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
                 tracing::error!("Error: {:?}", e.to_string());
 
                 return HandleResponse {
-                    body_used: false,
                     body: None,
                     headers: None,
-                    ok: false,
-                    redirected: false,
                     status: 500,
-                    status_text: "Internal Server Error".to_string(),
-                    r#type: "error".to_string(),
-                    url: "".to_string(),
                 };
             }
         };
@@ -271,25 +358,13 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
             vec![]
         };
 
-        let body_used = response.get("bodyUsed").unwrap();
         let headers = response.get("headers").unwrap();
-        let ok = response.get("ok").unwrap();
-        let redirected = response.get("redirected").unwrap();
         let status = response.get("status").unwrap();
-        let status_text = response.get("statusText").unwrap();
-        let r#type = response.get("type").unwrap();
-        let url = response.get("url").unwrap();
 
         HandleResponse {
-            body_used,
             body: Some(ByteBuf::from(bytes)),
             headers,
-            ok,
-            redirected,
-            status,
-            status_text,
-            r#type,
-            url,
+            status
         }
     })
     .await;
@@ -300,6 +375,7 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         .transpose()
         .map_err(|e| internal_server_error(e.to_string()))?
         .unwrap_or_default();
+    let cloned_body = body.clone();
 
     let mut response = match Response::builder()
         .status(res.status as u16)
@@ -320,7 +396,57 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         }
     }
 
+    let status = response.status().as_u16().to_string();
+
+    if response.headers().contains_key("query-cache-control")
+        && status.starts_with('2')
+        && is_primary()
+    {
+        let query_cache_control = response.headers().get("query-cache-control");
+
+        if query_cache_control.is_some() {
+            let content: &str = query_cache_control.unwrap().to_str().unwrap();
+            let re = Regex::new(r"max-age=(\d+)").unwrap();
+            let max_age = re
+                .captures(content)
+                .and_then(|captures| captures.get(1))
+                .map_or(0, |max_age_value| {
+                    max_age_value.as_str().parse::<u32>().unwrap_or(0)
+                });
+
+            if max_age > 0 {
+                let expires_at = now() + (max_age as usize);
+                let headers = response
+                    .headers()
+                    .iter()
+                    .fold(String::new(), |acc, (key, value)| {
+                        format!(r#"{}"{}":"{}","#, acc, key, value.to_str().unwrap())
+                    });
+                let headers = headers.trim_end_matches(',');
+                let headers = format!("{{{}}}", headers);
+
+                match connect_cache_function_db()?.execute(
+                    r#"
+                        INSERT OR IGNORE INTO cache_function (path, body, expires_at, headers, status)
+                        VALUES (?, ?, ?, ?, ?)
+                        "#,
+                    [&path, &cloned_body, &expires_at.to_string(), &headers, &status],
+                ) {
+                    Ok(_) => tracing::info!("Cache Created: {}", path),
+                    Err(e) => tracing::error!("Error: {:?}", e),
+                };
+            }
+        }
+    }
+
     Ok(response)
+}
+
+fn now() -> usize {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|t| t.as_millis() as usize)
+        .unwrap_or(0)
 }
 
 fn path_match(path: &str, method: &str) -> Result<String> {
@@ -446,4 +572,14 @@ fn formdata_to_json(formdata: &str, boundary: &str) -> Result<String> {
     }
 
     Ok(json!(map).to_string())
+}
+
+fn is_primary() -> bool {
+    let path = format!("{}/.primary", Env::dbs_path());
+
+    if std::path::Path::new(&path).exists() {
+        return false;
+    }
+
+    true
 }
