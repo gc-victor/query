@@ -8,6 +8,7 @@ use tracing::error;
 
 pub const PROMPT_ADMIN_MESSAGE: &str = "Is she an admin user?";
 pub const PROMPT_ACTIVE_USER_MESSAGE: &str = "Is she an active user?";
+pub const PROMPT_ACTIVE_TOKEN_MESSAGE: &str = "Is it an active token?";
 pub const PROMPT_BRANCH_DB_NAME_MESSAGE: &str =
     "Which database would you like to use for creating a branch?";
 pub const PROMPT_BRANCH_DB_NAME_DELETE_MESSAGE: &str =

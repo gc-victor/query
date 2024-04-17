@@ -6,7 +6,7 @@ use tracing::{error, info};
 use crate::{
     prompts::{
         confirm_optional_prompt, confirm_prompt, integer_optional_prompt, text_prompt,
-        PROMPT_ACTIVE_USER_MESSAGE, PROMPT_EXPIRATION_DATE_MESSAGE, PROMPT_TOKEN_NAME_MESSAGE,
+        PROMPT_ACTIVE_TOKEN_MESSAGE, PROMPT_EXPIRATION_DATE_MESSAGE, PROMPT_TOKEN_NAME_MESSAGE,
         PROMPT_WRITE_MESSAGE,
     },
     utils::{http_client, json_to_table, line_break},
@@ -19,7 +19,7 @@ pub async fn command_token(command: &TokenArgs) -> Result<()> {
         TokenCommands::Create => {
             let name = text_prompt(PROMPT_TOKEN_NAME_MESSAGE)?;
             let write = confirm_prompt(PROMPT_WRITE_MESSAGE)?;
-            let active = confirm_prompt(PROMPT_ACTIVE_USER_MESSAGE)?;
+            let active = confirm_prompt(PROMPT_ACTIVE_TOKEN_MESSAGE)?;
             let expiration_date = integer_optional_prompt(PROMPT_EXPIRATION_DATE_MESSAGE)?;
 
             let body = json!({
@@ -82,7 +82,7 @@ pub async fn command_token(command: &TokenArgs) -> Result<()> {
             let name = text_prompt(PROMPT_TOKEN_NAME_MESSAGE)?;
             let expiration_date = integer_optional_prompt(PROMPT_EXPIRATION_DATE_MESSAGE)?;
             let write = confirm_optional_prompt(PROMPT_WRITE_MESSAGE)?;
-            let active = confirm_optional_prompt(PROMPT_ACTIVE_USER_MESSAGE)?;
+            let active = confirm_optional_prompt(PROMPT_ACTIVE_TOKEN_MESSAGE)?;
 
             let body = json!({
                 "name": name,
