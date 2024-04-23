@@ -472,7 +472,7 @@ fn template_engine(template: &str, variables: &HashMap<String, Data>) -> Result<
         Regex::new(r"\{%\s*for\s*(\w*?)\s*in\s*(\w*?)\s*%\}(\s*)((.|\n)*?)\{%\s*endfor\s*%\}")
             .unwrap();
     let template = for_regex
-        .replace_all(&template, |caps: &Captures| {
+        .replace_all(template, |caps: &Captures| {
             let variable_name = caps.get(1).unwrap().as_str().trim();
             let object_name = caps.get(2).unwrap().as_str().trim();
             let pre_space = caps.get(3).unwrap().as_str();
@@ -492,7 +492,7 @@ fn template_engine(template: &str, variables: &HashMap<String, Data>) -> Result<
                                 let replaced = format!(" {capture} ")
                                     .replace(
                                         &format!(r" {variable_name}.{key} "),
-                                        &format!(" {value} ", value = value.to_string()),
+                                        &format!(" {value} "),
                                     )
                                     .to_string();
 
@@ -700,23 +700,26 @@ fn path_case(input: &str) -> String {
 
 fn pascal_case(input: &str) -> String {
     let words: Vec<&str> = input.split(|c: char| !c.is_alphanumeric()).collect();
-    let pascal_case = words
-        .iter()
-        .map(|word| format!("{}{}", word[..1].to_uppercase(), word[1..].to_lowercase()))
-        .collect();
+    let mut pascal_case = String::new();
+    for word in words {
+        pascal_case.push_str(&word[..1].to_uppercase());
+        pascal_case.push_str(&word[1..].to_lowercase());
+    }
     pascal_case
 }
 
 fn capital_case(input: &str) -> String {
     let input = hyphen_case(input);
     let words: Vec<&str> = input.split(|c: char| !c.is_alphanumeric()).collect();
-    let capital_case = words
-        .iter()
-        .map(|word| format!("{}{} ", word[..1].to_uppercase(), word[1..].to_lowercase()))
-        .collect::<String>()
-        .trim()
-        .to_string();
-    capital_case
+    let mut capital_case = String::new();
+    for word in words {
+        capital_case.push_str(&format!(
+            "{}{} ",
+            word[..1].to_uppercase(),
+            word[1..].to_lowercase()
+        ));
+    }
+    capital_case.trim().to_string()
 }
 
 fn lower_case(input: &str) -> String {
