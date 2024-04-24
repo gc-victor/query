@@ -304,6 +304,16 @@ irm https://github.com/gc-victor/query/releases/latest/download/query-installer.
 
 <https://github.com/gc-victor/query/releases/latest>
 
+### Dev
+
+To run the development mode, you have to run the following command:
+
+```sh
+query dev
+```
+
+It will run the query-server and watch the changes in the files in the `dist`, `src` and `public` folders. If you change a file, it will push them to server.
+
 ### Configuration
 
 The configuration file is located in the **/.query** folder. It is a TOML file named **Query\.toml**. The file format is as follows:
