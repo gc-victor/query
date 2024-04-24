@@ -1,42 +1,73 @@
+use std::{
+    fmt,
+    io::{stderr, stdout, Write},
+    time::{SystemTime, UNIX_EPOCH},
+};
+
 use rquickjs::{
     function::{Func, Rest},
     Ctx, Object, Result, Type, Value,
 };
 
-use std::io::{stderr, stdout, Write};
+const NEWLINE: char = '\n';
+
+#[derive(Debug)]
+pub enum LogLevel {
+    Trace = 10,
+    Debug = 20,
+    Info = 30,
+    Warn = 40,
+    Error = 50,
+}
 
 pub fn init(ctx: &Ctx<'_>) -> Result<()> {
     let globals = ctx.globals();
 
     let console = Object::new(ctx.clone())?;
 
-    console.set("log", Func::from(log_stdout))?;
-    console.set("info", Func::from(log_stdout))?;
-    console.set("trace", Func::from(log_stdout))?;
-    console.set("debug", Func::from(log_stdout))?;
-    console.set("error", Func::from(log_stderr))?;
-    console.set("warn", Func::from(log_stderr))?;
-    console.set("assert", Func::from(log_assert))?;
+    console.set("assert", Func::from(console_assert))?;
+    console.set("debug", Func::from(console_debug))?;
+    console.set("error", Func::from(console_error))?;
+    console.set("info", Func::from(console_info))?;
+    console.set("log", Func::from(console_log))?;
+    console.set("trace", Func::from(console_trace))?;
+    console.set("warn", Func::from(console_warn))?;
 
     globals.set("console", console)?;
 
     Ok(())
 }
 
-fn log_assert(expression: bool, args: Rest<Value<'_>>) -> Result<()> {
+fn console_assert(expression: bool, args: Rest<Value<'_>>) -> Result<()> {
     if !expression {
-        log_stderr(args)?;
+        log_write(stderr(), args, LogLevel::Info)?;
     }
 
     Ok(())
 }
 
-fn log_stdout(args: Rest<Value<'_>>) -> Result<()> {
-    log_write(stdout(), args)
+fn console_debug(args: Rest<Value<'_>>) -> Result<()> {
+    log_write(stdout(), args, LogLevel::Debug)
 }
 
-fn log_stderr(args: Rest<Value<'_>>) -> Result<()> {
-    log_write(stderr(), args)
+fn console_error(args: Rest<Value<'_>>) -> Result<()> {
+    log_write(stderr(), args, LogLevel::Error)
+}
+
+fn console_info(args: Rest<Value<'_>>) -> Result<()> {
+    log_write(stdout(), args, LogLevel::Info)
+}
+
+fn console_log(args: Rest<Value<'_>>) -> Result<()> {
+    log_write(stdout(), args, LogLevel::Info)
+}
+
+fn console_trace(args: Rest<Value<'_>>) -> Result<()> {
+    log_write(stdout(), args, LogLevel::Trace)
+}
+
+fn console_warn(args: Rest<Value<'_>>) -> Result<()> {
+    log_write(stderr(), args, LogLevel::Warn)
 }
 
 fn js_format(args: Rest<Value<'_>>) -> Result<String> {
@@ -50,22 +81,45 @@ fn js_format(args: Rest<Value<'_>>) -> Result<String> {
     Ok(result)
 }
 
+impl fmt::Display for LogLevel {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+fn log_write<O>(mut output: O, args: Rest<Value<'_>>, level: LogLevel) -> Result<()>
+where
+    O: Write,
+{
+    let level = match level {
+        LogLevel::Trace => 10,
+        LogLevel::Debug => 20,
+        LogLevel::Info => 30,
+        LogLevel::Warn => 40,
+        LogLevel::Error => 50,
+    };
+    let msg = js_format(args)?;
+    let msg = msg.replace(NEWLINE, "\\n");
+    let time = now();
+    let log = format!(r#"{{"console":true,"level":{level},"msg":"{msg}","time":"{time}"}}"#);
+    let buf = log.as_bytes();
+    let _ = output.write_all(buf);
+    let _ = output.write(b"\n");
+
+    Ok(())
+}
+
 pub fn js_stringify(value: &Value<'_>) -> Result<String> {
     let mut result = String::new();
 
     match value.type_of() {
         Type::String => result = value.as_string().unwrap().to_string()?,
-
         Type::Bool => result = value.as_bool().unwrap().to_string(),
-
         Type::Int => result = value.as_int().unwrap().to_string(),
-
         Type::BigInt => {
             result = value.as_big_int().unwrap().clone().to_i64()?.to_string();
-
             result.push('n');
         }
-
         Type::Float => {
             let float = value.as_float().unwrap();
 
@@ -79,7 +133,6 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
                 result = float.to_string();
             }
         }
-
         Type::Array => {
             let array = value.as_array().unwrap();
 
@@ -95,7 +148,6 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
 
             result.push(']');
         }
-
         Type::Symbol => {
             let description = value.as_symbol().unwrap().description()?;
             let description = description.to_string()?;
@@ -108,7 +160,6 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
 
             result.push(')');
         }
-
         Type::Exception => {
             let exception = value.as_exception().unwrap();
 
@@ -116,23 +167,18 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
                 let name: String = exception.get("name")?;
 
                 result.push_str(&name);
-
                 result.push_str(": ");
-
                 result.push_str(&message);
-
-                result.push('\n');
+                result.push(NEWLINE);
             }
 
             if let Some(stack) = exception.stack() {
                 result.push_str(&stack);
             }
         }
-
         // TODO: stringify these properly
         Type::Object => result.push_str("[Object]"),
         Type::Module => result.push_str("[Module]"),
-
         Type::Constructor | Type::Function => {
             result.push_str("[Function");
 
@@ -140,74 +186,42 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
 
             if !name.is_empty() {
                 result.push_str(": ");
-
                 result.push_str(&name);
-
                 result.push(']');
             } else {
                 result.push_str(" (anonymous)]");
             }
         }
-
         Type::Uninitialized | Type::Undefined => result.push_str("undefined"),
-
         Type::Null => result.push_str("null"),
-
         Type::Unknown => result.push_str("{unknown}"),
     };
 
     Ok(result)
 }
 
-fn log_write<O>(mut output: O, args: Rest<Value<'_>>) -> Result<()>
-where
-    O: Write,
-{
-    let _ = output.write_all(js_format(args)?.as_bytes());
+fn now() -> std::string::String {
+    let now = SystemTime::now();
+    let since_the_epoch = now.duration_since(UNIX_EPOCH).unwrap();
+    let in_seconds = since_the_epoch.as_secs();
+    let (year, month, day) = {
+        let days = in_seconds / 86400;
+        let years = (days - days / 146097 * 3 / 4 + 1) * 400 / 146097;
+        let days_of_year = days - (years * 365 + years / 4 - years / 100 + years / 400);
+        let months = (days_of_year * 12 + 6) / 367;
+        let day = days_of_year - (months * 367 / 12);
+        let month = months + 1;
+        let year = years + 1970;
+        (year as u32, month as u32, day as u32 + 1)
+    };
 
-    let _ = output.write(b"\n");
+    let hours = (in_seconds / 3600) % 24;
+    let minutes = (in_seconds / 60) % 60;
+    let seconds = in_seconds % 60;
+    let millis = since_the_epoch.subsec_nanos();
 
-    Ok(())
-}
-
-#[derive(rquickjs::class::Trace)]
-#[rquickjs::class]
-pub struct Console {}
-
-impl Default for Console {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-#[rquickjs::methods(rename_all = "camelCase")]
-impl Console {
-    #[qjs(constructor)]
-    pub fn new() -> Self {
-        // We ignore the parameters for now since we don't support stream
-        Self {}
-    }
-
-    pub fn log(&self, args: Rest<Value<'_>>) -> Result<()> {
-        log_stdout(args)
-    }
-
-    pub fn debug(&self, args: Rest<Value<'_>>) -> Result<()> {
-        log_stdout(args)
-    }
-    pub fn info(&self, args: Rest<Value<'_>>) -> Result<()> {
-        log_stdout(args)
-    }
-    pub fn trace(&self, args: Rest<Value<'_>>) -> Result<()> {
-        log_stdout(args)
-    }
-    pub fn error(&self, args: Rest<Value<'_>>) -> Result<()> {
-        log_stdout(args)
-    }
-    pub fn warn(&self, args: Rest<Value<'_>>) -> Result<()> {
-        log_stdout(args)
-    }
-    pub fn assert(&self, expression: bool, args: Rest<Value<'_>>) -> Result<()> {
-        log_assert(expression, args)
-    }
+    format!(
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:09}Z",
+        year, month, day, hours, minutes, seconds, millis
+    )
 }

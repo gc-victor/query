@@ -2,6 +2,7 @@
 pub mod asset;
 pub mod branch;
 pub mod commands;
+pub mod dev;
 pub mod function;
 pub mod generate;
 pub mod migration;

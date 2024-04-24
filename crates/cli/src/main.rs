@@ -4,16 +4,19 @@ pub mod config;
 pub mod prompts;
 pub mod utils;
 
-use std::fs;
+use std::{env, fs};
 
 use clap::{command, Parser};
-use commands::{
-    asset::command_asset, branch::command_branch, commands::Commands, function::command_function,
-    generate::command_generate, migration::command_migration, settings::command_settings,
-    shell::command_shell, token::command_token, user::command_user, user_token::command_user_token,
-};
+use dotenv::dotenv;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
+
+use commands::{
+    asset::command_asset, branch::command_branch, commands::Commands, dev::command_dev,
+    function::command_function, generate::command_generate, migration::command_migration,
+    settings::command_settings, shell::command_shell, token::command_token, user::command_user,
+    user_token::command_user_token,
+};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -28,6 +31,8 @@ struct Cli {
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
+
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::INFO)
         .with_target(false)
@@ -44,6 +49,7 @@ async fn main() {
     match &command {
         Commands::Asset(command) => command_asset(command).await.unwrap(),
         Commands::Branch(command) => command_branch(command).await.unwrap(),
+        Commands::Dev(command) => command_dev(command).await.unwrap(),
         Commands::Function(command) => command_function(command).await.unwrap(),
         Commands::Generate(command) => command_generate(command).await.unwrap(),
         Commands::Migration(command) => command_migration(command).await,
@@ -56,6 +62,12 @@ async fn main() {
 }
 
 fn tracing_error(panic_info: &std::panic::PanicInfo) {
+    let debug = env::var("DEBUG").unwrap_or("false".to_string());
+
+    if debug != "true" {
+        return;
+    }
+
     // @see: https://github.com/LukeMathWalker/tracing-panic/blob/main/src/lib.rs#L52
     let payload = panic_info.payload();
 
@@ -73,6 +85,6 @@ fn tracing_error(panic_info: &std::panic::PanicInfo) {
         .map(|l| l.to_string())
         .unwrap_or_default();
 
-    tracing::error!("{}", location);
-    tracing::error!("{}", payload.unwrap());
+    eprintln!("{}", location);
+    eprintln!("{}", payload.unwrap());
 }

@@ -23,9 +23,9 @@ use crate::{
 struct AddAssetOptions {
     pub active: bool,
     pub data: ByteBuf,
-    pub name: String,
     pub file_hash: String,
     pub mime_type: String,
+    pub name: String,
 }
 
 #[derive(Deserialize)]
@@ -75,6 +75,7 @@ pub async fn asset_builder(
     }
 }
 
+#[instrument(skip(options), fields(mime_type = options.mime_type, asset_name = options.name))]
 fn add_asset(options: AddAssetOptions) -> Result<(), HttpError> {
     let AddAssetOptions {
         active,
