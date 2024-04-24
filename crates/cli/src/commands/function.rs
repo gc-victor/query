@@ -24,17 +24,10 @@ use walkdir::WalkDir;
 use crate::{
     cache::{Cache, CacheItem},
     config::CONFIG,
-    utils::{http_client, line_break},
+    utils::{detect_package_manager, has_module, http_client, line_break, which},
 };
 
 use super::commands::FunctionArgs;
-
-#[cfg(windows)]
-const ESBUILD: &str = "esbuild.cmd";
-
-#[allow(dead_code)]
-#[cfg(not(windows))]
-const ESBUILD: &str = "esbuild";
 
 pub async fn command_function(command: &FunctionArgs) -> Result<()> {
     let is_delete = command.delete;
@@ -273,19 +266,56 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
         args.push(flag);
     }
 
-    match Command::new(ESBUILD).args(&args).output() {
-        Ok(output) => {
-            let output = std::str::from_utf8(&output.stderr)?;
+    let esbuild_global = match which("esbuild") {
+        Some(esbuild_global) => esbuild_global,
+        None => String::new(),
+    };
+    let hash_esbuild_global = !esbuild_global.is_empty();
+    let hash_esbuild_local_module = has_module("esbuild");
+    let hash_esbuild = hash_esbuild_local_module || hash_esbuild_global;
 
-            if output.contains("[ERROR]") {
-                eprintln!("{:?}", output);
+    if !hash_esbuild {
+        let pm = detect_package_manager();
+        eprintln!(
+            "The esbuild binary does not exist. Please, run `{} install esbuild` first.",
+            pm.npm
+        );
+        exit(1);
+    }
+
+    if hash_esbuild_local_module {
+        let pm = detect_package_manager();
+        let npx = pm.npx.to_string();
+
+        match Command::new(npx).arg("esbuild").args(&args).output() {
+            Ok(output) => {
+                let output = std::str::from_utf8(&output.stderr)?;
+
+                if output.contains("[ERROR]") {
+                    eprintln!("{:?}", output);
+                    exit(1);
+                }
+            }
+            Err(e) => {
+                eprintln!("{:?}", e);
                 exit(1);
             }
-        }
-        Err(e) => {
-            eprintln!("{:?}", e);
-            exit(1);
-        }
+        };
+    } else {
+        match Command::new(esbuild_global).args(&args).output() {
+            Ok(output) => {
+                let output = std::str::from_utf8(&output.stderr)?;
+
+                if output.contains("[ERROR]") {
+                    eprintln!("{:?}", output);
+                    exit(1);
+                }
+            }
+            Err(e) => {
+                eprintln!("{:?}", e);
+                exit(1);
+            }
+        };
     };
 
     let bundle_path = format!("{}/{}", out_dir, function_path.split('/').last().unwrap());
@@ -300,7 +330,7 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
 
     let function = function.replace("var handleRequest", "globalThis.___handleRequest");
     let re_export = Regex::new(r"export\{([\S]+) as handleRequest\};\n$").unwrap();
-    let function = re_export.replace(&function, format!("globalThis.___handleRequest = $1;"));
+    let function = re_export.replace(&function, "globalThis.___handleRequest = $1;".to_string());
 
     fs::remove_file(bundle_path)?;
 

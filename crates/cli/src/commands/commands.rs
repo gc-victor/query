@@ -8,6 +8,8 @@ pub enum Commands {
     Asset(AssetArgs),
     /// Manage branches
     Branch(BranchArgs),
+    /// Development experience
+    Dev(DevArgs),
     /// Push all the functions without setting a path
     /// or a function defining a file path
     #[clap(verbatim_doc_comment)]
@@ -61,6 +63,19 @@ pub enum BranchCommands {
     Delete,
     /// List all the branches
     List,
+}
+
+#[derive(Args)]
+pub struct DevArgs {
+    /// Clean assets and function databases, and dist folder
+    #[arg(short, long, default_value_t = false)]
+    pub clean: bool,
+    /// Do not check port usage
+    #[arg(short, long, default_value_t = false)]
+    pub no_port_check: bool,
+    /// Show all the logs
+    #[arg(short, long, default_value_t = false)]
+    pub verbose: bool,
 }
 
 #[derive(Args)]

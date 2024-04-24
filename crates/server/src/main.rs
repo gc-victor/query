@@ -72,7 +72,10 @@ async fn main() -> Result<(), std::io::Error> {
     // We create a TcpListener and bind it to 127.0.0.1:3000
     let listener = TcpListener::bind(addr).await?;
 
-    eprintln!("\nListening on {addr} - v{VERSION}\n");
+    tracing::info!(
+        init = true,
+        message = format!("\nListening on http://{addr} - v{VERSION}\n")
+    );
 
     loop {
         let (stream, _) = listener.accept().await?;
@@ -101,7 +104,9 @@ async fn handler(req: Request<IncomingBody>) -> Response<BoxBody> {
     router(req, &segments)
         .await
         .unwrap_or_else(|e: HttpError| -> Response<BoxBody> {
-            tracing::error!("{}", e.to_string());
+            let code = e.code.as_u16();
+            let error = e.to_string();
+            tracing::error!(code, path, "{error}");
 
             match e.code {
                 StatusCode::UNAUTHORIZED => unauthorized().unwrap(),

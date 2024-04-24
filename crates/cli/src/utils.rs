@@ -1,6 +1,8 @@
 use std::{
+    env,
     fs::File,
     io::{BufReader, Read},
+    process::{Command, Output},
 };
 
 use anyhow::{anyhow, Result};
@@ -123,4 +125,155 @@ pub async fn http_client(path: &str, body: Option<&String>, method: Method) -> R
     };
 
     Ok(value)
+}
+
+// CREDIT: https://github.com/cloudflare/workers-sdk/blob/235c4398268322b6c0c13060bc3da91f52b4b066/packages/create-cloudflare/src/helpers/packageManagers.ts#L1
+#[derive(Debug)]
+pub enum PmName {
+    Pnpm,
+    Npm,
+    Yarn,
+    Bun,
+}
+
+#[derive(Debug)]
+pub struct PackageManager {
+    pub dlx: String,
+    pub lock: String,
+    pub name: PmName,
+    pub npm: String,
+    pub npx: String,
+}
+
+pub fn detect_package_manager() -> PackageManager {
+    let pnpm_pm = PackageManager {
+        dlx: "pnpm dlx".to_string(),
+        lock: "pnpm-lock.yaml".to_string(),
+        name: PmName::Pnpm,
+        npm: "pnpm".to_string(),
+        npx: "pnpm".to_string(),
+    };
+    let yarn_pm = PackageManager {
+        dlx: "yarn dlx".to_string(),
+        lock: "yarn.lock".to_string(),
+        name: PmName::Yarn,
+        npm: "yarn".to_string(),
+        npx: "yarn".to_string(),
+    };
+    let bun_pm = PackageManager {
+        dlx: "bunx".to_string(),
+        lock: "bun.lockb".to_string(),
+        name: PmName::Bun,
+        npm: "bun".to_string(),
+        npx: "bunx".to_string(),
+    };
+    let npm_pm = PackageManager {
+        dlx: "npx".to_string(),
+        lock: "package-lock.json".to_string(),
+        name: PmName::Npm,
+        npm: "npm".to_string(),
+        npx: "npx".to_string(),
+    };
+
+    if let Ok(pm_info) = env::var("npm_config_user_agent") {
+        let name = pm_info.split('/').next().unwrap_or("npm");
+
+        match name {
+            "pnpm" => return pnpm_pm,
+            "yarn" => return yarn_pm,
+            "bun" => return bun_pm,
+            _ => return npm_pm,
+        }
+    }
+
+    let current_dir = env::current_dir().unwrap();
+
+    if current_dir.join(&npm_pm.lock).exists() && is_installed(&npm_pm.npm) {
+        return npm_pm;
+    }
+
+    if current_dir.join(&yarn_pm.lock).exists() && is_installed(&yarn_pm.npm) {
+        return yarn_pm;
+    }
+
+    if current_dir.join(&pnpm_pm.lock).exists() && is_installed(&pnpm_pm.npm) {
+        return pnpm_pm;
+    }
+
+    if current_dir.join(&bun_pm.lock).exists() && is_installed(&bun_pm.npm) {
+        return bun_pm;
+    }
+
+    npm_pm
+}
+
+pub fn has_module(package: &str) -> bool {
+    let pm = detect_package_manager();
+
+    let output = Command::new(pm.npm).args(["list"]).output().unwrap();
+
+    String::from_utf8(output.stdout).unwrap().contains(package)
+}
+
+pub fn install_dependencies(dependencies: Vec<&str>) -> Result<Output, std::io::Error> {
+    let pm = detect_package_manager();
+
+    Command::new(pm.npm)
+        .arg("install")
+        .args(dependencies)
+        .output()
+}
+
+#[cfg(not(windows))]
+pub fn which(program: &str) -> Option<String> {
+    if is_installed(program) {
+        let output = match Command::new("which").arg(program).output() {
+            Ok(output) => output,
+            Err(_) => return None,
+        };
+
+        return match String::from_utf8(output.stdout) {
+            Ok(output) => Some(output.trim().to_string()),
+            Err(_) => None,
+        };
+    }
+
+    None
+}
+
+#[cfg(windows)]
+pub fn which(program: &str) -> Option<String> {
+    if is_installed(program) {
+        let output = match Command::new("cmd").args(&["/C", "where", program]).output() {
+            Ok(output) => output,
+            Err(_) => return None,
+        };
+
+        return match String::from_utf8(output.stdout) {
+            Ok(output) => Some(output.trim().to_string()),
+            Err(_) => None,
+        };
+    }
+
+    None
+}
+
+#[cfg(not(windows))]
+pub fn is_installed(program: &str) -> bool {
+    Command::new("which")
+        .arg(program)
+        .output()
+        .unwrap()
+        .status
+        .success()
+}
+
+#[cfg(windows)]
+pub fn is_installed(program: &str) -> bool {
+    Command::new("cmd")
+        .args(&["/C", "where", program])
+        .output()
+        .unwrap()
+        .status
+        .success()
 }

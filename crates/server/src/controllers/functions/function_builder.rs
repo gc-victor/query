@@ -73,6 +73,7 @@ pub async fn function_builder(
     }
 }
 
+#[instrument(skip(options), fields(path = options.path, method = options.method))]
 fn add_function(options: AddFunctionOptions) -> Result<(), HttpError> {
     let connect = connect_function_db()?;
 
