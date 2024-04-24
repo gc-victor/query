@@ -13,6 +13,7 @@ Query is a Rust server for your remote SQLite databases with a CLI and API to ma
   - [Install](#install)
     - [Use The Installer Scripts](#use-the-installer-scripts)
     - [Download The Binary](#download-the-binary)
+  - [Dev](#dev)
   - [Configuration](#configuration)
   - [Commands](#commands)
     - [Settings](#settings)
@@ -321,7 +322,13 @@ irm https://github.com/gc-victor/query/releases/latest/download/query-installer.
 To run the development mode, you have to run the following command:
 
 ```sh
-query dev
+npx query dev
+```
+
+OR
+
+```sh
+pnpm query dev
 ```
 
 It will run the query-server and watch the changes in the files in the `dist`, `src` and `public` folders. If you change a file, it will push them to server.
