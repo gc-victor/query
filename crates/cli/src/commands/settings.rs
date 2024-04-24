@@ -48,7 +48,9 @@ pub async fn command_settings() {
 fn server_url_prompt() -> Result<()> {
     let config_file = &CLI::default().config_file_path;
 
-    let url = Text::new("What is the server URL?").prompt();
+    let url = Text::new("What is the server URL?")
+        .with_default("http://localhost:3000")
+        .prompt();
     let url = match url {
         Ok(s) => {
             if s.is_empty() {
