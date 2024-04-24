@@ -99,6 +99,20 @@ hurl-test-all: clean-hurl-dbs
 lint:
 	cargo clippy --all-targets --all-features --workspace
 
+# npm
+
+npm-publish:
+	npm publish https://github.com/gc-victor/query/releases/download/v$(ARGUMENTS)/query-npm-package.tar.gz
+	npm publish https://github.com/gc-victor/query/releases/download/v$(ARGUMENTS)/query-server-npm-package.tar.gz
+
+npm-prerelease:
+	npm publish https://github.com/gc-victor/query/releases/download/v$(ARGUMENTS)/query-npm-package.tar.gz --tag prerelease-$(ARGUMENTS)
+	npm publish https://github.com/gc-victor/query/releases/download/v$(ARGUMENTS)/query-server-npm-package.tar.gz --tag prerelease-$(ARGUMENTS)
+
+npm-unpublish:
+	npm unpublish @qery/query/$(ARGUMENTS)-prerelease --force
+	npm unpublish @qery/query-server/$(ARGUMENTS)-prerelease --force
+
 # Release
 
 build-server:
