@@ -205,7 +205,7 @@ async fn run_query_server(verbose: bool) {
         let mut rest = npx.split_off(1);
         let npx = npx[0];
 
-        rest.push(QUERY_SERVER_MODULE);
+        rest.push(QUERY_SERVER_BINARY);
 
         match Command::new(npx)
             .args(rest)
@@ -215,7 +215,10 @@ async fn run_query_server(verbose: bool) {
         {
             Ok(child) => child,
             Err(e) => {
-                eprintln!("Failed to execute command `{} query-server`", npx);
+                eprintln!(
+                    "Failed to execute command `{} {}`",
+                    npx, QUERY_SERVER_BINARY
+                );
                 eprintln!("Error: {}", e);
                 exit(1);
             }
@@ -228,7 +231,7 @@ async fn run_query_server(verbose: bool) {
         {
             Ok(child) => child,
             Err(e) => {
-                eprintln!("Failed to execute command `query-server`");
+                eprintln!("Failed to execute command `{}`", QUERY_SERVER_BINARY);
                 eprintln!("Error: {}", e);
                 exit(1);
             }
