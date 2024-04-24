@@ -43,6 +43,7 @@ struct CacheFunction {
 #[instrument(err(Debug))]
 pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, HttpError> {
     let method = req.method().as_str();
+    let cache_function_path = &req.uri().path().to_string();
     let mut path = req.uri().path().to_string();
 
     if Env::app() == "true" && !path.starts_with("/api") && !path.starts_with("/_/") {
@@ -88,13 +89,13 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
                     path = :path
             "#,
             named_params! {
-                ":path": path,
+                ":path": cache_function_path,
             },
             row_to_cache_function,
         ) {
             Ok(v) => v,
             Err(e) => {
-                tracing::info!("No Cached: {} - {:?}", path, e);
+                tracing::info!("No Cached: {} - {:?}", cache_function_path, e);
 
                 CacheFunction {
                     body: vec![],
@@ -140,10 +141,11 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
 
                 return Ok(response);
             } else if cache_function.status != 0 && is_primary() {
-                match connect_cache_function_db()?
-                    .execute(r#"DELETE FROM cache_function WHERE path = ?"#, [&path])
-                {
-                    Ok(_) => tracing::info!("Cache Deleted: {}", path),
+                match connect_cache_function_db()?.execute(
+                    r#"DELETE FROM cache_function WHERE path = ?"#,
+                    [&cache_function_path],
+                ) {
+                    Ok(_) => tracing::info!("Cache Deleted: {}", cache_function_path),
                     Err(e) => tracing::error!("Error: {:?}", e),
                 };
             }
@@ -430,9 +432,9 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
                         INSERT OR IGNORE INTO cache_function (path, body, expires_at, headers, status)
                         VALUES (?, ?, ?, ?, ?)
                         "#,
-                    [&path, &cloned_body, &expires_at.to_string(), &headers, &status],
+                    [&cache_function_path, &cloned_body, &expires_at.to_string(), &headers, &status],
                 ) {
-                    Ok(_) => tracing::info!("Cache Created: {}", path),
+                    Ok(_) => tracing::info!("Cache Created: {}", cache_function_path),
                     Err(e) => tracing::error!("Error: {:?}", e),
                 };
             }
