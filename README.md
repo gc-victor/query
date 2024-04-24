@@ -288,6 +288,18 @@ fly platform regions
 
 #### Use The Installer Scripts
 
+npm package:
+
+```sh
+npm install -g @qery/query
+```
+
+OR
+
+```sh
+pnpm install -g @qery/query
+```
+
 macOS and Linux (not NixOS, Alpine, or Asahi):
 
 ```sh
