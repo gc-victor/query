@@ -1,3 +1,4 @@
+// CREDIT: https://github.com/yasojs/yaso/blob/e2b56fef23a46cb80f7ed188531d02be6cf1b6b5/src/console.rs
 use std::{
     fmt,
     io::{stderr, stdout, Write},
@@ -99,7 +100,11 @@ where
         LogLevel::Error => 50,
     };
     let msg = js_format(args)?;
-    let msg = msg.replace(NEWLINE, "\\n");
+    let msg = msg
+        .replace(NEWLINE, "\\n")
+        .replace('"', "\\\"")
+        .trim()
+        .to_string();
     let time = now();
     let log = format!(r#"{{"console":true,"level":{level},"msg":"{msg}","time":"{time}"}}"#);
     let buf = log.as_bytes();
@@ -139,10 +144,20 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
             result.push('[');
 
             for (i, value) in array.clone().into_iter().enumerate() {
-                result.push_str(&js_stringify(&value?)?);
+                let value = value?;
+
+                if value.is_string() {
+                    result.push('\'');
+                }
+
+                result.push_str(&js_stringify(&value)?);
+
+                if value.is_string() {
+                    result.push('\'');
+                }
 
                 if i < array.len() - 1 {
-                    result.push_str(", ");
+                    result.push(',');
                 }
             }
 
@@ -176,8 +191,37 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
                 result.push_str(&stack);
             }
         }
-        // TODO: stringify these properly
-        Type::Object => result.push_str("[Object]"),
+        Type::Object => {
+            let obj = value.as_object().unwrap();
+            let keys: Vec<String> = obj
+                .keys::<String>()
+                .map(|k| k.unwrap().to_string())
+                .collect();
+
+            result.push('{');
+
+            for (i, key) in keys.iter().enumerate() {
+                let value: Value = obj.get(key).unwrap();
+                result.push_str(key);
+                result.push(':');
+
+                if value.is_string() {
+                    result.push('\'');
+                }
+
+                result.push_str(&js_stringify(&value).unwrap());
+
+                if value.is_string() {
+                    result.push('\'');
+                }
+
+                if i < keys.len() - 1 {
+                    result.push(',');
+                }
+            }
+
+            result.push('}');
+        }
         Type::Module => result.push_str("[Module]"),
         Type::Constructor | Type::Function => {
             result.push_str("[Function");
