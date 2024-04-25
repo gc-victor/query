@@ -165,7 +165,7 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
         }
         Type::Symbol => {
             let description = value.as_symbol().unwrap().description()?;
-            let description = description.to_string()?;
+            let description = description.as_string().unwrap().to_string()?;
 
             result.push_str("Symbol(");
 
@@ -239,6 +239,7 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
         Type::Uninitialized | Type::Undefined => result.push_str("undefined"),
         Type::Null => result.push_str("null"),
         Type::Unknown => result.push_str("{unknown}"),
+        Type::Promise => result.push_str("[object Promise]"),
     };
 
     Ok(result)
