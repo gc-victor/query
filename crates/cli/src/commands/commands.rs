@@ -24,6 +24,8 @@ pub enum Commands {
     /// - The type should be up or down
     #[clap(verbatim_doc_comment)]
     Migration(MigrationArgs),
+    /// Deletes all the cached functions
+    Purge,
     /// Sets the initial configuration
     Settings,
     /// SQLite shell to manage the databases locally
