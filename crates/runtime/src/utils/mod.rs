@@ -17,14 +17,14 @@ pub mod string;
 pub struct UtilModule;
 
 impl ModuleDef for UtilModule {
-    fn declare(declare: &mut Declarations) -> Result<()> {
+    fn declare(declare: &Declarations<'_>) -> Result<()> {
         declare.declare(stringify!(TextDecoder))?;
         declare.declare(stringify!(TextEncoder))?;
-        declare.declare_static(cstr!("default"))?;
+        declare.declare_c_str(cstr!("default"))?;
         Ok(())
     }
 
-    fn evaluate<'js>(ctx: &Ctx<'js>, exports: &mut Exports<'js>) -> Result<()> {
+    fn evaluate<'js>(ctx: &Ctx<'js>, exports: &Exports<'js>) -> Result<()> {
         export_default(ctx, exports, |default| {
             let globals = ctx.globals();
 

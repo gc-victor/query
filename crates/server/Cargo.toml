@@ -23,7 +23,7 @@ jsonwebtoken = "9.2"
 query-runtime = { path = "../runtime" }
 rbase64 = "2.0"
 regex = "1.10"
-rquickjs = "0.5.1"
+rquickjs = "0.6.0"
 rusqlite = { version = "0.31", features = ["backup", "blob", "bundled", "functions", "limits", "serde_json", "trace", "uuid"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_bytes = "0.11"

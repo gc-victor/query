@@ -4,7 +4,6 @@ use std::{
 
 use rquickjs::{
     atom::PredefinedAtom,
-    context::EvalOptions,
     function::{Constructor, Opt},
     loader::{BuiltinLoader, BuiltinResolver, ModuleLoader},
     prelude::Func,
@@ -39,11 +38,7 @@ use crate::{
     module::ModuleModule,
     number::number_to_string,
     url::UrlModule,
-    utils::{
-        class::get_class_name,
-        clone::structured_clone,
-        object::{get_bytes, ObjectExt},
-    },
+    utils::{class::get_class_name, clone::structured_clone, object::get_bytes},
 };
 
 pub struct Runtime {
@@ -139,7 +134,6 @@ fn init(ctx: &Ctx<'_>) -> Result<()> {
     globals.set("global", ctx.globals())?;
     globals.set("globalThis", ctx.globals())?;
     globals.set("self", ctx.globals())?;
-    globals.set("load", Func::from(load))?;
     globals.set("print", Func::from(print))?;
     globals.set(
         "structuredClone",
@@ -193,26 +187,6 @@ fn print(value: String, stdout: Opt<bool>) {
 fn json_parse_string<'js>(ctx: Ctx<'js>, value: Value<'js>) -> Result<Value<'js>> {
     let bytes = get_bytes(&ctx, value)?;
     json_parse(&ctx, bytes)
-}
-
-fn load<'js>(ctx: Ctx<'js>, filename: String, options: Opt<Object<'js>>) -> Result<Value<'js>> {
-    let mut eval_options = EvalOptions {
-        global: true,
-        strict: false,
-        backtrace_barrier: false,
-    };
-
-    if let Some(options) = options.0 {
-        if let Some(global) = options.get_optional("global")? {
-            eval_options.global = global;
-        }
-
-        if let Some(strict) = options.get_optional("strict")? {
-            eval_options.strict = strict;
-        }
-    }
-
-    ctx.eval_file_with_options(filename, eval_options)
 }
 
 pub trait ErrorExtensions<'js> {

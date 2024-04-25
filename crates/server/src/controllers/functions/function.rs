@@ -4,8 +4,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::Result;
 use hyper::{body::Incoming, header::CONTENT_TYPE, http::HeaderName, Method, Request, Response};
 use regex::Regex;
-use rquickjs::promise::Promise;
-use rquickjs::{async_with, ArrayBuffer, Function, Object, Value};
+use rquickjs::{async_with, ArrayBuffer, Function, Module, Object, Promise, Value};
 use rusqlite::{named_params, Row};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
@@ -322,32 +321,30 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
     let ctx = rt.ctx.clone();
 
     let res = async_with!(ctx => |ctx| {
-        let m = ctx.compile("script", handle_response).unwrap();
-        let func: Function = match m.get("___handleResponse") {
+        let (module, _) = Module::declare(ctx, "script", handle_response)
+            .unwrap()
+            .eval()
+            .unwrap();
+        let func: Function = match module.get("___handleResponse") {
             Ok(f) => f,
             Err(e) => {
                 tracing::error!("Error: {:?}", e);
-
-                return HandleResponse {
-                    body: None,
-                    headers: None,
-                    status: 500,
-                };
-            }
+                return handle_fatal_error();
+            },
         };
-
-        let promise: Promise<Object> = func.call(()).unwrap();
-        let response = match promise.await {
+        let promise: Promise = match func.call(()) {
+            Ok(p) => p,
+            Err(e) => {
+                tracing::error!("Error: {:?}", e);
+                return handle_fatal_error();
+            },
+        };
+        let response: Object = match promise.into_future().await {
             Ok(r) => r,
             Err(e) => {
-                tracing::error!("Error: {:?}", e.to_string());
-
-                return HandleResponse {
-                    body: None,
-                    headers: None,
-                    status: 500,
-                };
-            }
+                tracing::error!("Error: {:?}", e);
+                return handle_fatal_error();
+            },
         };
 
         let body: Value = response.get("body").unwrap();
@@ -584,4 +581,12 @@ fn is_primary() -> bool {
     }
 
     true
+}
+
+fn handle_fatal_error() -> HandleResponse {
+    HandleResponse {
+        body: None,
+        headers: None,
+        status: 500,
+    }
 }
