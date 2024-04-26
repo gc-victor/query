@@ -9,15 +9,17 @@ use std::{
 
 use anyhow::Result;
 use colored::Colorize;
-use notify::{Config, PollWatcher, RecommendedWatcher, RecursiveMode, Watcher, WatcherKind};
 use serde::{Deserialize, Serialize};
 use serde_json::ser::PrettyFormatter;
 use serde_json::Serializer;
+use watchexec::Watchexec;
 
 use crate::utils::{detect_package_manager, has_module, which};
 
 use super::commands::DevArgs;
 
+const QUERY_MODULE: &str = "@qery/query";
+const QUERY_BINARY: &str = "query";
 const QUERY_SERVER_MODULE: &str = "@qery/query-server";
 const QUERY_SERVER_BINARY: &str = "query-server";
 const ESBUILD_MODULE: &str = "esbuild";
@@ -41,34 +43,44 @@ pub async fn command_dev(command: &DevArgs) -> Result<()> {
 
     let watcher = tokio::spawn(async move {
         block_until_server_is_ready();
-        push_commands();
+        // Push the tasks before starting the watcher
+        push_tasks().await;
 
-        let (tx, rx) = std::sync::mpsc::channel();
+        let mut last_event_time = tokio::time::Instant::now();
 
-        let mut watcher: Box<dyn Watcher> =
-            if RecommendedWatcher::kind() == WatcherKind::PollWatcher {
-                let config = Config::default().with_poll_interval(Duration::from_millis(750));
-                Box::new(PollWatcher::new(tx, config).unwrap())
-            } else {
-                Box::new(RecommendedWatcher::new(tx, Config::default()).unwrap())
-            };
+        let wx = Watchexec::new_async(move |mut action| {
+            Box::new(async move {
+                for event in action.events.iter() {
+                    let tags = &event.tags;
+                    let has_close_write = match tags.get(1) {
+                        Some(tag) => format!("{:?}", tag) == "FileEventKind(Access(Close(Write)))",
+                        None => false,
+                    };
+                    let delay = Duration::from_millis(250);
+
+                    if has_close_write && tokio::time::Instant::now() - last_event_time > delay {
+                        last_event_time = tokio::time::Instant::now();
+
+                        push_tasks().await;
+                    }
+
+                    tokio::time::sleep(delay).await;
+                }
+
+                if action.signals().next().is_some() {
+                    action.quit();
+                }
+
+                action
+            })
+        })
+        .unwrap();
+
+        wx.main();
 
         let paths = vec!["src", "dist", "public"];
 
-        for path in paths {
-            watcher
-                .watch(Path::new(path), RecursiveMode::Recursive)
-                .unwrap();
-        }
-
-        for ev in rx {
-            let ev = ev.unwrap();
-            let kind: notify::EventKind = ev.kind;
-
-            if kind.is_access() && (format!("{:?}", kind)) == "Access(Close(Write))" {
-                push_commands();
-            }
-        }
+        wx.config.pathset(paths);
     });
 
     server.await?;
@@ -118,13 +130,6 @@ fn block_until_server_is_ready() {
     while TcpStream::connect(format!("0.0.0.0:{}", query_server_port)).is_err() {
         std::thread::sleep(Duration::from_millis(100));
     }
-}
-
-fn push_commands() {
-    // TODO: Execute the query tasks dev
-    query_command(vec!["function"]);
-    query_command(vec!["asset", "dist"]);
-    query_command(vec!["asset", "public"]);
 }
 
 fn check_config_file_exist() {
@@ -200,21 +205,25 @@ async fn run_query_server(verbose: bool) {
     }
 
     let mut child: std::process::Child = if hash_query_server_local_module {
-        let npx = pm.npx.to_string();
-        let mut npx = npx.split(' ').collect::<Vec<&str>>();
-        let mut rest = npx.split_off(1);
-        let npx = npx[0];
+        let current_dir = env::current_dir().unwrap();
+        let package = current_dir
+            .join("node_modules")
+            .join(".bin")
+            .join(QUERY_SERVER_BINARY);
+        let package = package.to_str().unwrap().to_string();
 
-        rest.push(QUERY_SERVER_BINARY);
-
-        match Command::new(npx)
-            .args(rest)
+        match Command::new(package)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
         {
             Ok(child) => child,
             Err(e) => {
+                let pm = detect_package_manager();
+                let npx = pm.npx.to_string();
+                let npx: Vec<&str> = npx.split(' ').collect::<Vec<&str>>();
+                let npx = npx[0];
+
                 eprintln!(
                     "Failed to execute command `{} {}`",
                     npx, QUERY_SERVER_BINARY
@@ -251,6 +260,105 @@ async fn run_query_server(verbose: bool) {
     });
 
     stdout_thread.await.unwrap();
+    stderr_thread.await.unwrap();
+}
+
+async fn push_tasks() {
+    // TODO: Execute the query tasks dev
+    query_command(vec!["asset", "dist"]).await;
+    query_command(vec!["asset", "public"]).await;
+    // NOTE: the function should be executed after the assets
+    query_command(vec!["function"]).await;
+}
+
+async fn query_command(args: Vec<&str>) {
+    let binary = QUERY_BINARY;
+    let module = QUERY_MODULE;
+
+    let pm = detect_package_manager();
+
+    let package_global = match which(binary) {
+        Some(package_global) => package_global,
+        None => String::new(),
+    };
+    let hash_package_global = !package_global.is_empty();
+    let hash_package_local_module = has_module(binary);
+    let hash_package = hash_package_local_module || hash_package_global;
+
+    if !hash_package {
+        eprintln!("The {} binary isn't installed.", binary);
+        eprintln!(
+            "Please, run `{} install --save-dev {}` first.",
+            pm.npm, module
+        );
+        exit(1);
+    }
+
+    let mut child: std::process::Child = if hash_package_local_module {
+        let npx = pm.npx.to_string();
+        let npx = npx.split(' ').collect::<Vec<&str>>();
+        let npx = npx[0];
+
+        let current_dir = env::current_dir().unwrap();
+        let package = current_dir.join("node_modules").join(".bin").join(binary);
+        let package = package.to_str().unwrap().to_string();
+
+        match Command::new(package)
+            .args(args)
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .spawn()
+        {
+            Ok(child) => child,
+            Err(e) => {
+                eprintln!("Failed to execute command `{} {}`", npx, binary);
+                eprintln!("Error: {}", e);
+                stop_query_server();
+                exit(1);
+            }
+        }
+    } else {
+        match Command::new(package_global)
+            .args(args)
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .spawn()
+        {
+            Ok(child) => child,
+            Err(e) => {
+                eprintln!("Failed to execute command `{}`", binary);
+                eprintln!("Error: {}", e);
+                stop_query_server();
+                exit(1);
+            }
+        }
+    };
+
+    let stderr_thread = tokio::spawn(async move {
+        let stderr = child.stderr.take().expect("Failed to open stderr");
+        let mut reader = std::io::BufReader::new(stderr);
+        let mut line = String::new();
+        loop {
+            match reader.read_line(&mut line) {
+                Ok(0) => break,
+                Ok(_) => {
+                    let message = line.trim();
+                    let message = message.trim_start_matches('"');
+                    let message = message.replace("\\n\\n", "\n").replace("\\n", "\n");
+                    let message = message.trim_end_matches('"');
+                    let message = message.trim();
+
+                    eprintln!("{}", message.red());
+                }
+                Err(e) => {
+                    eprintln!("Error reading output: {}", e);
+                    break;
+                }
+            }
+            line.clear();
+        }
+    });
+
     stderr_thread.await.unwrap();
 }
 
@@ -301,22 +409,6 @@ fn parse_and_format<T: serde::de::DeserializeOwned + LogFormat>(line: &str) -> O
     }
 }
 
-fn query_command(args: Vec<&str>) {
-    match Command::new("query")
-        .args(args) // Convert command into an iterator
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .spawn()
-    {
-        Ok(_) => (),
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            stop_query_server();
-            exit(1);
-        }
-    }
-}
-
 #[derive(Debug, Deserialize)]
 pub struct LogAdd {
     pub code: Option<u16>,
@@ -327,7 +419,6 @@ pub struct LogAdd {
     pub level: u8,
     #[serde(rename = "msg")]
     pub message: String,
-    pub path: Option<String>,
 }
 
 trait LogFormat {
@@ -368,7 +459,16 @@ impl LogFormat for LogAdd {
                 message.normal()
             };
 
-            return format!("{} {}", dot, message,);
+            let console = "[CONSOLE]";
+            let console = if self.level == 50 {
+                console.red()
+            } else if self.level == 40 {
+                console.yellow()
+            } else {
+                console.normal()
+            };
+
+            return format!("{} {} {}", dot, console, message,);
         }
 
         if self.level == 50 {
@@ -376,7 +476,7 @@ impl LogFormat for LogAdd {
                 Some(code) => code.to_string(),
                 None => String::new(),
             };
-            let path = match self.path.as_ref() {
+            let path = match self.extras.get("path") {
                 Some(path) => path.to_string(),
                 None => String::new(),
             };
@@ -491,6 +591,7 @@ impl LogFormat for LogRecord {
         } else {
             extras.normal()
         };
+
         let formatted = format!("{dot} {message}{extras}");
         formatted
     }
