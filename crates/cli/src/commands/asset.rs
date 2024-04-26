@@ -2,7 +2,7 @@ use std::{
     collections::hash_map::DefaultHasher,
     fs,
     hash::{Hash, Hasher},
-    path, str,
+    path, str, time::SystemTime,
 };
 
 use anyhow::Result;
@@ -88,30 +88,38 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
             if entry.file_type().is_file() {
                 let file_path = entry.path().display().to_string();
 
-                let Asset {
-                    data,
-                    name,
-                    file_hash,
-                    mime_type,
-                } = asset_builder(&file_path)?;
-
-                let body = json!({
-                    "active": true,
-                    "data": data,
-                    "name": name,
-                    "file_hash": file_hash,
-                    "mime_type": mime_type,
-                })
-                .to_string();
-
+                let metadata = entry.metadata()?;
+                let modified = match metadata.modified() {
+                    Ok(modified) => modified,
+                    Err(_) => SystemTime::now(),
+                };
+                let mut hasher = DefaultHasher::new();
+                modified.hash(&mut hasher);
+                let value = hasher.finish().to_string();
+                
                 let mut cache = Cache::new();
-                let value = file_hash;
                 let is_cached = match cache.get(&file_path) {
                     Some(cache_item) => cache_item.value == value,
                     None => false,
                 };
 
                 if !is_cached {
+                    let Asset {
+                        data,
+                        name,
+                        file_hash,
+                        mime_type,
+                    } = asset_builder(&file_path)?;
+
+                    let body = json!({
+                        "active": true,
+                        "data": data,
+                        "name": name,
+                        "file_hash": file_hash,
+                        "mime_type": mime_type,
+                    })
+                    .to_string();
+
                     match http_client("asset-builder", Some(&body), Method::POST).await {
                         Ok(_) => {
                             info!("Asset updated: {}", file_path);

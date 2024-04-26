@@ -1,12 +1,12 @@
-use std::{
-    collections::hash_map::DefaultHasher,
-    hash::{Hash, Hasher},
-};
-
 #[allow(unused_imports)]
 use std::{
     env, fs,
     process::{exit, Command},
+};
+use std::path::Path;
+use std::{
+    hash::{DefaultHasher, Hash, Hasher},
+    time::SystemTime,
 };
 
 #[allow(unused_imports)]
@@ -17,8 +17,7 @@ use regex::Regex;
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::error;
-use tracing::info;
+use tracing::{error, info};
 use walkdir::WalkDir;
 
 use crate::{
@@ -83,6 +82,7 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
         };
     } else {
         let functions_folder = env::current_dir()?.join(path).to_str().unwrap().to_string();
+
         for entry in WalkDir::new(functions_folder) {
             let entry = entry?;
 
@@ -109,45 +109,50 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
                     {
                         let file_path = entry.path().display().to_string();
 
-                        let FunctionBuilder {
-                            active,
-                            function,
-                            method,
-                            path,
-                        } = function_builder(&file_path)?;
-
-                        let body_path = path.replace(
-                            &env::current_dir()?
-                                .join(&CONFIG.structure.functions_folder)
-                                .to_str()
-                                .unwrap()
-                                .to_string(),
-                            "",
-                        );
-                        let body_path = if body_path.is_empty() {
-                            "/".to_string()
-                        } else {
-                            body_path
+                        let metadata = entry.metadata()?;
+                        let modified = match metadata.modified() {
+                            Ok(modified) => modified,
+                            Err(_) => SystemTime::now(),
                         };
-                        let body = json!({
-                            "active": active,
-                            "function": function,
-                            "method": method,
-                            "path": body_path,
-                        })
-                        .to_string();
-
-                        let mut cache = Cache::new();
                         let mut hasher = DefaultHasher::new();
-                        Hash::hash_slice(&function, &mut hasher);
+                        modified.hash(&mut hasher);
                         let value = hasher.finish().to_string();
 
+                        let mut cache = Cache::new();
                         let is_cached = match cache.get(&file_path) {
                             Some(cache_item) => cache_item.value == value,
                             None => false,
                         };
 
                         if !is_cached {
+                            let FunctionBuilder {
+                                active,
+                                function,
+                                method,
+                                path,
+                            } = function_builder(&file_path)?;
+
+                            let body_path = path.replace(
+                                &env::current_dir()?
+                                    .join(&CONFIG.structure.functions_folder)
+                                    .to_str()
+                                    .unwrap()
+                                    .to_string(),
+                                "",
+                            );
+                            let body_path = if body_path.is_empty() {
+                                "/".to_string()
+                            } else {
+                                body_path
+                            };
+                            let body = json!({
+                                "active": active,
+                                "function": function,
+                                "method": method,
+                                "path": body_path,
+                            })
+                            .to_string();
+
                             match http_client("function-builder", Some(&body), Method::POST).await {
                                 Ok(_) => {
                                     info!("Function updated: {}", file_path);
@@ -274,8 +279,8 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
     let hash_esbuild_local_module = has_module("esbuild");
     let hash_esbuild = hash_esbuild_local_module || hash_esbuild_global;
 
+    let pm = detect_package_manager();
     if !hash_esbuild {
-        let pm = detect_package_manager();
         eprintln!(
             "The esbuild binary does not exist. Please, run `{} install esbuild` first.",
             pm.npm
@@ -284,10 +289,10 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
     }
 
     if hash_esbuild_local_module {
-        let pm = detect_package_manager();
-        let npx = pm.npx.to_string();
+        let package = Path::new("node_modules").join(".bin").join("esbuild");
+        let package = package.to_str().unwrap().to_string();
 
-        match Command::new(npx).arg("esbuild").args(&args).output() {
+        match Command::new(package).args(&args).output() {
             Ok(output) => {
                 let output = std::str::from_utf8(&output.stderr)?;
 
@@ -321,6 +326,7 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
     let bundle_path = format!("{}/{}", out_dir, function_path.split('/').last().unwrap());
     let re = Regex::new(r"(\.tsx|\.ts)$").unwrap();
     let bundle_path = re.replace(&bundle_path, ".js").to_string();
+
     let function = fs::read_to_string(&bundle_path)?;
 
     if function.is_empty() {
