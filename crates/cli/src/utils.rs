@@ -1,8 +1,5 @@
 use std::{
-    env,
-    fs::File,
-    io::{BufReader, Read},
-    process::{Command, Output},
+    env, fs::File, io::{BufReader, Read}, path::Path, process::{Command, Output}
 };
 
 use anyhow::{anyhow, Result};
@@ -208,11 +205,7 @@ pub fn detect_package_manager() -> PackageManager {
 }
 
 pub fn has_module(package: &str) -> bool {
-    let pm = detect_package_manager();
-
-    let output = Command::new(pm.npm).args(["list"]).output().unwrap();
-
-    String::from_utf8(output.stdout).unwrap().contains(package)
+    Path::new("node_modules").join(".bin").join(package).exists()
 }
 
 pub fn install_dependencies(dependencies: Vec<&str>) -> Result<Output, std::io::Error> {
