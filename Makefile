@@ -106,12 +106,16 @@ npm-publish:
 	npm publish https://github.com/gc-victor/query/releases/download/v$(ARGUMENTS)/query-server-npm-package.tar.gz
 
 npm-prerelease:
-	npm publish https://github.com/gc-victor/query/releases/download/v$(ARGUMENTS)/query-npm-package.tar.gz --tag prerelease-$(ARGUMENTS)
-	npm publish https://github.com/gc-victor/query/releases/download/v$(ARGUMENTS)/query-server-npm-package.tar.gz --tag prerelease-$(ARGUMENTS)
+	@if [ "$(findstring prerelease,$(ARGUMENTS))" = "prerelease" ]; then \
+		npm publish https://github.com/gc-victor/query/releases/download/v$(ARGUMENTS)/query-npm-package.tar.gz --tag prerelease-$(VERSION) ;\
+		npm publish https://github.com/gc-victor/query/releases/download/v$(ARGUMENTS)/query-server-npm-package.tar.gz --tag prerelease-$(VERSION) ;\
+	fi
 
-npm-unpublish:
-	npm unpublish @qery/query/$(ARGUMENTS)-prerelease --force
-	npm unpublish @qery/query-server/$(ARGUMENTS)-prerelease --force
+npm-un-prerelease:
+	@if [ "$(findstring prerelease,$(ARGUMENTS))" = "prerelease" ]; then \
+		npm unpublish @qery/query@$(ARGUMENTS) --force ;\
+		npm unpublish @qery/query-server@$(ARGUMENTS) --force ;\
+	fi
 
 # Release
 
@@ -212,6 +216,7 @@ tag-rollback:
 		git checkout -- Cargo.toml; \
 		git tag -d v$(ARGUMENTS); \
 		git push origin --delete v$(ARGUMENTS); \
+		git push --force-with-lease; \
     else \
         echo "Aborted."; \
     fi
