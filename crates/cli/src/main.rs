@@ -37,7 +37,7 @@ async fn main() {
         .with_max_level(Level::INFO)
         .with_target(false)
         .finish();
-    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    let _ = tracing::subscriber::set_default(subscriber);
 
     let args = Cli::parse();
     let command = args.command;
