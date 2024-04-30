@@ -4,6 +4,7 @@ use std::{
     net::TcpStream,
     path::Path,
     process::{exit, Command, Stdio},
+    thread,
     time::Duration,
 };
 
@@ -38,13 +39,13 @@ pub async fn command_dev(command: &DevArgs) -> Result<()> {
 
     let verbose = command.verbose;
     let server = tokio::spawn(async move {
-        run_query_server(verbose).await;
+        run_query_server(verbose);
     });
 
     let watcher = tokio::spawn(async move {
         block_until_server_is_ready();
         // Push the tasks before starting the watcher
-        push_tasks().await;
+        push_tasks();
 
         let mut last_event_time = tokio::time::Instant::now();
 
@@ -61,7 +62,7 @@ pub async fn command_dev(command: &DevArgs) -> Result<()> {
                     if has_close_write && tokio::time::Instant::now() - last_event_time > delay {
                         last_event_time = tokio::time::Instant::now();
 
-                        push_tasks().await;
+                        push_tasks();
                     }
 
                     tokio::time::sleep(delay).await;
@@ -155,7 +156,7 @@ fn check_port_usage() {
     }
 }
 
-async fn run_query_server(verbose: bool) {
+fn run_query_server(verbose: bool) {
     let pm = detect_package_manager();
 
     let query_server_global = match which(QUERY_SERVER_BINARY) {
@@ -247,31 +248,31 @@ async fn run_query_server(verbose: bool) {
         }
     };
 
-    let stdout_thread = tokio::spawn(async move {
+    let stdout_thread = thread::spawn(move || {
         let stdout = child.stdout.take().expect("Failed to open stdout");
         let reader = std::io::BufReader::new(stdout);
         server_logs(reader, verbose);
     });
 
-    let stderr_thread = tokio::spawn(async move {
+    let stderr_thread = thread::spawn(move || {
         let stderr = child.stderr.take().expect("Failed to open stderr");
         let reader = std::io::BufReader::new(stderr);
         server_logs(reader, verbose);
     });
 
-    stdout_thread.await.unwrap();
-    stderr_thread.await.unwrap();
+    let _ = stdout_thread.join();
+    let _ = stderr_thread.join();
 }
 
-async fn push_tasks() {
-    // TODO: Execute the query tasks dev
-    query_command(vec!["asset", "dist"]).await;
-    query_command(vec!["asset", "public"]).await;
+fn push_tasks() {
+    query_command(vec!["task", "dev", "-y"]);
+    query_command(vec!["asset", "dist"]);
+    query_command(vec!["asset", "public"]);
     // NOTE: the function should be executed after the assets
-    query_command(vec!["function"]).await;
+    query_command(vec!["function"]);
 }
 
-async fn query_command(args: Vec<&str>) {
+fn query_command(args: Vec<&str>) {
     let binary = QUERY_BINARY;
     let module = QUERY_MODULE;
 
@@ -334,7 +335,7 @@ async fn query_command(args: Vec<&str>) {
         }
     };
 
-    let stderr_thread = tokio::spawn(async move {
+    let stderr_thread = thread::spawn(move || {
         let stderr = child.stderr.take().expect("Failed to open stderr");
         let mut reader = std::io::BufReader::new(stderr);
         let mut line = String::new();
@@ -359,7 +360,7 @@ async fn query_command(args: Vec<&str>) {
         }
     });
 
-    stderr_thread.await.unwrap();
+    let _ = stderr_thread.join();
 }
 
 fn server_logs<T>(mut reader: std::io::BufReader<T>, verbose: bool)

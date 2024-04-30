@@ -30,6 +30,8 @@ pub enum Commands {
     Settings,
     /// SQLite shell to manage the databases locally
     Shell(ShellArgs),
+    /// Execution of custom commands
+    Task(TaskArgs),
     /// Manage tokens without relation to a user
     Token(TokenArgs),
     /// Manage users
@@ -108,6 +110,15 @@ pub struct MigrationArgs {
 pub struct ShellArgs {
     /// Name of the database to open
     pub db_name: String,
+}
+
+#[derive(Args)]
+pub struct TaskArgs {
+    #[arg(short, long, default_value_t = false)]
+    pub list: bool,
+    pub task: Vec<String>,
+    #[arg(short, long, default_value_t = false)]
+    pub yes: bool
 }
 
 #[derive(Args)]

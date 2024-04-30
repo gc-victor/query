@@ -12,3 +12,4 @@ pub mod token;
 pub mod user;
 pub mod user_token;
 pub mod purge;
+pub mod task;
