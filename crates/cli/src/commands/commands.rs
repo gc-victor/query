@@ -30,7 +30,7 @@ pub enum Commands {
     Settings,
     /// SQLite shell to manage the databases locally
     Shell(ShellArgs),
-    /// Execution of custom commands
+    /// Execution of custom commands defined in the Query.toml file
     Task(TaskArgs),
     /// Manage tokens without relation to a user
     Token(TokenArgs),
@@ -114,9 +114,12 @@ pub struct ShellArgs {
 
 #[derive(Args)]
 pub struct TaskArgs {
+    /// List all the tasks
     #[arg(short, long, default_value_t = false)]
     pub list: bool,
+    /// Name of the task to execute
     pub task: Vec<String>,
+    /// Confirm the execution of the task
     #[arg(short, long, default_value_t = false)]
     pub yes: bool
 }
