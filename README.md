@@ -11,9 +11,10 @@ Query is a Rust server for your remote SQLite databases with a CLI and API to ma
   - [Fly configuration](#fly-configuration)
 - [CLI](#cli)
   - [Install](#install)
+    - [Use The NPM Package](#use-the-npm-package)
     - [Use The Installer Scripts](#use-the-installer-scripts)
     - [Download The Binary](#download-the-binary)
-  - [Dev](#dev)
+  - [Install esbuild](#install-esbuild)
   - [Configuration](#configuration)
   - [Commands](#commands)
     - [Settings](#settings)
@@ -52,6 +53,7 @@ Query is a Rust server for your remote SQLite databases with a CLI and API to ma
       - [Query Cache Control](#query-cache-control)
       - [Usage](#usage)
     - [Asset](#asset)
+    - [Dev](#dev)
     - [Task](#task)
 - [APIs](#apis)
   - [Query Endpoint](#query-endpoint)
@@ -288,19 +290,21 @@ fly platform regions
 
 ### Install
 
-#### Use The Installer Scripts
+#### Use The NPM Package
 
-npm package:
+You can install the CLI using npm or pnpm. Run the following command:
 
 ```sh
-npm install -g @qery/query
+npm install @qery/query
 ```
 
 OR
 
 ```sh
-pnpm install -g @qery/query
+pnpm install @qery/query
 ```
+
+#### Use The Installer Scripts
 
 macOS and Linux (not NixOS, Alpine, or Asahi):
 
@@ -318,21 +322,19 @@ irm https://github.com/gc-victor/query/releases/latest/download/query-installer.
 
 <https://github.com/gc-victor/query/releases/latest>
 
-### Dev
+### Install esbuild
 
-To run the development mode, you have to run the following command:
-
-```sh
-npx query dev
-```
-
-OR
+Query uses under the hood [esbuild](https://esbuild.github.io) to bundle the functions. So, you have to install esbuild:
 
 ```sh
-pnpm query dev
+npm install esbuild
 ```
 
-It will run the query-server and watch the changes in the files in the `dist`, `src` and `public` folders. If you change a file, it will push them to server.
+Or
+
+```sh
+pnpm install esbuild
+```
 
 ### Configuration
 
@@ -360,8 +362,6 @@ migrations_folder = "migrations"
   - **functions_folder** - The folder where the functions are stored. (Default: src/functions)
   - **templates_folder** - The folder where the templates are stored. (Default: templates)
 - **esbuild** - The esbuild CLI params configuration for the functions. You can find more information in the [esbuild documentation](https://esbuild.github.io/api/).
-
-
 
 ### Commands
 
@@ -1063,16 +1063,16 @@ export async function handleRequest(req) {
 
 #### Usage
 
-Query uses under the hood [esbuild](https://esbuild.github.io) to bundle the functions. So, first you have to install esbuild globally:
+Query uses under the hood [esbuild](https://esbuild.github.io) to bundle the functions. So, first you have to install esbuild:
 
 ```sh
-npm install --global esbuild
+npm install esbuild
 ```
 
 Or
 
 ```sh
-pnpm install --global esbuild
+pnpm install esbuild
 ```
 
 To use the functions you have to run the following command:
@@ -1128,9 +1128,103 @@ query asset ./assets
 Options:
 
 - `-a, --active <ACTIVE>` - Activate status of the asset [default: true]  
-- `-d, --delete` - Delete the asset It is mandatory to provide the path to the asset
+- `-d, --delete` - Delete the asset. It is mandatory to provide the path to the asset
 - `-p, --path <PATH>` - Path to the assets
 - `-h, --help` - Print help
+
+### Dev
+
+Query CLI offers a development mode. It runs the Query Server locally and watches the changes in the files in the `dist`, `src`, and `public` folders. If you change a file, it pushes it to the server.
+
+To use the development mode, it is needed to have installed `query`, `query-server` and `esbuild`, with a global or local installation using `npm` or `pnpm`.
+
+```sh
+npm install @qery/query @qery/query-server esbuild
+```
+
+Or
+
+```sh
+pnpm install @qery/query @qery/query-server esbuild
+```
+
+Get more information in the [Install](#install) and [Install esbuild](#install-esbuild) sections.
+
+Also, the minimum configuration in the `Query.toml` file and the `.env` file is required.
+
+The  `Query.toml` file should have the following structure:
+
+```toml
+[server]
+url = "http://localhost:3000"
+
+[structure]
+functions_folder = "src"
+```
+
+This is a minimal configuration. You can add more configuration options to the `Query.toml` file. You can find more information in the [Configuration](#configuration) section.
+
+The `.env` file should have the following structure:
+
+```yaml
+# Server
+QUERY_SERVER_PORT=3000
+QUERY_SERVER_APP=true
+QUERY_SERVER_DBS_PATH=.dbs
+QUERY_SERVER_TOKEN_SECRET=1d6005175b5682fb9141515e5336e959 # openssl rand -hex 32
+QUERY_SERVER_ADMIN_EMAIL=admin
+QUERY_SERVER_ADMIN_PASSWORD=admin
+
+# Application
+QUERY_APP_ENV=development
+QUERY_APP_QUERY_SERVER=http://localhost:3000
+QUERY_APP_ALLOWED_ORIGIN=http://localhost:3000
+```
+
+Usage:
+
+```sh
+query dev
+```
+
+Or
+
+```sh
+pnpm run dev
+```
+
+Or
+
+```sh
+npx run dev
+```
+
+It uses the `esbuild` to bundle the functions. So, every time you change a function, if there is an error, it will show you the error in the terminal. If there is no error, it will push the function to the server.
+
+Options:
+
+- `-c, --clean` - Clean assets and function databases, and dist folder
+- `-n, --no-port-check` - Do not check port usage
+- `-v, --verbose` - Show all the logs
+- `-h, --help` - Print help
+
+To clean the assets and function databases, and the dist folder, you have to run the following command:
+
+```sh
+query dev -c
+```
+
+To avoid checking the port usage, you have to run the following command:
+
+```sh
+query dev -n
+```
+
+To show all the logs, you have to run the following command:
+
+```sh
+query dev -v
+```
 
 ### Task
 
