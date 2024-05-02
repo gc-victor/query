@@ -73,9 +73,15 @@ pub fn command_task(command: &TaskArgs) -> Result<()> {
     if let Some(table) = table {
         let command_task = &command.task;
         let tasks_group = command_task.first().unwrap();
-        let commands = match table.get(tasks_group) {
-            Some(c) => c.as_table().unwrap(),
-            None => {
+
+        if !table.get(tasks_group).unwrap().is_table() {
+            execute_command(&table, &String::new(), tasks_group)?;
+        };
+
+        let commands = table
+            .get(tasks_group)
+            .map(|c| c.as_table().unwrap())
+            .unwrap_or_else(|| {
                 eprintln!(
                     "{}",
                     format!(
@@ -86,8 +92,7 @@ pub fn command_task(command: &TaskArgs) -> Result<()> {
                     .red()
                 );
                 exit(1);
-            }
-        };
+            });
 
         if command.list {
             for (task, command) in commands {
@@ -233,24 +238,29 @@ fn get_command(
     tasks_group: &String,
     task: &String,
 ) -> Result<String, anyhow::Error> {
-    let command = extra_command
-        .get(tasks_group)
-        .and_then(|task_command| task_command.get(task))
-        .and_then(|c| c.as_str());
+    let command = if tasks_group.is_empty() {
+        extra_command.get(task).and_then(|c| c.as_str())
+    } else {
+        extra_command
+            .get(tasks_group)
+            .and_then(|task_command| task_command.get(task))
+            .and_then(|c| c.as_str())
+    };
 
     match command {
         Some(command) => Ok(command.to_string()),
         None => {
-            eprintln!(
-                "{}",
+            let error_message = if tasks_group.is_empty() {
+                format!("{} Task `{}` not found", String::from('●').red(), task)
+            } else {
                 format!(
                     "{} Task `{}` not found in the group `{}`",
                     String::from('●').red(),
                     task,
                     tasks_group
                 )
-                .red()
-            );
+            };
+            eprintln!("{}", error_message.red());
             exit(1);
         }
     }
