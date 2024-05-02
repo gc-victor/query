@@ -46,6 +46,30 @@ pub fn command_task(command: &TaskArgs) -> Result<()> {
 
     let table = config.task.and_then(|task| task.table);
 
+    if command.list && command.task.is_empty() && table.is_some() {
+        if let Some(table) = table {
+            for (task, command) in &table {
+                if !command.is_table() {
+                    let command = command.as_str().unwrap();
+                    eprintln!(r#"{} [{task}]: "{command}""#, String::from('●').green(),);
+                }
+            }
+
+            for (task, command) in table {
+                if command.is_table() {
+                    eprintln!(r#"{} {}:"#, String::from('●').green(), task.green());
+                    let command = command.as_table().unwrap();
+                    for (task, command) in command {
+                        let command = command.as_str().unwrap();
+                        eprintln!(r#"{} [{task}]: "{command}""#, String::from('●').green(),);
+                    }
+                }
+            }
+        }
+
+        return Ok(());
+    }
+
     if let Some(table) = table {
         let command_task = &command.task;
         let tasks_group = command_task.first().unwrap();
