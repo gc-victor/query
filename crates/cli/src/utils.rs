@@ -1,5 +1,10 @@
 use std::{
-    env, fs::File, io::{BufReader, Read}, path::Path, process::{Command, Output}
+    env,
+    fs::File,
+    io::{BufReader, Read},
+    net::TcpStream,
+    path::Path,
+    process::{exit, Command, Output}, time::Duration,
 };
 
 use anyhow::{anyhow, Result};
@@ -205,7 +210,10 @@ pub fn detect_package_manager() -> PackageManager {
 }
 
 pub fn has_module(package: &str) -> bool {
-    Path::new("node_modules").join(".bin").join(package).exists()
+    Path::new("node_modules")
+        .join(".bin")
+        .join(package)
+        .exists()
 }
 
 pub fn install_dependencies(dependencies: Vec<&str>) -> Result<Output, std::io::Error> {
@@ -269,4 +277,52 @@ pub fn is_installed(program: &str) -> bool {
         .unwrap()
         .status
         .success()
+}
+
+pub fn check_port_usage() -> Result<(), String> {
+    let query_server_port: String = env::var("QUERY_SERVER_PORT").unwrap_or("3000".to_owned());
+    if TcpStream::connect(format!("0.0.0.0:{}", query_server_port)).is_ok() {
+        Err(format!(
+            r#"Something is running on port {}. Please, stop it before running the command."#,
+            query_server_port
+        ))
+    } else {
+        Ok(())
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn stop_query_server() {
+    match Command::new("pkill").arg("-f").arg("query-server").spawn() {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            eprintln!("Please, stop the query-server process manually");
+            exit(1);
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
+pub fn stop_query_server() {
+    match Command::new("taskkill")
+        .arg("-f")
+        .arg("-im")
+        .arg("query-server*")
+        .spawn()
+    {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            eprintln!("Please, stop the query-server process manually");
+            exit(1);
+        }
+    }
+}
+
+pub fn block_until_server_is_ready() {
+    let query_server_port: String = env::var("QUERY_SERVER_PORT").unwrap_or("3000".to_owned());
+    while TcpStream::connect(format!("0.0.0.0:{}", query_server_port)).is_err() {
+        std::thread::sleep(Duration::from_millis(100));
+    }
 }

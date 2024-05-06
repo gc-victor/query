@@ -151,16 +151,6 @@ fn execute_command(
         Ok(child) => child,
         Err(e) => {
             eprintln!("{}", e);
-            eprintln!(
-                "{}",
-                format!(
-                    "{} Failed to execute task [{}]: `{}`",
-                    String::from('●'),
-                    task,
-                    commands.trim()
-                )
-                .red()
-            );
             exit(1);
         }
     };
@@ -179,18 +169,19 @@ fn execute_command(
                     let message = message.trim_end_matches('"');
                     let message = message.trim();
 
+                    if message.is_empty() {
+                        break;
+                    }
+
                     println!("{} {}", String::from('●').green(), message);
                 }
                 Err(e) => {
-                    eprintln!("Error reading output: {}", e);
-                    break;
+                    eprintln!("{}", format!("{} {}", String::from('●'), e).red());
                 }
             }
             line.clear();
         }
     });
-
-    let task = task.clone();
 
     let stderr_thread = thread::spawn(move || {
         let stderr = child.stderr.take().expect("Failed to open stderr");
@@ -206,23 +197,17 @@ fn execute_command(
                     let message = message.trim_end_matches('"');
                     let message = message.trim();
 
+                    if message.is_empty() {
+                        break;
+                    }
+
                     eprintln!("{}", message.red());
-                    eprintln!(
-                        "{}",
-                        format!(
-                            "{} Failed to execute task [{}]: `{}`",
-                            String::from('●'),
-                            task,
-                            commands.trim()
-                        )
-                        .red()
-                    );
                 }
                 Err(e) => {
-                    eprintln!("Error reading output: {}", e);
-                    break;
+                    eprintln!("{}", format!("{} {}", String::from('●'), e).red());
                 }
             }
+
             line.clear();
         }
     });

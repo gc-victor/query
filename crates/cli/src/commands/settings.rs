@@ -2,7 +2,7 @@ use std::{
     fs::{self, File},
     io::Write,
     path::Path,
-    process::exit,
+    process::exit, thread,
 };
 
 use anyhow::Result;
@@ -13,9 +13,7 @@ use serde_json::json;
 use tracing::error;
 
 use crate::{
-    config::CLI,
-    prompts::{password_prompt, text_prompt, PROMPT_EMAIL_MESSAGE},
-    utils::{http_client, read_file_content},
+    config::CLI, prompts::{password_prompt, text_prompt, PROMPT_EMAIL_MESSAGE}, run_server::run_query_server, utils::{check_port_usage, http_client, read_file_content, stop_query_server}
 };
 
 #[derive(Deserialize, Serialize)]
@@ -29,15 +27,31 @@ struct ServerOptions {
 }
 
 pub async fn command_settings() {
+    match check_port_usage() {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("{}", e);
+            exit(1);
+        }
+    }
+
+    let server = thread::spawn(move || {
+        run_query_server(false, true);
+    });
+
+    let _ = server.join();
+
     server_url_prompt().unwrap_or_else(|err| {
         error!("{}", err);
         exit(1);
     });
-
+    
     get_user_token_value().await.unwrap_or_else(|err| {
         error!("{}", err);
         exit(1);
     });
+
+    stop_query_server();
 
     save_history_prompt().unwrap_or_else(|err| {
         error!("{}", err);
