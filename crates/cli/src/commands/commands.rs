@@ -8,6 +8,8 @@ pub enum Commands {
     Asset(AssetArgs),
     /// Manage branches
     Branch(BranchArgs),
+    /// Create a new project
+    Create,
     /// Development experience
     Dev(DevArgs),
     /// Push all the functions without setting a path
@@ -121,7 +123,7 @@ pub struct TaskArgs {
     pub task: Vec<String>,
     /// Confirm the execution of the task
     #[arg(short, long, default_value_t = false)]
-    pub yes: bool
+    pub yes: bool,
 }
 
 #[derive(Args)]

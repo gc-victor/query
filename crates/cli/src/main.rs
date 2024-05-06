@@ -3,8 +3,9 @@ pub mod commands;
 pub mod config;
 pub mod prompts;
 pub mod utils;
+pub mod run_server;
 
-use std::{env, fs};
+use std::env;
 
 use clap::{command, Parser};
 use dotenv::dotenv;
@@ -12,10 +13,11 @@ use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
 use commands::{
-    asset::command_asset, branch::command_branch, commands::Commands, dev::command_dev,
-    function::command_function, generate::command_generate, migration::command_migration,
-    purge::command_purge, settings::command_settings, shell::command_shell, task::command_task,
-    token::command_token, user::command_user, user_token::command_user_token,
+    asset::command_asset, branch::command_branch, commands::Commands, create::command_create,
+    dev::command_dev, function::command_function, generate::command_generate,
+    migration::command_migration, purge::command_purge, settings::command_settings,
+    shell::command_shell, task::command_task, token::command_token, user::command_user,
+    user_token::command_user_token,
 };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -39,16 +41,15 @@ async fn main() {
         .finish();
     let _ = tracing::subscriber::set_default(subscriber);
 
+    std::panic::set_hook(Box::new(tracing_error));
+
     let args = Cli::parse();
     let command = args.command;
-
-    fs::create_dir_all(".query").unwrap();
-
-    std::panic::set_hook(Box::new(tracing_error));
 
     match &command {
         Commands::Asset(command) => command_asset(command).await.unwrap(),
         Commands::Branch(command) => command_branch(command).await.unwrap(),
+        Commands::Create => command_create().await.unwrap(),
         Commands::Dev(command) => command_dev(command).await.unwrap(),
         Commands::Function(command) => command_function(command).await.unwrap(),
         Commands::Generate(command) => command_generate(command).await.unwrap(),
