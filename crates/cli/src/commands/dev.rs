@@ -80,7 +80,7 @@ pub async fn command_dev(command: &DevArgs) -> Result<()> {
 
         wx.main();
 
-        let paths = vec!["src", "dist", "public"];
+        let paths = vec!["src", "public"];
 
         wx.config.pathset(paths);
     });
