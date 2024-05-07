@@ -2,7 +2,7 @@ use std::{
     collections::hash_map::DefaultHasher,
     fs,
     hash::{Hash, Hasher},
-    path, str, time::SystemTime,
+    path, str,
 };
 
 use anyhow::Result;
@@ -88,29 +88,20 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
             if entry.file_type().is_file() {
                 let file_path = entry.path().display().to_string();
 
-                let metadata = entry.metadata()?;
-                let modified = match metadata.modified() {
-                    Ok(modified) => modified,
-                    Err(_) => SystemTime::now(),
-                };
-                let mut hasher = DefaultHasher::new();
-                modified.hash(&mut hasher);
-                let value = hasher.finish().to_string();
-                
+                let Asset {
+                    data,
+                    name,
+                    file_hash,
+                    mime_type,
+                } = asset_builder(&file_path)?;
+
                 let mut cache = Cache::new();
                 let is_cached = match cache.get(&file_path) {
-                    Some(cache_item) => cache_item.value == value,
+                    Some(cache_item) => cache_item.value == file_hash,
                     None => false,
                 };
 
                 if !is_cached {
-                    let Asset {
-                        data,
-                        name,
-                        file_hash,
-                        mime_type,
-                    } = asset_builder(&file_path)?;
-
                     let body = json!({
                         "active": true,
                         "data": data,
@@ -125,7 +116,7 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
                             info!("Asset updated: {}", file_path);
                             cache.set(CacheItem {
                                 key: file_path,
-                                value,
+                                value: file_hash,
                             })?;
                         }
                         Err(err) => error!("{}", err),
