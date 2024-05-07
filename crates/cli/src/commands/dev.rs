@@ -187,8 +187,8 @@ fn query_command(args: Vec<&str>) {
         {
             Ok(child) => child,
             Err(e) => {
+                eprintln!("{}", e);
                 eprintln!("Failed to execute command `{} {}`", npx, binary);
-                eprintln!("Error: {}", e);
                 stop_query_server();
                 exit(1);
             }
@@ -202,8 +202,8 @@ fn query_command(args: Vec<&str>) {
         {
             Ok(child) => child,
             Err(e) => {
+                eprintln!("{}", e);
                 eprintln!("Failed to execute command `{}`", binary);
-                eprintln!("Error: {}", e);
                 stop_query_server();
                 exit(1);
             }
