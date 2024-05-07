@@ -50,8 +50,8 @@ pub fn command_task(command: &TaskArgs) -> Result<()> {
         if let Some(table) = table {
             for (task, command) in &table {
                 if !command.is_table() {
-                    let command = command.as_str().unwrap();
-                    eprintln!(r#"{} [{task}]: "{command}""#, String::from('●').green(),);
+                    let command = command.as_str().unwrap().trim();
+                    eprintln!(r#"{} [{task}]: `{command}`"#, String::from('●').green(),);
                 }
             }
 
@@ -60,8 +60,8 @@ pub fn command_task(command: &TaskArgs) -> Result<()> {
                     eprintln!(r#"{} {}:"#, String::from('●').green(), task.green());
                     let command = command.as_table().unwrap();
                     for (task, command) in command {
-                        let command = command.as_str().unwrap();
-                        eprintln!(r#"{} [{task}]: "{command}""#, String::from('●').green(),);
+                        let command = command.as_str().unwrap().trim();
+                        eprintln!(r#"{} [{task}]: `{command}`"#, String::from('●').green(),);
                     }
                 }
             }
@@ -97,7 +97,7 @@ pub fn command_task(command: &TaskArgs) -> Result<()> {
         if command.list {
             for (task, command) in commands {
                 let command = command.as_str().unwrap();
-                eprintln!(r#"{} [{task}]: "{command}""#, String::from('●').green(),);
+                eprintln!(r#"{} [{task}]: `{command}`"#, String::from('●').green(),);
             }
 
             return Ok(());
@@ -165,12 +165,15 @@ fn execute_command(
                 Ok(_) => {
                     let message = line.trim();
                     let message = message.trim_start_matches('"');
-                    let message = message.replace("\\n\\n", "\n").replace("\\n", "\n");
+                    let message = message
+                        .replace('●', "")
+                        .replace("\\n\\n", "\n")
+                        .replace("\\n", "\n");
                     let message = message.trim_end_matches('"');
                     let message = message.trim();
 
                     if message.is_empty() {
-                        break;
+                        continue;
                     }
 
                     println!("{} {}", String::from('●').green(), message);
@@ -193,12 +196,15 @@ fn execute_command(
                 Ok(_) => {
                     let message = line.trim();
                     let message = message.trim_start_matches('"');
-                    let message = message.replace("\\n\\n", "\n").replace("\\n", "\n");
+                    let message = message
+                        .replace('●', "")
+                        .replace("\\n\\n", "\n")
+                        .replace("\\n", "\n");
                     let message = message.trim_end_matches('"');
                     let message = message.trim();
 
                     if message.is_empty() {
-                        break;
+                        continue;
                     }
 
                     eprintln!("{}", message.red());
@@ -207,7 +213,6 @@ fn execute_command(
                     eprintln!("{}", format!("{} {}", String::from('●'), e).red());
                 }
             }
-
             line.clear();
         }
     });
