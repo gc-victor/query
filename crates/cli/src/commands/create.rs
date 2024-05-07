@@ -2,7 +2,7 @@ use std::{
     fs::{self, File},
     io::Write,
     path::Path,
-    process::{exit, Stdio},
+    process::exit,
     thread,
 };
 
@@ -127,14 +127,40 @@ pub async fn command_create() -> Result<()> {
 
     copy_spinner.stop("Application copied");
 
+    set_env_vars(&email, &password)?;
+
     // ===
 
-    set_env_vars(&email, &password)?;
+    let pm = detect_package_manager();
+    let npm = pm.npm;
+
+    if install_dependencies {
+        let install_spinner = spinner();
+
+        install_spinner.start("Installing dependencies...");
+
+        match Command::new(&npm).arg("install").output().await {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("{}", format!("Error: {}", e).red());
+                exit(1);
+            }
+        }
+
+        install_spinner.stop("Installation completed");
+    };
+
+    // ===
 
     let is_port_used = check_port_usage().is_err();
     let mut has_user_token = false;
+    let mut has_executed_create = false;
 
     if !is_port_used {
+        let admin_spinner = spinner();
+
+        admin_spinner.start("Adding admin user...");
+
         let server = thread::spawn(move || {
             run_query_server(false, true);
         });
@@ -161,40 +187,36 @@ pub async fn command_create() -> Result<()> {
             }
         }
 
-        let package = current_dir.join("node_modules").join(".bin").join("query");
-        let package = package.to_str().unwrap().to_string();
+        admin_spinner.stop("Admin user created");
 
-        let _ = Command::new(package)
+        let task_spinner = spinner();
+
+        task_spinner.start(format!(
+            "{} Running tasks...",
+            "Please wait".yellow().reversed()
+        ));
+
+        let package = current_dir
+            .join(&dest)
+            .join("node_modules")
+            .join(".bin")
+            .join("query");
+
+        match Command::new(package)
             .args(["task", "create", "-y"])
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn();
+            .output()
+            .await
+        {
+            Ok(_) => has_executed_create = true,
+            Err(e) => eprintln!("{}", format!("Error: {}", e).red()),
+        }
+
+        task_spinner.stop("Create task completed");
 
         stop_query_server();
     }
 
-    log::step("Admin user created")?;
-
     // ===
-
-    let pm = detect_package_manager();
-    let npm = pm.npm;
-
-    if install_dependencies {
-        let install_spinner = spinner();
-
-        install_spinner.start("Installing...");
-
-        match Command::new(&npm).arg("install").output().await {
-            Ok(_) => {}
-            Err(e) => {
-                eprintln!("{}", format!("Error: {}", e).red());
-                exit(1);
-            }
-        }
-
-        install_spinner.stop("Installation completed");
-    };
 
     if install_git_repo {
         match Command::new("git").arg("init").output().await {
@@ -240,8 +262,6 @@ pub async fn command_create() -> Result<()> {
 
     // ===
 
-    // eprintln!("Next steps:");
-
     let go_to = if dest != "./" {
         format!("{} Run `cd {}`\n", String::from('●').green(), dest)
     } else {
@@ -257,12 +277,17 @@ pub async fn command_create() -> Result<()> {
     } else {
         ""
     };
+    let npm_query_dev = format!("{} Run `{npm} query dev`\n", String::from('●').green());
     let npm_query_settings = if !has_user_token {
         format!("{} Run `{npm} query settings`\n", String::from('●').green())
     } else {
         "".to_string()
     };
-    let npm_query_dev = format!("{} Run `{npm} query dev`\n", String::from('●').green());
+    let npm_query_create = if !has_executed_create {
+        format!("{} Run `{npm} query create`\n", String::from('●').green())
+    } else {
+        "".to_string()
+    };
     let visit_home = format!(
         "{} Visit Home: http://localhost:3000\n",
         String::from('●').green()
@@ -271,15 +296,15 @@ pub async fn command_create() -> Result<()> {
         "{} Visit Admin: http://localhost:3000/admin\n",
         String::from('●').green()
     );
-    // let see_you_again = "See you again soon!";
 
     let multiline_text = format!(
-        "{}{}{}{}{}{}{}",
+        "{}{}{}{}{}{}{}{}",
         go_to,
         npm_install,
         git_init,
-        npm_query_settings,
         npm_query_dev,
+        npm_query_settings,
+        npm_query_create,
         visit_home,
         visit_admin,
     );
