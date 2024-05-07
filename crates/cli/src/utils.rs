@@ -4,7 +4,8 @@ use std::{
     io::{BufReader, Read},
     net::TcpStream,
     path::Path,
-    process::{exit, Command, Output}, time::Duration,
+    process::{exit, Command, Output},
+    time::Duration,
 };
 
 use anyhow::{anyhow, Result};
@@ -322,7 +323,10 @@ pub fn stop_query_server() {
 
 pub fn block_until_server_is_ready() {
     let query_server_port: String = env::var("QUERY_SERVER_PORT").unwrap_or("3000".to_owned());
-    while TcpStream::connect(format!("0.0.0.0:{}", query_server_port)).is_err() {
+    for _ in 0..100 {
+        if TcpStream::connect(format!("0.0.0.0:{}", query_server_port)).is_ok() {
+            return;
+        }
         std::thread::sleep(Duration::from_millis(100));
     }
 }
