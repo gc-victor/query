@@ -1,19 +1,21 @@
-use std::{
-    fs::{self, File},
-    io::Write,
-    path::Path,
-    process::exit, thread,
-};
+use std::{env, fs::File, io::Write, path::Path, process::exit, thread};
 
 use anyhow::Result;
-use inquire::{Confirm, Text};
+use cliclack::outro;
+use cliclack::{input, intro, password};
+use colored::Colorize;
 use reqwest::Method;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::error;
 
 use crate::{
-    config::CLI, prompts::{password_prompt, text_prompt, PROMPT_EMAIL_MESSAGE}, run_server::run_query_server, utils::{check_port_usage, http_client, read_file_content, stop_query_server}
+    config::CLI,
+    run_server::run_query_server,
+    utils::{
+        block_until_server_is_ready, check_port_usage, http_client, read_file_content,
+        stop_query_server,
+    },
 };
 
 #[derive(Deserialize, Serialize)]
@@ -26,58 +28,39 @@ struct ServerOptions {
     url: String,
 }
 
-pub async fn command_settings() {
-    match check_port_usage() {
-        Ok(_) => (),
-        Err(e) => {
-            eprintln!("{}", e);
-            exit(1);
-        }
-    }
-
-    let server = thread::spawn(move || {
-        run_query_server(false, true);
-    });
-
-    let _ = server.join();
+pub async fn command_settings() -> Result<()> {
+    intro("Query - Set Server Settings".to_string().cyan().reversed())?;
 
     server_url_prompt().unwrap_or_else(|err| {
         error!("{}", err);
         exit(1);
     });
-    
+
     get_user_token_value().await.unwrap_or_else(|err| {
         error!("{}", err);
         exit(1);
     });
 
-    stop_query_server();
+    outro("Server Settings Configured".to_string().green().reversed())?;
 
-    save_history_prompt().unwrap_or_else(|err| {
-        error!("{}", err);
-        exit(1);
-    });
+    Ok(())
 }
 
 fn server_url_prompt() -> Result<()> {
     let config_file = &CLI::default().config_file_path;
 
-    let url = Text::new("What is the server URL?")
-        .with_default("http://localhost:3000")
-        .prompt();
-    let url = match url {
-        Ok(s) => {
-            if s.is_empty() {
-                return Ok(());
+    let default_url = "http://localhost:3000";
+    let url: String = input("Server URL:")
+        .placeholder(default_url)
+        .default_input(default_url)
+        .validate(|input: &String| {
+            if input.is_empty() {
+                Err("Please enter a URL.")
+            } else {
+                Ok(())
             }
-
-            s
-        }
-        Err(_) => {
-            eprintln!("An error happened when asking for the URL, try again.");
-            exit(1)
-        }
-    };
+        })
+        .interact()?;
 
     let content = if Path::new(config_file).exists() {
         let bytes = read_file_content(config_file)?;
@@ -110,14 +93,29 @@ fn server_url_prompt() -> Result<()> {
 }
 
 async fn get_user_token_value() -> Result<()> {
-    eprintln!("You need to log in to get the token.");
+    let default_email = &env::var("QUERY_SERVER_ADMIN_EMAIL")?;
+    let email: String = input("Email:")
+        .placeholder(default_email)
+        .default_input(default_email)
+        .validate(|input: &String| {
+            if input.is_empty() {
+                Err("Please enter an email.")
+            } else {
+                Ok(())
+            }
+        })
+        .interact()?;
 
-    let email = text_prompt(PROMPT_EMAIL_MESSAGE)?;
-    let password = password_prompt()?;
-
-    if email.is_empty() || password.is_empty() {
-        return Ok(());
-    }
+    let password = password("Password:")
+        .mask('▪')
+        .validate(|input: &String| {
+            if input.is_empty() {
+                Err("Please enter a password.")
+            } else {
+                Ok(())
+            }
+        })
+        .interact()?;
 
     let body = json!({
         "email": email,
@@ -125,36 +123,44 @@ async fn get_user_token_value() -> Result<()> {
     })
     .to_string();
 
+    match check_port_usage() {
+        Ok(_) => (),
+        Err(e) => {
+            outro(e.to_string().yellow().reversed())?;
+            exit(1);
+        }
+    }
+
+    let server = thread::spawn(move || {
+        run_query_server(false, true);
+    });
+
+    block_until_server_is_ready();
+
     match http_client("user/token/value", Some(&body), Method::POST).await {
         Ok(v) => {
             if v["data"][0].is_null() {
-                eprintln!("Error: no data returned. This user doesn't have a token assigned.");
+                stop_query_server();
+                outro("There is an error retrieving the token. Please, review user and password.".to_string().red().reversed())?;
+                exit(1);
             } else {
                 let token = v["data"][0]["token"].as_str().unwrap();
 
                 let config_file = CLI::default().token_file_path;
                 let mut file = File::create(config_file)?;
                 file.write_all(format!("[default] {token}").as_bytes())?;
-
-                eprintln!("Token has been saved as a default token.");
             }
         }
-        Err(err) => error!("{}", err),
+        Err(e) => {
+            stop_query_server();
+                outro(e.to_string().red().reversed())?;
+                exit(1);
+        }
     };
 
-    Ok(())
-}
+    let _ = server.join();
 
-pub fn save_history_prompt() -> Result<()> {
-    let save_history = Confirm::new("Do you want to save the history of your shell?")
-        .with_default(true)
-        .prompt()?;
-
-    if save_history {
-        File::create(CLI::default().history_file_path)?;
-    } else {
-        fs::remove_file(CLI::default().history_file_path).ok();
-    }
+    stop_query_server();
 
     Ok(())
 }

@@ -2,8 +2,8 @@ pub mod cache;
 pub mod commands;
 pub mod config;
 pub mod prompts;
-pub mod utils;
 pub mod run_server;
+pub mod utils;
 
 use std::env;
 
@@ -54,7 +54,7 @@ async fn main() {
         Commands::Function(command) => command_function(command).await.unwrap(),
         Commands::Generate(command) => command_generate(command).await.unwrap(),
         Commands::Migration(command) => command_migration(command).await,
-        Commands::Settings => command_settings().await,
+        Commands::Settings => command_settings().await.unwrap(),
         Commands::Purge => command_purge().await,
         Commands::Shell(command) => command_shell(command).await.unwrap(),
         Commands::Task(command) => command_task(command).unwrap(),
