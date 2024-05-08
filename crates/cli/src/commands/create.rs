@@ -280,7 +280,7 @@ pub async fn command_create() -> Result<()> {
     };
     let npm_query_dev = format!("{} Run `{npx} query dev`. {}\n", String::from('●').green(), "It runs a local server in dev mode".to_string().cyan());
     let npm_query_create = if !has_executed_create {
-        format!("{} Run in a new terminal `{npx} query create`. {}\n", String::from('●').green(), "It requires a local server running".to_string().yellow().reversed())
+        format!("{} Run in a new terminal `{npx} query task create -y`. {}\n", String::from('●').green(), "It requires a local server running".to_string().yellow().reversed())
     } else {
         "".to_string()
     };
