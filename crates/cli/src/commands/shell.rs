@@ -1,12 +1,16 @@
+use std::{fs::File, path::Path};
+
 use reqwest::Method;
 use rustyline::{error::ReadlineError, DefaultEditor};
 use serde_json::json;
 
-use crate::{config::CONFIG, utils::http_client, utils::json_to_table, utils::line_break};
+use crate::{config::{CLI, CONFIG}, utils::{http_client, json_to_table, line_break}};
 
 use super::commands::ShellArgs;
 
 pub async fn command_shell(command: &ShellArgs) -> anyhow::Result<()> {
+    create_history_file();
+
     let mut rl = DefaultEditor::new()?;
     let load_history = rl.load_history(CONFIG.cli.history_file_path.as_str());
 
@@ -104,4 +108,13 @@ pub async fn command_shell(command: &ShellArgs) -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn create_history_file() {
+    let history_file_path = CLI::default().history_file_path;
+    let history_file_path = Path::new(&history_file_path);
+
+    if !history_file_path.exists() {
+        File::create(history_file_path).unwrap();
+    }
 }

@@ -379,7 +379,7 @@ It will ask you the following questions:
 
 ##### URL
 
-- What is the server URL?
+- Server URL:
 
 You can use a local one for development, or if you want to use Fly for your development deploys or access your remote databases, you can run the following command to get your Fly URL:
 
@@ -397,19 +397,13 @@ Where `query-server.fly.dev` is the Hostname.
 
 You need to log in to get the token to connect to your Query Server. The token will be saved in the `.query/.token` file.
 
-- What is her email?
+- Email:
 
 You have to use the same email you used to create the admin user.
 
-- What is her password?
+- Password:
 
 You have to use the same password you used to create the admin user.
-
-##### History
-
-- Do you want to save the history of your shell? (Y/n)
-
-If you choose `Y` the history will be saved in the `.query/.history` file.
 
 #### Shell
 
