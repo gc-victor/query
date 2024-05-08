@@ -10,6 +10,7 @@ Query is a Rust server for your remote SQLite databases with a CLI and API to ma
   - [Query Server App](#query-server-app)
   - [Fly configuration](#fly-configuration)
 - [CLI](#cli)
+  - [Create](#create)
   - [Install](#install)
     - [Use The NPM Package](#use-the-npm-package)
     - [Use The Installer Scripts](#use-the-installer-scripts)
@@ -287,6 +288,22 @@ fly platform regions
 ```
 
 ## CLI
+
+### Create
+
+Query CLI offers an API that enables users to create a new local project based on predefined templates.
+
+Usage:
+
+```sh
+pnpm dlx @qery/query@latest create
+```
+
+Or
+
+```sh
+npx @qery/query@latest create
+```
 
 ### Install
 
