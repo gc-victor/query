@@ -43,8 +43,10 @@ pub async fn command_dev(command: &DevArgs) -> Result<()> {
 
     let watcher = tokio::spawn(async move {
         block_until_server_is_ready();
-        // Push the tasks before starting the watcher
-        push_tasks();
+
+        eprintln!("{}", "Running initial tasks...".to_string().yellow());
+        run_tasks();
+        eprintln!("{}", "Watching for changes...".to_string().normal());
 
         let mut last_event_time = tokio::time::Instant::now();
 
@@ -61,7 +63,7 @@ pub async fn command_dev(command: &DevArgs) -> Result<()> {
                     if has_close_write && tokio::time::Instant::now() - last_event_time > delay {
                         last_event_time = tokio::time::Instant::now();
 
-                        push_tasks();
+                        run_tasks();
                     }
 
                     tokio::time::sleep(delay).await;
@@ -137,7 +139,7 @@ fn check_config_file_exist() {
     }
 }
 
-fn push_tasks() {
+fn run_tasks() {
     query_command(vec!["task", "dev", "-y"]);
     query_command(vec!["asset", "dist"]);
     query_command(vec!["asset", "public"]);
