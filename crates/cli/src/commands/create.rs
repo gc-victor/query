@@ -133,6 +133,7 @@ pub async fn command_create() -> Result<()> {
 
     let pm = detect_package_manager();
     let npm = pm.npm;
+    let npx = pm.npx;
 
     if install_dependencies {
         let install_spinner = spinner();
@@ -273,13 +274,13 @@ pub async fn command_create() -> Result<()> {
         "".to_string()
     };
     let npm_query_settings = if !has_user_token {
-        format!("{} Run `{npm} query settings`\n", String::from('●').green())
+        format!("{} Run `{npx} query settings`\n", String::from('●').green())
     } else {
         "".to_string()
     };
-    let npm_query_dev = format!("{} Run `{npm} query dev`. {}\n", String::from('●').green(), "It runs a local server in dev mode".to_string().cyan());
+    let npm_query_dev = format!("{} Run `{npx} query dev`. {}\n", String::from('●').green(), "It runs a local server in dev mode".to_string().cyan());
     let npm_query_create = if !has_executed_create {
-        format!("{} Run in a new terminal `{npm} query create`. {}\n", String::from('●').green(), "It requires a local server running".to_string().yellow().reversed())
+        format!("{} Run in a new terminal `{npx} query create`. {}\n", String::from('●').green(), "It requires a local server running".to_string().yellow().reversed())
     } else {
         "".to_string()
     };
