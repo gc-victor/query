@@ -220,7 +220,7 @@ impl LogFormat for LogAdd {
             .replace(" - EVENT", "")
             .replace("QuickJS", "Query JS Runtime");
 
-        if message.starts_with("[FUNCTION] query_server::") {
+        if message.contains("query_server::") {
             return String::new();
         }
 
@@ -359,6 +359,11 @@ impl LogFormat for LogRecord {
             .trim_end()
             .replace(" query_server::controllers::functions::function", "")
             .replace("QuickJS", "Query JS Runtime");
+
+        if message.contains("query_server::") {
+            return String::new();
+        }
+
         let message = if level == "ERROR" {
             message.red()
         } else if level == "WARN" {
