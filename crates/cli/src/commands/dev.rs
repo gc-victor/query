@@ -24,13 +24,11 @@ use super::commands::DevArgs;
 pub async fn command_dev(command: &DevArgs) -> Result<()> {
     check_config_file_exist();
 
-    if command.no_port_check {
-        match check_port_usage() {
-            Ok(_) => (),
-            Err(e) => {
-                eprintln!("{}", e);
-                exit(1);
-            }
+    match check_port_usage() {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("{}", e);
+            exit(1);
         }
     }
 
