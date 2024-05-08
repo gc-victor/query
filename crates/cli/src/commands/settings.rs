@@ -7,6 +7,7 @@ use colored::Colorize;
 use reqwest::Method;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::json;
+use toml_edit::{value, DocumentMut};
 use tracing::error;
 
 use crate::{
@@ -65,11 +66,11 @@ fn server_url_prompt() -> Result<()> {
     let content = if Path::new(config_file).exists() {
         let bytes = read_file_content(config_file)?;
         let content = String::from_utf8(bytes)?;
-        let mut config: Config = toml::from_str(&content)?;
+        let mut doc = content.parse::<DocumentMut>()?;
 
-        config.server.url = url;
+        doc["server"]["url"] = value(url);
 
-        toml::to_string(&config)?
+        doc.to_string()
     } else {
         let s = format!(
             r#"
@@ -141,7 +142,12 @@ async fn get_user_token_value() -> Result<()> {
         Ok(v) => {
             if v["data"][0].is_null() {
                 stop_query_server();
-                outro("There is an error retrieving the token. Please, review user and password.".to_string().red().reversed())?;
+                outro(
+                    "There is an error retrieving the token. Please, review user and password."
+                        .to_string()
+                        .red()
+                        .reversed(),
+                )?;
                 exit(1);
             } else {
                 let token = v["data"][0]["token"].as_str().unwrap();
@@ -153,8 +159,8 @@ async fn get_user_token_value() -> Result<()> {
         }
         Err(e) => {
             stop_query_server();
-                outro(e.to_string().red().reversed())?;
-                exit(1);
+            outro(e.to_string().red().reversed())?;
+            exit(1);
         }
     };
 
