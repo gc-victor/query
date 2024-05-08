@@ -268,23 +268,23 @@ pub async fn command_create() -> Result<()> {
         "".to_string()
     };
     let npm_install = if !install_dependencies {
-        format!("● Run `{npm} install`\n")
+        format!("{} Run `{npm} install`\n", String::from('●').green())
     } else {
         "".to_string()
     };
-    let git_init = if !install_git_repo {
-        "● Run `git init && git add -A && git commit -m \"Initial commit\"` (optional)\n"
-    } else {
-        ""
-    };
-    let npm_query_dev = format!("{} Run `{npm} query dev`\n", String::from('●').green());
     let npm_query_settings = if !has_user_token {
         format!("{} Run `{npm} query settings`\n", String::from('●').green())
     } else {
         "".to_string()
     };
+    let npm_query_dev = format!("{} Run `{npm} query dev`. {}\n", String::from('●').green(), "It runs a local server in dev mode".to_string().cyan());
     let npm_query_create = if !has_executed_create {
-        format!("{} Run `{npm} query create`\n", String::from('●').green())
+        format!("{} Run in a new terminal `{npm} query create`. {}\n", String::from('●').green(), "It requires a local server running".to_string().yellow().reversed())
+    } else {
+        "".to_string()
+    };
+    let git_init = if !install_git_repo {
+        format!("{} Run `git init && git add -A && git commit -m \"Initial commit\"` {}\n", String::from('●').green(), "(optional)".to_string().yellow())
     } else {
         "".to_string()
     };
@@ -301,10 +301,10 @@ pub async fn command_create() -> Result<()> {
         "{}{}{}{}{}{}{}{}",
         go_to,
         npm_install,
-        git_init,
-        npm_query_dev,
         npm_query_settings,
+        npm_query_dev,
         npm_query_create,
+        git_init,
         visit_home,
         visit_admin,
     );
