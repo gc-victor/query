@@ -6,6 +6,7 @@ use std::{
 };
 
 use colored::Colorize;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::ser::PrettyFormatter;
 use serde_json::Serializer;
@@ -220,9 +221,8 @@ impl LogFormat for LogAdd {
             .replace(" - EVENT", "")
             .replace("QuickJS", "Query JS Runtime");
 
-        if message.contains("query_server::") {
-            return String::new();
-        }
+        let re = Regex::new(r"\s*query_server::[:\w]+\s*").unwrap();
+        let message = re.replace(&message, "");
 
         if self.console.is_some() && self.console.unwrap() {
             let dot = String::from('●');
@@ -256,19 +256,24 @@ impl LogFormat for LogAdd {
 
         if self.level == 50 {
             let code = match self.code.as_ref() {
-                Some(code) => code.to_string(),
+                Some(code) => format!(" {}", code),
                 None => String::new(),
             };
             let path = match self.extras.get("path") {
-                Some(path) => path.to_string(),
+                Some(path) => format!(" {}", path),
+                None => String::new(),
+            };
+            let error = match self.extras.get("error") {
+                Some(error) => format!(" {}", error),
                 None => String::new(),
             };
             return format!(
-                "{} {} {} {}",
+                "{} {}{}{}{}",
                 String::from('●').red(),
                 message.red(),
                 code.red(),
-                path.red()
+                path.red(),
+                error.red()
             );
         }
 
@@ -357,12 +362,10 @@ impl LogFormat for LogRecord {
         let message = self
             .message
             .trim_end()
-            .replace(" query_server::controllers::functions::function", "")
             .replace("QuickJS", "Query JS Runtime");
 
-        if message.contains("query_server::") {
-            return String::new();
-        }
+        let re = Regex::new(r"\s*query_server::[:\w]+\s*").unwrap();
+        let message = re.replace(&message, "");
 
         let message = if level == "ERROR" {
             message.red()
