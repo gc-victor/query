@@ -156,7 +156,7 @@ pub async fn command_create() -> Result<()> {
     let mut has_user_token = false;
     let mut has_executed_create = false;
 
-    if !is_port_used {
+    if !is_port_used && install_dependencies {
         let admin_spinner = spinner();
 
         admin_spinner.start("Adding admin user...");
