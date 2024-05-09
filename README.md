@@ -500,20 +500,6 @@ Usage:
 query user list
 ```
 
-##### Update User Password
-
-It will update your user password.
-
-Usage:
-
-```sh
-query user password
-```
-
-It will ask you for the following information:
-
-- What is your new password?
-
 ##### Update User
 
 It will update a user.
@@ -1468,34 +1454,6 @@ Example:
   "new_password": "example",
   "admin": false,
   "active": true
-}
-```
-
-#### PUT Password
-
-The `user/password` endpoint allows to update the password of a user. The user is inferred from the token.
-
-```http
-PUT /_/user/password
-```
-
-##### Headers
-
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| `Authorization` | `string` | The bearer token to connect to the server. | true |
-
-##### Body
-
-| Name | Type | Description | Required |
-| :--- | :--- | :--- | :--- |
-| `password` | `string` | The password of the user. | true |
-
-Example:
-
-```json
-{
-  "password": "example"
 }
 ```
 
