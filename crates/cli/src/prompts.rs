@@ -8,7 +8,6 @@ use tracing::error;
 
 pub const PROMPT_ADMIN_MESSAGE: &str = "Is she an admin user?";
 pub const PROMPT_ACTIVE_USER_MESSAGE: &str = "Is she an active user?";
-pub const PROMPT_ACTIVE_TOKEN_MESSAGE: &str = "Is it an active token?";
 pub const PROMPT_BRANCH_DB_NAME_MESSAGE: &str =
     "Which database would you like to use for creating a branch?";
 pub const PROMPT_BRANCH_DB_NAME_DELETE_MESSAGE: &str =
@@ -17,7 +16,6 @@ pub const PROMPT_BRANCH_NAME_MESSAGE: &str = "What is the branch name?";
 pub const PROMPT_EXPIRATION_DATE_MESSAGE: &str = "What is the expiration date in milliseconds?";
 pub const PROMPT_EMAIL_MESSAGE: &str = "What is her email?";
 pub const PROMPT_NEW_EMAIL_MESSAGE: &str = "What is her new email?";
-pub const PROMPT_TOKEN_NAME_MESSAGE: &str = "What is the token name?";
 pub const PROMPT_WRITE_MESSAGE: &str = "Should have write permissions?";
 
 pub fn password_prompt() -> Result<String, InquireError> {
