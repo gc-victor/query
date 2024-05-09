@@ -157,8 +157,6 @@ pub enum UserCommands {
     Delete,
     /// List all the users
     List,
-    /// Update user password
-    Password,
     /// Update user
     Update,
 }

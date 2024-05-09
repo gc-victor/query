@@ -44,11 +44,6 @@ struct UpdateUserOptions {
     active: Option<bool>,
 }
 
-#[derive(Deserialize)]
-struct UpdateUserPasswordOptions {
-    password: String,
-}
-
 #[instrument(err(Debug), skip(req))]
 pub async fn user(
     req: &mut Request<Incoming>,
@@ -119,30 +114,6 @@ pub async fn user(
             }?;
 
             match update_user(options) {
-                Ok(_) => match ok("".to_string()) {
-                    Ok(r) => Ok(r),
-                    Err(e) => Err(internal_server_error(e.to_string())),
-                },
-                Err(e) => Err(internal_server_error(e.to_string())),
-            }
-        }
-        (&Method::PUT, ["user", "password"]) => {
-            // IMPORTANT! don't remove this validation
-            validate_user_creation()?;
-
-            let token = get_token(req.headers().to_owned())?;
-
-            // IMPORTANT! don't remove this validation
-            validate_token(&token)?;
-
-            let body = Body::to_string(req.body_mut()).await?;
-
-            let options: UpdateUserPasswordOptions = match serde_json::from_str(&body) {
-                Ok(v) => Ok(v),
-                Err(e) => Err(bad_request(e.to_string())),
-            }?;
-
-            match update_password_user(&token, options) {
                 Ok(_) => match ok("".to_string()) {
                     Ok(r) => Ok(r),
                     Err(e) => Err(internal_server_error(e.to_string())),
@@ -249,49 +220,6 @@ fn update_user(options: UpdateUserOptions) -> Result<()> {
     )?;
 
     Ok(())
-}
-
-fn update_password_user(token: &str, options: UpdateUserPasswordOptions) -> Result<()> {
-    let conn = connect_config_db()?;
-
-    let email = get_user_email(token)?;
-
-    conn.execute(
-        r#"
-        UPDATE
-            _config_user
-        SET
-            password = :password
-        WHERE
-            email = :email
-        "#,
-        named_params! {
-            ":email": email,
-            ":password": hash_password(&options.password)
-        },
-    )?;
-
-    Ok(())
-}
-
-fn get_user_email(token: &str) -> Result<String> {
-    let conn = connect_config_db()?;
-
-    match conn.query_row(
-        "
-        SELECT
-            email
-        FROM
-            _config_user
-        WHERE
-            uuid = (SELECT user_uuid FROM _config_user_token WHERE token = ?)
-        ",
-        [token],
-        |row| -> std::result::Result<String, rusqlite::Error> { row.get(0) },
-    ) {
-        Ok(v) => Ok(v),
-        Err(e) => Err(anyhow!(e)),
-    }
 }
 
 fn validate_request(req: &Request<Incoming>) -> Result<(), HttpError> {
