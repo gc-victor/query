@@ -1,26 +1,31 @@
 use anyhow::Result;
+use cliclack::{confirm, input, intro, outro};
+use colored::Colorize;
 use reqwest::Method;
 use serde_json::json;
-use tracing::{error, info};
 
-use crate::{
-    prompts::{
-        confirm_optional_prompt, confirm_prompt, integer_optional_prompt, text_prompt,
-        PROMPT_ACTIVE_TOKEN_MESSAGE, PROMPT_EXPIRATION_DATE_MESSAGE, PROMPT_TOKEN_NAME_MESSAGE,
-        PROMPT_WRITE_MESSAGE,
-    },
-    utils::{http_client, json_to_table, line_break},
-};
+use crate::{prompts::expiration_date, utils::{http_client, json_to_table}};
 
 use super::commands::{TokenArgs, TokenCommands};
 
 pub async fn command_token(command: &TokenArgs) -> Result<()> {
     match &command.command {
         TokenCommands::Create => {
-            let name = text_prompt(PROMPT_TOKEN_NAME_MESSAGE)?;
-            let write = confirm_prompt(PROMPT_WRITE_MESSAGE)?;
-            let active = confirm_prompt(PROMPT_ACTIVE_TOKEN_MESSAGE)?;
-            let expiration_date = integer_optional_prompt(PROMPT_EXPIRATION_DATE_MESSAGE)?;
+            intro("Create a Token".to_string().cyan().reversed())?;
+
+            let name: String = input("What is the token name?")
+                .placeholder("Give a name to the token")
+                .interact()?;
+
+            let write = confirm("Should the token be granted with write permissions?")
+                .initial_value(true)
+                .interact()?;
+
+            let active = confirm("Is it an active token?")
+                .initial_value(true)
+                .interact()?;
+
+            let expiration_date = expiration_date()?;
 
             let body = json!({
                 "name": name,
@@ -32,17 +37,28 @@ pub async fn command_token(command: &TokenArgs) -> Result<()> {
 
             match http_client("token", Some(&body), Method::POST).await {
                 Ok(_) => {
-                    line_break();
-                    info!("Successfully token created!!!!");
-                    line_break();
+                    outro("Token created".to_string().green().reversed())?;
                 }
-                Err(err) => error!("{}", err),
+                Err(err) => {
+                    outro(err.to_string().red().reversed())?;
+                }
             };
 
             Ok(())
         }
         TokenCommands::Delete => {
-            let name = text_prompt(PROMPT_TOKEN_NAME_MESSAGE)?;
+            intro("Delete a Token".to_string().cyan().reversed())?;
+
+            let name: String = input("What is the token name?")
+                .placeholder("Give a name to the token")
+                .validate(|input: &String| {
+                    if input.is_empty() {
+                        Err("Please enter a token name.")
+                    } else {
+                        Ok(())
+                    }
+                })
+                .interact()?;
 
             let body = json!({
                 "name": name
@@ -51,11 +67,11 @@ pub async fn command_token(command: &TokenArgs) -> Result<()> {
 
             match http_client("token", Some(&body), Method::DELETE).await {
                 Ok(_) => {
-                    line_break();
-                    info!("Successfully token deleted!!!!");
-                    line_break();
+                    outro("Token deleted".to_string().green().reversed())?;
                 }
-                Err(err) => error!("{}", err),
+                Err(err) => {
+                    outro(err.to_string().red().reversed())?;
+                }
             };
 
             Ok(())
@@ -63,26 +79,47 @@ pub async fn command_token(command: &TokenArgs) -> Result<()> {
         TokenCommands::List => {
             match http_client("token", None, Method::GET).await {
                 Ok(v) => {
-                    if v["data"][0].is_null() {
-                        line_break();
-                        info!("No data returned.");
-                        line_break();
+                    let is_empty = match v["data"].as_array() {
+                        Some(v) => v.is_empty(),
+                        None => true,
+                    };
+
+                    if is_empty {
+                        eprintln!("{}", "No data returned".to_string().red().reversed());
                     } else {
-                        line_break();
                         eprintln!("{}", json_to_table(&v["data"])?);
-                        line_break();
                     }
                 }
-                Err(err) => error!("{}", err),
+                Err(err) => {
+                    eprintln!("{}", err.to_string().red().reversed());
+                }
             };
 
             Ok(())
         }
         TokenCommands::Update => {
-            let name = text_prompt(PROMPT_TOKEN_NAME_MESSAGE)?;
-            let expiration_date = integer_optional_prompt(PROMPT_EXPIRATION_DATE_MESSAGE)?;
-            let write = confirm_optional_prompt(PROMPT_WRITE_MESSAGE)?;
-            let active = confirm_optional_prompt(PROMPT_ACTIVE_TOKEN_MESSAGE)?;
+            intro("Update a Token".to_string().cyan().reversed())?;
+
+            let name: String = input("What is the token name?")
+                .placeholder("Give a name to the token")
+                .validate(|input: &String| {
+                    if input.is_empty() {
+                        Err("Please enter a token name.")
+                    } else {
+                        Ok(())
+                    }
+                })
+                .interact()?;
+
+            let write = confirm("Should have write permissions?")
+                .initial_value(true)
+                .interact()?;
+
+            let active = confirm("Is it an active token?")
+                .initial_value(true)
+                .interact()?;
+
+            let expiration_date = expiration_date()?;
 
             let body = json!({
                 "name": name,
@@ -92,41 +129,55 @@ pub async fn command_token(command: &TokenArgs) -> Result<()> {
             })
             .to_string();
 
-            match http_client("token", Some(&body), Method::POST).await {
+            match http_client("token", Some(&body), Method::PUT).await {
                 Ok(_) => {
-                    line_break();
-                    info!("Successfully token created!!!!");
-                    line_break();
+                    outro("Token updated".to_string().green().reversed())?;
                 }
-                Err(err) => error!("{}", err),
+                Err(err) => {
+                    outro(err.to_string().red().reversed())?;
+                }
             };
 
             Ok(())
         }
         TokenCommands::Value => {
-            let name = text_prompt(PROMPT_TOKEN_NAME_MESSAGE)?;
+            intro("Get Token".to_string().cyan().reversed())?;
 
-            let body = json!({
-                "name": name,
-            })
-            .to_string();
+            let name: String = input("What is the token name?")
+                .placeholder("Give a name to the token")
+                .validate(|input: &String| {
+                    if input.is_empty() {
+                        Err("Please enter a token name.")
+                    } else {
+                        Ok(())
+                    }
+                })
+                .interact()?;
 
-            match http_client("token/value", Some(&body), Method::POST).await {
+            let path = format!("{}{}", "token/value", "?name=".to_string() + &name);
+
+            match http_client(&path, None, Method::GET).await {
                 Ok(v) => {
                     if v["data"][0].is_null() {
-                        line_break();
-                        info!("No data returned.");
-                        line_break();
+                        outro("No data returned".to_string().red().reversed())?;
                     } else {
-                        line_break();
-                        eprintln!("{}", json_to_table(&v["data"])?);
-                        line_break();
+                        let toke = match v["data"][0]["token"] {
+                            serde_json::Value::String(ref toke) => toke.to_string(),
+                            _ => {
+                                outro("No data returned".to_string().red().reversed())?;
+                                return Ok(());
+                            }
+                        };
+                        outro(format!(r#"token: "{}""#, toke).green().reversed())?;
                     }
                 }
-                Err(err) => error!("{}", err),
+                Err(err) => {
+                    outro(err.to_string().red().reversed())?;
+                }
             };
 
             Ok(())
         }
     }
 }
+
