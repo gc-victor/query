@@ -1,14 +1,12 @@
 use anyhow::Result;
+use cliclack::{confirm, input, intro, outro, password};
+use colored::Colorize;
 use reqwest::Method;
 use serde_json::json;
-use tracing::{error, info};
 
 use crate::{
-    prompts::{
-        confirm_optional_prompt, confirm_prompt, integer_optional_prompt, password_prompt,
-        text_prompt, PROMPT_EMAIL_MESSAGE, PROMPT_EXPIRATION_DATE_MESSAGE, PROMPT_WRITE_MESSAGE,
-    },
-    utils::{http_client, json_to_table, line_break},
+    prompts::expiration_date,
+    utils::{http_client, json_to_table},
 };
 
 use super::commands::{UserTokenArgs, UserTokenCommands};
@@ -16,9 +14,15 @@ use super::commands::{UserTokenArgs, UserTokenCommands};
 pub async fn command_user_token(command: &UserTokenArgs) -> Result<()> {
     match &command.command {
         UserTokenCommands::Create => {
-            let email = text_prompt(PROMPT_EMAIL_MESSAGE)?;
-            let write = confirm_prompt(PROMPT_WRITE_MESSAGE)?;
-            let expiration_date = integer_optional_prompt(PROMPT_EXPIRATION_DATE_MESSAGE)?;
+            intro("Create a User Token".to_string().cyan().reversed())?;
+
+            let email: String = input("What is the user email?")
+                .placeholder("Use the user email to create a token")
+                .interact()?;
+            let write = confirm("Should the token be granted with write permissions?")
+                .initial_value(true)
+                .interact()?;
+            let expiration_date = expiration_date()?;
 
             let body = json!({
                 "email": email,
@@ -29,27 +33,31 @@ pub async fn command_user_token(command: &UserTokenArgs) -> Result<()> {
 
             match http_client("user/token", Some(&body), Method::POST).await {
                 Ok(_) => {
-                    line_break();
-                    info!("Successfully user token created!!!!");
-                    line_break();
+                    outro("Token created".to_string().green().reversed())?;
                 }
-                Err(err) => error!("{}", err),
+                Err(err) => {
+                    outro(err.to_string().red().reversed())?;
+                }
             };
 
             Ok(())
         }
         UserTokenCommands::Delete => {
-            let email = text_prompt(PROMPT_EMAIL_MESSAGE)?;
+            intro("Delete a Token".to_string().cyan().reversed())?;
+
+            let email: String = input("What is the user email?")
+                .placeholder("Use the user email to delete a token")
+                .interact()?;
 
             let body = json!({"email": email }).to_string();
 
             match http_client("user/token", Some(&body), Method::DELETE).await {
                 Ok(_) => {
-                    line_break();
-                    info!("Successfully user token deleted!!!!");
-                    line_break();
+                    outro("Token deleted".to_string().green().reversed())?;
                 }
-                Err(err) => error!("{}", err),
+                Err(err) => {
+                    outro(err.to_string().red().reversed())?;
+                }
             };
 
             Ok(())
@@ -57,25 +65,34 @@ pub async fn command_user_token(command: &UserTokenArgs) -> Result<()> {
         UserTokenCommands::List => {
             match http_client("user/token", None, Method::GET).await {
                 Ok(v) => {
-                    if v["data"][0].is_null() {
-                        line_break();
-                        info!("No data returned.");
-                        line_break();
+                    let is_empty = match v["data"].as_array() {
+                        Some(v) => v.is_empty(),
+                        None => true,
+                    };
+
+                    if is_empty {
+                        eprintln!("{}", "No data returned".to_string().red().reversed());
                     } else {
-                        line_break();
                         eprintln!("{}", json_to_table(&v["data"])?);
-                        line_break();
                     }
                 }
-                Err(err) => error!("{}", err),
+                Err(err) => {
+                    eprintln!("{}", err.to_string().red().reversed());
+                }
             };
 
             Ok(())
         }
         UserTokenCommands::Update => {
-            let email = text_prompt(PROMPT_EMAIL_MESSAGE)?;
-            let write = confirm_optional_prompt(PROMPT_WRITE_MESSAGE)?;
-            let expiration_date = integer_optional_prompt(PROMPT_EXPIRATION_DATE_MESSAGE)?;
+            intro("Update a User Token".to_string().cyan().reversed())?;
+
+            let email: String = input("What is the user email?")
+                .placeholder("Use the user email to create a token")
+                .interact()?;
+            let write = confirm("Should the token be granted with write permissions?")
+                .initial_value(true)
+                .interact()?;
+            let expiration_date = expiration_date()?;
 
             let body = json!({
                 "email": email,
@@ -86,18 +103,29 @@ pub async fn command_user_token(command: &UserTokenArgs) -> Result<()> {
 
             match http_client("user/token", Some(&body), Method::PUT).await {
                 Ok(_) => {
-                    line_break();
-                    info!("Successfully user token created!!!!");
-                    line_break();
+                    outro("Token updated".to_string().green().reversed())?;
                 }
-                Err(err) => error!("{}", err),
+                Err(err) => {
+                    outro(err.to_string().red().reversed())?;
+                }
             };
 
             Ok(())
         }
         UserTokenCommands::Value => {
-            let email = text_prompt(PROMPT_EMAIL_MESSAGE)?;
-            let password = password_prompt()?;
+            let email: String = input("What is the user email?")
+                .placeholder("Use the user email to get the token")
+                .interact()?;
+            let password = password("What is the user password?")
+                .mask('▪')
+                .validate(|input: &String| {
+                    if input.is_empty() {
+                        Err("Please enter a password.")
+                    } else {
+                        Ok(())
+                    }
+                })
+                .interact()?;
 
             let body = json!({
                 "email": email,
@@ -108,16 +136,21 @@ pub async fn command_user_token(command: &UserTokenArgs) -> Result<()> {
             match http_client("user/token/value", Some(&body), Method::POST).await {
                 Ok(v) => {
                     if v["data"][0].is_null() {
-                        line_break();
-                        info!("No data returned.");
-                        line_break();
+                        outro("No data returned".to_string().red().reversed())?;
                     } else {
-                        line_break();
-                        eprintln!("{}", json_to_table(&v["data"])?);
-                        line_break();
+                        let toke = match v["data"][0]["token"] {
+                            serde_json::Value::String(ref toke) => toke.to_string(),
+                            _ => {
+                                outro("No data returned".to_string().red().reversed())?;
+                                return Ok(());
+                            }
+                        };
+                        outro(format!(r#"token: "{}""#, toke).green().reversed())?;
                     }
                 }
-                Err(err) => error!("{}", err),
+                Err(err) => {
+                    outro(err.to_string().red().reversed())?;
+                }
             };
 
             Ok(())
