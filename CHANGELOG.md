@@ -2,6 +2,104 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.4] - 2024-05-09
+
+### 🚀 Features
+
+- *(cli)* Update token
+- *(cli)* Update user-token
+- *(cli)* Update user
+- *(cli)* Update branch
+
+### Build
+
+- Update cargo dist 0.14.0 to 0.14.1
+
+### Release
+
+- Version 0.12.4
+
+## [0.12.3] - 2024-05-08
+
+### 🚀 Features
+
+- *(cli)* Announce running initial tasks
+
+### 🐛 Bug Fixes
+
+- *(cli)* Typo query task create
+- *(cli)* Add toml_edit
+- *(cli)* Dev server error logs
+
+### Release
+
+- Version 0.12.3
+
+## [0.12.2] - 2024-05-08
+
+### 🚀 Features
+
+- *(cli)* Remove no_port_check flag
+- *(cli)* Update settings
+
+### 🐛 Bug Fixes
+
+- *(cli)* Skip run server without install dependencies
+- *(cli)* Enhance final message
+- *(cli)* Avoid query_server logs
+- *(cli)* Query create npx final message
+
+### 📚 Documentation
+
+- Add query create
+
+### Release
+
+- Version 0.12.2
+
+## [0.12.1] - 2024-05-07
+
+### 🐛 Bug Fixes
+
+- *(cli)* Block timeout
+- *(cli)* Run task create
+
+### Release
+
+- Version 0.12.1
+
+## [0.12.0] - 2024-05-07
+
+### 🚀 Features
+
+- *(cli)* Update query task cli docs
+- *(cli)* Add query create
+
+### 🐛 Bug Fixes
+
+- Avoid watchexec logs
+- *(cli)* List all tasks
+- *(cli)* Execute none table tasks
+- *(cli)* Cache file_hash for assets
+- *(cli)* Watch dist folder
+- *(cli)* Enhance log messages
+
+### 📚 Documentation
+
+- Add changelog
+- Add query task
+- Update query dev
+
+### Build
+
+- *(deps)* Bump rquickjs from 0.6.0 to 0.6.2
+- *(deps)* Bump serde from 1.0.199 to 1.0.200
+- Update cargo dist 0.13.3 to 0.14.0
+
+### Release
+
+- Version 0.12.0
+
 ## [0.11.0] - 2024-04-30
 
 ### 🚀 Features
