@@ -1,0 +1,5 @@
+[server]
+url = "http://localhost:3000"
+
+[structure]
+functions_folder = "src"
