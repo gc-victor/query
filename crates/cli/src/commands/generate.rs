@@ -964,7 +964,7 @@ mod tests {
             ];
 
             for key in keys {
-                assert!(result.get(key).is_some());
+                assert!(result.contains_key(key));
             }
 
             assert_eq!(
@@ -1253,7 +1253,7 @@ mod tests {
         data.insert("a".to_string(), Data::Boolean(true));
 
         let result = evaluate("a == a && a == a", &data);
-        assert_eq!(result.unwrap(), true);
+        assert!(result.unwrap());
     }
 
     #[test]
@@ -1262,7 +1262,7 @@ mod tests {
         data.insert("a".to_string(), Data::Boolean(true));
 
         let result = evaluate("a == a && a != a", &data);
-        assert_eq!(result.unwrap(), false);
+        assert!(!result.unwrap());
     }
 
     #[test]
@@ -1271,7 +1271,7 @@ mod tests {
         data.insert("a".to_string(), Data::Boolean(false));
 
         let result = evaluate("a != a || a == a", &data);
-        assert_eq!(result.unwrap(), true);
+        assert!(result.unwrap());
     }
 
     #[test]
@@ -1280,6 +1280,6 @@ mod tests {
         data.insert("a".to_string(), Data::Boolean(false));
 
         let result = evaluate("a != a || a != a", &data);
-        assert_eq!(result.unwrap(), false);
+        assert!(!result.unwrap());
     }
 }

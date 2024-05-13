@@ -429,7 +429,7 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
                         INSERT OR IGNORE INTO cache_function (path, body, expires_at, headers, status)
                         VALUES (?, ?, ?, ?, ?)
                         "#,
-                    [&cache_function_path, &cloned_body, &expires_at.to_string(), &headers, &status],
+                    [cache_function_path, &cloned_body, &expires_at.to_string(), &headers, &status],
                 ) {
                     Ok(_) => tracing::info!("Cache Created: {}", cache_function_path),
                     Err(e) => tracing::error!("Error: {:?}", e),

@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use std::path::Path;
 #[allow(unused_imports)]
 use std::{
@@ -20,6 +21,7 @@ use serde_json::json;
 use tracing::{error, info};
 use walkdir::WalkDir;
 
+#[allow(unused_imports)]
 use crate::{
     cache::{Cache, CacheItem},
     config::CONFIG,
