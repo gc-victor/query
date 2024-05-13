@@ -4,7 +4,10 @@ use colored::Colorize;
 use reqwest::Method;
 use serde_json::json;
 
-use crate::{prompts::expiration_date, utils::{http_client, json_to_table}};
+use crate::{
+    prompts::expiration_date,
+    utils::{http_client, json_to_table},
+};
 
 use super::commands::{TokenArgs, TokenCommands};
 
@@ -180,4 +183,3 @@ pub async fn command_token(command: &TokenArgs) -> Result<()> {
         }
     }
 }
-

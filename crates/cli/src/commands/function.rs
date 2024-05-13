@@ -1,9 +1,9 @@
+use std::path::Path;
 #[allow(unused_imports)]
 use std::{
     env, fs,
     process::{exit, Command},
 };
-use std::path::Path;
 use std::{
     hash::{DefaultHasher, Hash, Hasher},
     time::SystemTime,

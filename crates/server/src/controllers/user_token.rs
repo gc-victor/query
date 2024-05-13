@@ -244,7 +244,7 @@ fn create_user_token(options: CreateUserTokenOptions) -> Result<(), HttpError> {
         named_params! {
             ":email": options.email,
             ":expiration_date": match options.expiration_date {
-                Some(e) => {                  
+                Some(e) => {
                     if e < current_time_millis() {
                         return Err(bad_request("The expiration_date must be greater than current time".to_string()))
                     } else {

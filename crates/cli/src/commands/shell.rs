@@ -4,7 +4,10 @@ use reqwest::Method;
 use rustyline::{error::ReadlineError, DefaultEditor};
 use serde_json::json;
 
-use crate::{config::{CLI, CONFIG}, utils::{http_client, json_to_table, line_break}};
+use crate::{
+    config::{CLI, CONFIG},
+    utils::{http_client, json_to_table, line_break},
+};
 
 use super::commands::ShellArgs;
 
