@@ -1,0 +1,32 @@
+[server]
+url = "http://localhost:3000"
+
+[structure]
+functions_folder = "src"
+migrations_folder = "migrations"
+
+[esbuild]
+"loader:.html" = "text"
+"loader:.svg" = "text"
+
+[task]
+clean = ".query/tasks/clean.sh"
+deploy = ".query/tasks/deploy.sh &"
+bundle = ".query/tasks/bundle.sh &"
+tailwind = "pnpm tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
+
+[task.create]
+migration = "pnpm query task migration -y"
+deploy = ".query/tasks/deploy.sh &"
+
+[task.dev]
+bundle = ".query/tasks/bundle.sh &"
+tailwind = "pnpm tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
+
+[task.migration]
+20240116141458 = "pnpm query migration admin_user_session.sql migrations/admin_user_session.sql/20240116141458-admin_user_session-up.sql"
+20240117102216 = "pnpm query migration post.sql migrations/post.sql/20240117102216-post-up.sql"
+
+[task.test]
+## Install hurl (https://hurl.dev/docs/installation.html)
+hurl = "hurl --test --continue-on-error --variables-file hurl/.env hurl/**/*.hurl hurl/**/**/*.hurl"
