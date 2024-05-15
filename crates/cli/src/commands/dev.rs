@@ -5,13 +5,17 @@ use std::{
     process::{exit, Command, Stdio},
     thread,
     time::Duration,
+    vec,
 };
 
 use anyhow::Result;
 use colored::Colorize;
+use lazy_static::lazy_static;
+use toml::Table;
 use watchexec::Watchexec;
 
 use crate::{
+    config::CLI,
     run_server::run_query_server,
     utils::{
         block_until_server_is_ready, check_port_usage, detect_package_manager, has_module,
@@ -20,6 +24,50 @@ use crate::{
 };
 
 use super::commands::DevArgs;
+
+lazy_static! {
+    static ref DEV_COMMANDS: Vec<String> = {
+        let contents = match fs::read_to_string(CLI::default().config_file_path) {
+            Ok(contents) => contents,
+            Err(_) => {
+                eprintln!(
+                    "{}",
+                    format!("{} No config file found", String::from('●').red()).red()
+                );
+                exit(1);
+            }
+        };
+        let config: Table = match toml::from_str(&contents) {
+            Ok(data) => data,
+            Err(e) => {
+                eprintln!("{} {}", String::from('●').red(), e);
+                exit(1);
+            }
+        };
+
+        let mut commands = vec![];
+
+        let task = config
+            .get("task")
+            .and_then(|task| task.as_table())
+            .unwrap_or_else(|| {
+                eprintln!(
+                    "{} {}",
+                    String::from('●').red(),
+                    "No task found in the config file".to_string().red()
+                );
+                exit(1);
+            });
+
+        if let Some(dev) = task.get("dev").and_then(|dev| dev.as_table()) {
+            for (_, command) in dev {
+                commands.push(command.as_str().unwrap().trim().to_string());
+            }
+        };
+
+        commands
+    };
+}
 
 pub async fn command_dev(command: &DevArgs) -> Result<()> {
     check_config_file_exist();
@@ -48,8 +96,6 @@ pub async fn command_dev(command: &DevArgs) -> Result<()> {
         run_tasks();
         eprintln!("{}", "Watching for changes...".to_string().normal());
 
-        let mut last_event_time = tokio::time::Instant::now();
-
         let wx = Watchexec::new_async(move |mut action| {
             Box::new(async move {
                 for event in action.events.iter() {
@@ -58,15 +104,10 @@ pub async fn command_dev(command: &DevArgs) -> Result<()> {
                         Some(tag) => format!("{:?}", tag) == "FileEventKind(Access(Close(Write)))",
                         None => false,
                     };
-                    let delay = Duration::from_millis(250);
 
-                    if has_close_write && tokio::time::Instant::now() - last_event_time > delay {
-                        last_event_time = tokio::time::Instant::now();
-
+                    if has_close_write {
                         run_tasks();
                     }
-
-                    tokio::time::sleep(delay).await;
                 }
 
                 if action.signals().next().is_some() {
@@ -80,7 +121,7 @@ pub async fn command_dev(command: &DevArgs) -> Result<()> {
 
         wx.main();
 
-        let paths = vec!["src", "public"];
+        let paths = vec!["src"];
 
         wx.config.pathset(paths);
     });
@@ -140,11 +181,99 @@ fn check_config_file_exist() {
 }
 
 fn run_tasks() {
-    query_command(vec!["task", "dev", "-y"]);
+    execute_dev_commands();
     query_command(vec!["asset", "dist"]);
-    query_command(vec!["asset", "public"]);
     // NOTE: the function should be executed after the assets
     query_command(vec!["function"]);
+}
+
+fn execute_dev_commands() {
+    let commands = DEV_COMMANDS.clone();
+
+    for command in commands {
+        let mut cmd = if cfg!(target_os = "windows") {
+            let mut cmd = Command::new("cmd");
+            cmd.arg("/C").arg(command);
+            cmd
+        } else {
+            let mut cmd = Command::new("sh");
+            cmd.arg("-c").arg(command);
+            cmd
+        };
+
+        let mut child = match cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).spawn() {
+            Ok(child) => child,
+            Err(e) => {
+                eprintln!("{}", e);
+                exit(1);
+            }
+        };
+
+        let stdout_thread = thread::spawn(move || {
+            let stdout = child.stdout.take().expect("Failed to open stdout");
+            let mut reader = std::io::BufReader::new(stdout);
+            let mut line = String::new();
+            loop {
+                match reader.read_line(&mut line) {
+                    Ok(0) => break,
+                    Ok(_) => {
+                        let message = line.trim();
+                        let message = message.trim_start_matches('"');
+                        let message = message
+                            .replace('●', "")
+                            .replace("\\n\\n", "\n")
+                            .replace("\\n", "\n");
+                        let message = message.trim_end_matches('"');
+                        let message = message.trim();
+
+                        if message.is_empty() {
+                            continue;
+                        }
+
+                        println!("{} {}", String::from('●').green(), message);
+                    }
+                    Err(e) => {
+                        eprintln!("{}", format!("{} {}", String::from('●'), e).red());
+                    }
+                }
+                line.clear();
+            }
+        });
+
+        let stderr_thread = thread::spawn(move || {
+            let stderr = child.stderr.take().expect("Failed to open stderr");
+            let mut reader = std::io::BufReader::new(stderr);
+            let mut line = String::new();
+            loop {
+                match reader.read_line(&mut line) {
+                    Ok(0) => break,
+                    Ok(_) => {
+                        let message = line.trim();
+                        let message = message.trim_start_matches('"');
+                        let message = message
+                            .replace('●', "")
+                            .replace("\\n\\n", "\n")
+                            .replace("\\n", "\n");
+                        let message = message.trim_end_matches('"');
+                        let message = message.trim();
+
+                        if message.is_empty() {
+                            continue;
+                        }
+
+                        eprintln!("{}", message.red());
+                    }
+                    Err(e) => {
+                        eprintln!("{}", format!("{} {}", String::from('●'), e).red());
+                    }
+                }
+                line.clear();
+            }
+        });
+
+        let _ = stdout_thread.join();
+        let _ = stderr_thread.join();
+    }
 }
 
 fn query_command(args: Vec<&str>) {
@@ -177,7 +306,6 @@ fn query_command(args: Vec<&str>) {
 
         let current_dir = env::current_dir().unwrap();
         let package = current_dir.join("node_modules").join(".bin").join(binary);
-        let package = package.to_str().unwrap().to_string();
 
         match Command::new(package)
             .args(args)
