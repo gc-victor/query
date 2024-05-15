@@ -10,7 +10,10 @@ use anyhow::Result;
 use cliclack::{confirm, input, intro, log, outro, select, spinner};
 use colored::Colorize;
 use openssl::rand::rand_bytes;
-use reqwest::Method;
+use reqwest::{
+    header::{HeaderMap, HeaderValue, ACCEPT, USER_AGENT},
+    Client, Method,
+};
 use serde::Deserialize;
 use serde_json::json;
 use tokio::{io::AsyncWriteExt, process::Command};
@@ -24,32 +27,32 @@ use crate::{
     },
 };
 
-const APP: &str = "app";
-const MINIMAL: &str = "minimal";
-
 #[derive(Debug, Deserialize)]
 pub struct Package {
-    path: Option<String>,
-    url: String,
+    name: String,
+    path: String,
 }
 
+type Packages = Vec<Package>;
+
+static PROJECTS_FOLDER: &str = "examples";
+
 pub async fn command_create() -> Result<()> {
-    // ===
-    // TODO: Get list of packages with GitHub API
-    // https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28#get-contents
-    // curl -L \
-    //     -H "Accept: application/vnd.github+json" \
-    //     -H "X-GitHub-Api-Version: 2022-11-28" \
-    //     https://api.github.com/repos/gc-victor/query/contents/packages
-    // [{"name": "minimal", "path": "packages/minimal"}]
-    // ===
+    // Get packages
+
+    let packages: Packages = fetch_packages().await?;
 
     intro("Create a Query application".to_string().cyan().reversed())?;
 
-    let application = select("Pick an application type")
-        .item(APP, "Application", "")
-        .item(MINIMAL, "Minimal", "")
-        .interact()?;
+    // Prompts
+
+    let items: Vec<(String, String, String)> = packages
+        .iter()
+        .map(|p| (p.name.clone(), p.name.clone(), "".to_string()))
+        .collect();
+    let items = &items[..];
+
+    let application = select("Pick an application type").items(items).interact()?;
 
     let default_path = &format!("./{}-{}", application, &generate_token(2)?);
     let dest: String = input("Where should we create your application?")
@@ -70,15 +73,9 @@ pub async fn command_create() -> Result<()> {
         .initial_value(true)
         .interact()?;
 
-    let install_git_repo = confirm("Initialize a new git repository?")
+    let initialize_git_repo = confirm("Initialize a new git repository?")
         .initial_value(true)
         .interact()?;
-
-    fs::create_dir_all(&dest)?;
-
-    let current_dir = std::env::current_dir()?;
-
-    std::env::set_current_dir(&dest)?;
 
     let default_admin = "admin";
     let email: String = input("Admin email")
@@ -90,32 +87,27 @@ pub async fn command_create() -> Result<()> {
         .default_input(default_admin)
         .interact()?;
 
-    // ==
-
     outro("Application configured")?;
 
     eprintln!("\n");
 
-    // ===
+    // Create the destination directory
+
+    fs::create_dir_all(&dest)?;
+
+    let current_dir = std::env::current_dir()?;
+
+    std::env::set_current_dir(&dest)?;
+
+    // Pull the selected repository
 
     intro("Creating your application...".to_string().cyan().reversed())?;
 
-    // ===
-
-    let package = match application {
-        MINIMAL => Package {
-            path: None,
-            url: "https://github.com/gc-victor/query-minimal.git".to_string(),
-        },
-        _ => Package {
-            path: None,
-            url: "https://github.com/gc-victor/query-app.git".to_string(),
-        },
-    };
+    let package = packages.iter().find(|p| p.name == application).unwrap();
 
     let copy_spinner = spinner();
 
-    copy_spinner.start("Coping application...");
+    copy_spinner.start("Cloning application...");
 
     match git_clone(package).await {
         Ok(_) => {}
@@ -125,11 +117,37 @@ pub async fn command_create() -> Result<()> {
         }
     };
 
-    copy_spinner.stop("Application copied");
+    copy_spinner.stop("Application cloned");
 
-    set_env_vars(&email, &password)?;
+    // Set environment variables
 
-    // ===
+    let new_email: &str = &email;
+    let new_password: &str = &password;
+    if Path::new(".env.dist").exists() {
+        fs::copy(".env.dist", ".env")?;
+    }
+
+    if Path::new(".env").exists() {
+        let contents = fs::read_to_string(".env")?;
+
+        let contents = contents.replace(
+            "QUERY_SERVER_TOKEN_SECRET=",
+            &format!("QUERY_SERVER_TOKEN_SECRET={}", generate_token(16)?),
+        );
+        let contents = contents.replace(
+            "QUERY_SERVER_ADMIN_EMAIL=",
+            &format!("QUERY_SERVER_ADMIN_EMAIL={}", new_email),
+        );
+        let contents = contents.replace(
+            "QUERY_SERVER_ADMIN_PASSWORD=",
+            &format!("QUERY_SERVER_ADMIN_PASSWORD={}", new_password),
+        );
+
+        let mut file = fs::File::create(".env")?;
+        file.write_all(contents.as_bytes())?;
+    }
+
+    // Install dependencies
 
     let pm = detect_package_manager();
     let npm = pm.npm;
@@ -151,7 +169,7 @@ pub async fn command_create() -> Result<()> {
         install_spinner.stop("Installation completed");
     };
 
-    // ===
+    // Get user token
 
     let is_port_used = check_port_usage().is_err();
     let mut has_user_token = false;
@@ -217,9 +235,9 @@ pub async fn command_create() -> Result<()> {
         stop_query_server();
     }
 
-    // ===
+    // Initialize git repository
 
-    if install_git_repo {
+    if initialize_git_repo {
         match Command::new("git").arg("init").output().await {
             Ok(_) => {}
             Err(e) => {
@@ -253,7 +271,7 @@ pub async fn command_create() -> Result<()> {
         log::step("Git initialized")?;
     }
 
-    // ===
+    // Go back to the original directory
 
     std::env::set_current_dir(current_dir)?;
 
@@ -261,7 +279,7 @@ pub async fn command_create() -> Result<()> {
 
     eprintln!("\n");
 
-    // ===
+    // Notify user about next steps
 
     let go_to = if dest != "./" {
         format!("{} Run `cd {}`\n", String::from('●').green(), dest)
@@ -295,7 +313,7 @@ pub async fn command_create() -> Result<()> {
     } else {
         "".to_string()
     };
-    let git_init = if !install_git_repo {
+    let git_init = if !initialize_git_repo {
         format!(
             "{} Run `git init && git add -A && git commit -m \"Initial commit\"` {}\n",
             String::from('●').green(),
@@ -330,15 +348,69 @@ pub async fn command_create() -> Result<()> {
     Ok(())
 }
 
-pub async fn git_clone(package: Package) -> Result<()> {
-    let Package { path, url } = package;
+async fn fetch_packages() -> Result<Packages> {
+    // NOTICE: Possible rate limit issues if more than 60 requests per hour
+    // curl 'https://api.github.com/rate_limit'
+    // @see: https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28#staying-under-the-rate-limit
+    let url = "https://api.github.com/repos/gc-victor/query/contents/".to_owned() + PROJECTS_FOLDER;
+
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        ACCEPT,
+        HeaderValue::from_static("application/vnd.github+json"),
+    );
+    headers.insert(
+        USER_AGENT,
+        HeaderValue::from_static("X-GitHub-Api-Version: 2022-11-28"),
+    );
+
+    let client = Client::new();
+    let response = client.get(&url).headers(headers).send().await?;
+
+    if !response.status().is_success() {
+        let packages = vec![
+            Package {
+                name: "application".to_string(),
+                path: PROJECTS_FOLDER.to_owned() + "/application",
+            },
+            Package {
+                name: "minimal".to_string(),
+                path: PROJECTS_FOLDER.to_owned() + "/minimal",
+            },
+            Package {
+                name: "counter".to_string(),
+                path: PROJECTS_FOLDER.to_owned() + "/counter",
+            },
+        ];
+
+        return Ok(packages);
+    }
+
+    let text = response.text().await?;
+    let json: Packages = serde_json::from_str(&text)?;
+
+    let packages: Packages = json
+        .iter()
+        .filter(|github_package| github_package.name != "proxy")
+        .map(|github_package: &Package| Package {
+            name: github_package.name.clone(),
+            path: github_package.path.clone(),
+        })
+        .collect();
+
+    Ok(packages)
+}
+
+async fn git_clone(package: &Package) -> Result<()> {
+    let Package { name: _, path } = package;
+    let url = "https://github.com/gc-victor/query.git";
 
     let error_handler = |e| {
         eprintln!("{}", format!("Error: {e}").red());
         exit(1)
     };
 
-    let response = match reqwest::get(&url).await.map_err(error_handler) {
+    let response = match reqwest::get(url).await.map_err(error_handler) {
         Ok(response) => response,
         Err(_) => {
             eprintln!("{}", format!("Error: {} could not be reached", url).red());
@@ -362,18 +434,15 @@ pub async fn git_clone(package: Package) -> Result<()> {
         .output()
         .await?;
 
-    if path.is_some() {
-        Command::new("git")
-            .arg("config")
-            .arg("core.sparsecheckout")
-            .arg("true")
-            .output()
-            .await?;
+    Command::new("git")
+        .arg("config")
+        .arg("core.sparsecheckout")
+        .arg("true")
+        .output()
+        .await?;
 
-        let path = path.as_ref().unwrap();
-        let mut file = tokio::fs::File::create(".git/info/sparse-checkout").await?;
-        file.write_all(path.as_bytes()).await?;
-    }
+    let mut file = tokio::fs::File::create(".git/info/sparse-checkout").await?;
+    file.write_all(path.as_bytes()).await?;
 
     Command::new("git")
         .arg("pull")
@@ -385,48 +454,27 @@ pub async fn git_clone(package: Package) -> Result<()> {
 
     fs::remove_dir_all(".git")?;
 
-    Ok(())
-}
+    let from_dir = Path::new(path);
+    let to_dir = Path::new(".");
+    let entries = fs::read_dir(from_dir)?;
 
-fn set_env_vars(new_email: &str, new_password: &str) -> Result<()> {
-    if Path::new(".env.dist").exists() {
-        fs::copy(".env.dist", ".env")?;
+    for entry in entries {
+        let entry = entry?;
+        let path = entry.path();
+        // If the path is a normal file, this is the file name.
+        // If it's the path of a directory, this is the directory name
+        let file_name = match path.file_name() {
+            Some(file_name) => file_name,
+            None => continue,
+        };
+
+        let mut new_path = to_dir.to_path_buf();
+        new_path.push(file_name);
+
+        fs::rename(path, new_path)?;
     }
 
-    if Path::new(".env").exists() {
-        let contents = fs::read_to_string(".env")?;
-
-        // TODO: remove once the minimal project is moved
-        let contents = contents.replace(
-            "QUERY_SERVER_TOKEN_SECRET=15acfcfcd8810ea2bbfb1b3bbaff9e9",
-            "QUERY_SERVER_TOKEN_SECRET=",
-        );
-        let contents = contents.replace(
-            "QUERY_SERVER_TOKEN_SECRET=",
-            &format!("QUERY_SERVER_TOKEN_SECRET={}", generate_token(16)?),
-        );
-        // TODO: remove once the minimal project is moved
-        let contents = contents.replace(
-            "QUERY_SERVER_ADMIN_EMAIL=admin",
-            "QUERY_SERVER_ADMIN_EMAIL=",
-        );
-        let contents = contents.replace(
-            "QUERY_SERVER_ADMIN_EMAIL=",
-            &format!("QUERY_SERVER_ADMIN_EMAIL={}", new_email),
-        );
-        // TODO: remove once the minimal project is moved
-        let contents = contents.replace(
-            "QUERY_SERVER_ADMIN_PASSWORD=admin",
-            "QUERY_SERVER_ADMIN_PASSWORD=",
-        );
-        let contents = contents.replace(
-            "QUERY_SERVER_ADMIN_PASSWORD=",
-            &format!("QUERY_SERVER_ADMIN_PASSWORD={}", new_password),
-        );
-
-        let mut file = fs::File::create(".env")?;
-        file.write_all(contents.as_bytes())?;
-    }
+    fs::remove_dir_all(PROJECTS_FOLDER)?;
 
     Ok(())
 }
