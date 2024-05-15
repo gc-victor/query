@@ -1,0 +1,27 @@
+[server]
+url = "http://localhost:3000"
+
+[structure]
+functions_folder = "src"
+migrations_folder = "migrations"
+
+[esbuild]
+"loader:.html" = "text"
+"loader:.svg" = "text"
+
+[task]
+clean = ".query/tasks/clean.sh"
+deploy = ".query/tasks/deploy.sh"
+bundle = ".query/tasks/bundle.sh"
+tailwind = "node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
+
+[task.create]
+migration = "node_modules/.bin/query task migration -y"
+deploy = ".query/tasks/deploy.sh"
+
+[task.dev]
+bundle = ".query/tasks/bundle.sh"
+tailwind = "node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
+
+[task.migration]
+20240514122556 = "node_modules/.bin/query migration counter.sql migrations/counter.sql/20240514122556-counter-up.sql"
