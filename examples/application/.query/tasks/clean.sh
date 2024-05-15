@@ -2,6 +2,6 @@
 
 rm -rf .query/.cache &
 rm -rf dist &
-sqlite3 .dbs/query_asset.sql "DELETE from asset" &
-sqlite3 .dbs/query_function.sql "DELETE from function" &
+rm -rf .dbs/query_asset.sql &
+rm -rf .dbs/query_function.sql &
 echo "Done!"
