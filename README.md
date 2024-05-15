@@ -924,15 +924,15 @@ templates
 ├── api
 │   ├── admin
 │   │   ├── login
-│   │   │   └── **.index.ts
-│   │   └── **
+│   │   │   └── __table__.index.ts
+│   │   └── __table__
 │   │       ├── delete.index.ts
 │   │       ├── get.index.ts
 │   │       ├── post.index.ts
 │   │       ├── put.index.ts
 │   │       └── uuid
 │   │           └── get.[slug].ts
-│   └── **
+│   └── __table__
 │       ├── delete.index.ts
 │       ├── get.index.ts
 │       ├── post.index.ts
@@ -953,12 +953,12 @@ templates
 │   │   ├── get.index.ts
 │   │   ├── login
 │   │   │   └── ...
-│   │   ├── **
+│   │   ├── __table__
 │   │   │   ├── get.index.tsx
 │   │   │   ├── island
-│   │   │   │   └── **.island.ts
-│   │   │   ├── **.form.view.tsx
-│   │   │   └── **.view.tsx
+│   │   │   │   └── __table__.island.ts
+│   │   │   ├── __table__.form.view.tsx
+│   │   │   └── __table__.view.tsx
 │   │   └── utils
 │   │       └── ..
 │   ├── components
@@ -966,17 +966,17 @@ templates
 │   ├── get.index.tsx
 │   ├── layouts
 │   │   └── ...
-│   ├── **
+│   ├── __table__
 │   │   ├── excerpt.tsx
 │   │   ├── get.index.tsx
 │   │   └── [slug]
 │   │       ├── get.index.tsx
-│   │       └── **.tsx
+│   │       └── __table__.tsx
 │   └── styles.css
 └── ...
 ```
 
-Notice that the **"\*\*"** is a placeholder for that will be replaced by the table name of the command.
+Notice that **"\_\_table\_\_"** is a placeholder for that will be replaced by the table name of the command.
 
 ### Function
 
