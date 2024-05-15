@@ -1216,7 +1216,6 @@ It uses the `esbuild` to bundle the functions. So, every time you change a funct
 Options:
 
 - `-c, --clean` - Clean assets and function databases, and dist folder
-- `-n, --no-port-check` - Do not check port usage
 - `-v, --verbose` - Show all the logs
 - `-h, --help` - Print help
 
@@ -1224,12 +1223,6 @@ To clean the assets and function databases, and the dist folder, you have to run
 
 ```sh
 query dev -c
-```
-
-To avoid checking the port usage, you have to run the following command:
-
-```sh
-query dev -n
 ```
 
 To show all the logs, you have to run the following command:
