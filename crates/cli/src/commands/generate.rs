@@ -190,10 +190,10 @@ fn generate_files_from_templates(command: &GenerateArgs) -> Result<Vec<Template>
             .display()
             .to_string()
             .replace(templates_folder, &CONFIG.structure.functions_folder.clone())
-            .replace("/**/", &format!("/{table}/"))
-            .replace("/**", &format!("/{table}"))
-            .replace(".**.", &format!(".{table}."))
-            .replace("**.", &format!("{table}."));
+            .replace("/__table__/", &format!("/{table}/"))
+            .replace("/__table__", &format!("/{table}"))
+            .replace(".__table__.", &format!(".{table}."))
+            .replace("__table__.", &format!("{table}."));
 
         let is_file = file.file_type().is_file();
 
