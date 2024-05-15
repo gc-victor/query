@@ -1,13 +1,13 @@
 #[allow(unused_imports)]
 use std::path::Path;
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+};
 #[allow(unused_imports)]
 use std::{
     env, fs,
     process::{exit, Command},
-};
-use std::{
-    hash::{DefaultHasher, Hash, Hasher},
-    time::SystemTime,
 };
 
 #[allow(unused_imports)]
@@ -111,13 +111,15 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
                     {
                         let file_path = entry.path().display().to_string();
 
-                        let metadata = entry.metadata()?;
-                        let modified = match metadata.modified() {
-                            Ok(modified) => modified,
-                            Err(_) => SystemTime::now(),
-                        };
+                        let FunctionBuilder {
+                            active,
+                            function,
+                            method,
+                            path,
+                        } = function_builder(&file_path)?;
+
                         let mut hasher = DefaultHasher::new();
-                        modified.hash(&mut hasher);
+                        Hash::hash_slice(&function, &mut hasher);
                         let value = hasher.finish().to_string();
 
                         let mut cache = Cache::new();
@@ -127,13 +129,6 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
                         };
 
                         if !is_cached {
-                            let FunctionBuilder {
-                                active,
-                                function,
-                                method,
-                                path,
-                            } = function_builder(&file_path)?;
-
                             let body_path = path.replace(
                                 &env::current_dir()?
                                     .join(&CONFIG.structure.functions_folder)
