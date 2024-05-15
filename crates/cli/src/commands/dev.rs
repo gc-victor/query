@@ -257,7 +257,10 @@ fn execute_dev_commands() {
                         let message = message.trim_end_matches('"');
                         let message = message.trim();
 
-                        if message.is_empty() {
+                        if message.is_empty()
+                            || message.starts_with("Rebuilding...")
+                            || message.starts_with("Done in")
+                        {
                             continue;
                         }
 
