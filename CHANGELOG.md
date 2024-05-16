@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.5] - 2024-05-15
+
+### 🚀 Features
+
+- *(cli)* Cache dev commands
+- *(cli)* Update query create
+- *(cli)* Remove tailwind-css dumb error
+- *(example)* Update application tasks
+- *(example)* Update application dependencies
+- *(example)* Create counter
+- Create examples
+
+### 🐛 Bug Fixes
+
+- *(cli)* Revert cache modified time
+- Replace template placeholder
+
+### 🚜 Refactor
+
+- Add clippy fixes
+
+### 📚 Documentation
+
+- Update changelog
+- Add quick start
+- Remove query dev no-port-check
+
+### 🎨 Styling
+
+- Update format
+
+### Build
+
+- *(deps)* Bump serde from 1.0.200 to 1.0.201
+- *(deps)* Bump serde_json from 1.0.116 to 1.0.117
+- *(deps)* Bump ryu from 1.0.17 to 1.0.18
+- *(deps)* Bump anyhow from 1.0.82 to 1.0.83
+
+### Release
+
+- Version 0.12.5
+
 ## [0.12.4] - 2024-05-09
 
 ### 🚀 Features
