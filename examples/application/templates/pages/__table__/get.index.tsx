@@ -47,32 +47,34 @@ export async function handleRequest(req: Request) {
 
     return new Response((
             render(
-                <Head>
-                    <title>Query {{ tableCapitalCase }} List</title>
-                    <link rel="stylesheet" href={`/_/asset/${stylesNameHashed}`} />
-                </Head>
-                <Body class="overflow-y-scroll">
-                    <Layout>
-                        <div class="flex flex-col space-y-8">
-                            <h1 class="font-cal text-4xl">{{ tableCapitalCase }} List</h1>
-                            { {{ tableCamelCase }}List.map(({{ tableCamelCase }}: {{ tablePascalCase }}Type) => (
-                                <article class="rounded-lg border p-8 shadow-sm">
-                                    <h2 class="font-cal text-2xl">
-                                        <a class="underline" href={`/{{ tableLowerCase }}/${ {{ tableCamelCase }}.uuid }`}>
-                                            {{ tableCapitalCase }} Item
-                                        </a>
-                                    </h2>
-                                    <p class="text-sm text-slate-500">
-                                        Published on <time datetime={ {{ tableCamelCase }}.datetime }>{ {{ tableCamelCase }}.createdAt }</time>
-                                    </p>
-                                    <{{ tablePascalCase }} {...{{ tableCamelCase }}} />
-                                </article>
-                            )) }
-                        </div>
-                    </Layout>
-                    <SVG />
-                    <HotReload href={url.href} />
-                </Body>
+                <>
+                    <Head>
+                        <title>Query {{ tableCapitalCase }} List</title>
+                        <link rel="stylesheet" href={`/_/asset/${stylesNameHashed}`} />
+                    </Head>
+                    <Body class="overflow-y-scroll">
+                        <Layout>
+                            <div class="flex flex-col space-y-8">
+                                <h1 class="font-cal text-4xl">{{ tableCapitalCase }} List</h1>
+                                { {{ tableCamelCase }}List.map(({{ tableCamelCase }}: {{ tablePascalCase }}Type) => (
+                                    <article class="rounded-lg border p-8 shadow-sm">
+                                        <h2 class="font-cal text-2xl">
+                                            <a class="underline" href={`/{{ tableLowerCase }}/${ {{ tableCamelCase }}.uuid }`}>
+                                                {{ tableCapitalCase }} Item
+                                            </a>
+                                        </h2>
+                                        <p class="text-sm text-slate-500">
+                                            Published on <time datetime={ {{ tableCamelCase }}.datetime }>{ {{ tableCamelCase }}.createdAt }</time>
+                                        </p>
+                                        <{{ tablePascalCase }} {...{{ tableCamelCase }}} />
+                                    </article>
+                                )) }
+                            </div>
+                        </Layout>
+                        <SVG />
+                        <HotReload href={url.href} />
+                    </Body>
+                </>
             )
         ), {
         headers: {
