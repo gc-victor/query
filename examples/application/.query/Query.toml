@@ -10,17 +10,17 @@ migrations_folder = "migrations"
 "loader:.svg" = "text"
 
 [task]
-clean = ".query/tasks/clean.sh"
-deploy = ".query/tasks/deploy.sh"
-bundle = ".query/tasks/bundle.sh"
+clean = ".query/tasks/clean.sh &"
+deploy = ".query/tasks/deploy.sh &"
+bundle = ".query/tasks/bundle.sh &"
 tailwind = "node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
 
 [task.create]
-migration = "node_modules/.bin/query task migration -y"
-deploy = ".query/tasks/deploy.sh"
+migration = "node_modules/.bin/query task migration -y &"
+deploy = ".query/tasks/deploy.sh &"
 
 [task.dev]
-bundle = ".query/tasks/bundle.sh"
+bundle = ".query/tasks/bundle.sh &"
 tailwind = "node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
 
 [task.migration]

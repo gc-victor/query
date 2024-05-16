@@ -18,7 +18,7 @@ deploy_tailwind() {
 
 deploy_asset() {
     start=$(date +%s%N)
-    node_modules/.bin/query asset dist &
+    node_modules/.bin/query asset dist
     node_modules/.bin/query asset public
     end=$(date +%s%N)
     echo "Assets updated: $(((end - start) / 1000000))ms"
