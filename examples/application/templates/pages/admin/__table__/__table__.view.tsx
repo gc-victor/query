@@ -31,7 +31,7 @@ export function {{ tablePascalCase }}View({ data }: { data: {{ tablePascalCase }
                 </drawer-element>
                 <div data-hot-reload-scroll="table-wrapper" class="h-[calc(100lvh_-_65px)] relative overflow-x-auto overflow-y-auto">
                     <div class="absolute bg-slate-100 h-10 w-full -z-10" />
-                    <table is="table-element" data-url={PAGE_ADMIN_{{ tableConstantCase }}_PATH} class="text-left rtl:text-right w-max">
+                    <table is="table-element" data-url={PAGE_ADMIN_{{ tableConstantCase }}_PATH} class="text-left rtl:text-right w-max min-w-full">
                         <thead class="font-cal h-10 text-xs uppercase">
                             <tr>
                                 <th scope="col" class="bg-slate-100 px-4 py-3 text-center w-id word-spacing z-10">
