@@ -57,7 +57,7 @@ export async function handleRequest(req: Request) {
                             <div class="flex flex-col space-y-8">
                                 <h1 class="font-cal text-4xl">{{ tableCapitalCase }} List</h1>
                                 { {{ tableCamelCase }}List.map(({{ tableCamelCase }}: {{ tablePascalCase }}Type) => (
-                                    <article class="rounded-lg border p-8 shadow-sm">
+                                    <article key={ {{ tableCamelCase }}.uuid } class="rounded-lg border p-8 shadow-sm">
                                         <h2 class="font-cal text-2xl">
                                             <a class="underline" href={`/{{ tableLowerCase }}/${ {{ tableCamelCase }}.uuid }`}>
                                                 {{ tableCapitalCase }} Item

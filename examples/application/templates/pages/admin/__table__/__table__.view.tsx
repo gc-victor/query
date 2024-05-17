@@ -84,7 +84,7 @@ export function {{ tablePascalCase }}View({ data }: { data: {{ tablePascalCase }
                                     <td>{}</td>
                                     <td>{}</td>
                                     <td>{}</td>
-                                    <td class="py-4 text-center" colspan="{{ columnsLength }}">
+                                    <td class="py-4 text-center" colspan={ {{ columnsLength }} }>
                                         No {{ tableCapitalCase }} Found
                                     </td>
                                     <td>{}</td>
@@ -92,7 +92,7 @@ export function {{ tablePascalCase }}View({ data }: { data: {{ tablePascalCase }
                                 </tr>
                             ) : (
                                 data.map(({{ tableCamelCase }}) => (
-                                    <tr data-uuid={ {{ tableCamelCase }}.uuid } class="border-b border-slate-100 h-8 relative text-sm hover:bg-slate-50">
+                                    <tr key={ {{ tableCamelCase }}.uuid } data-uuid={ {{ tableCamelCase }}.uuid } class="border-b border-slate-100 h-8 relative text-sm hover:bg-slate-50">
                                         <td class="px-4 text-center">
                                             <span className="relative z-10">
                                                 <Button tag="a" href={`/{{ tableLowerCase }}/${ {{ tableCamelCase }}.uuid }`}>Visit</Button>
