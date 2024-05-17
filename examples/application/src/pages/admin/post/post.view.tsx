@@ -75,7 +75,11 @@ export function PostView({ data }: { data: PostViewProps[] }) {
                                 </tr>
                             ) : (
                                 data.map((post) => (
-                                    <tr data-uuid={post.uuid} class="border-b border-slate-100 h-8 relative text-sm hover:bg-slate-50">
+                                    <tr
+                                        key={post.uuid}
+                                        data-uuid={post.uuid}
+                                        class="border-b border-slate-100 h-8 relative text-sm hover:bg-slate-50"
+                                    >
                                         <td class="px-4 text-center">
                                             <span className="relative z-10">
                                                 <Button tag="a" href={`/post${post.slug}`}>

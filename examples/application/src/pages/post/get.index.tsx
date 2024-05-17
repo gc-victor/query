@@ -49,7 +49,7 @@ export async function handleRequest(req: Request) {
                     <Layout>
                         <div class="flex flex-col space-y-8">
                             {posts.map((post) => (
-                                <Excerpt {...post} />
+                                <Excerpt key={post.slug} {...post} />
                             ))}
                         </div>
                     </Layout>

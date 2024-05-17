@@ -19,7 +19,7 @@ export async function handleRequest(req: Request) {
     try {
         const db = new Database(POST_DATABASE);
         const result = await db.query("SELECT * FROM post WHERE slug = ?", [url.pathname.replace("/post/", "/")]);
-        const title = ("" + result[0].title) as string;
+        const title = (result[0].title) as string;
         const content = result[0].content as string;
         const image_url = result[0].image_url as string;
         const created_at = new Date((result[0].created_at as number) * 1000).toLocaleDateString("en-US", {
