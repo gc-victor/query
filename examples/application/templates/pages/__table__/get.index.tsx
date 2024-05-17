@@ -10,7 +10,7 @@ import { {{ tablePascalCase }} } from "@/pages/{{ tableLowerCase }}/{{ tableLowe
 export interface {{ tablePascalCase }}Type {
     uuid: string;
     {% for column in columns %}
-    {{ column.columnNameCamelCase }}: {{ column.columnTypeMatchTS }},
+    {{ column.columnNameCamelCase }}: {{ column.columnTypeMatchTS }};
     {% endfor %}
     datetime: string;
     createdAt: string;

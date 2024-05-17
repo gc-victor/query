@@ -1,6 +1,6 @@
 export interface {{ tablePascalCase }}Type {
     {% for column in columns %}
-    {{ column.columnNameCamelCase }}: {{ column.columnTypeMatchTS }},
+    {{ column.columnNameCamelCase }}: {{ column.columnTypeMatchTS }};
     {% endfor %}
     datetime: string;
     createdAt: string;

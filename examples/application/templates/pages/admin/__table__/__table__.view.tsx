@@ -9,9 +9,9 @@ export interface {{ tablePascalCase }}ViewProps {
     uuid: string;
     {% for column in columns %}
     {% if column.columnType == timestamp %}
-    {{ column.columnName }}: number,
+    {{ column.columnName }}: number;
     {% else %}
-    {{ column.columnName }}: {{ column.columnTypeMatchTS }},
+    {{ column.columnName }}: {{ column.columnTypeMatchTS }};
     {% endif %}
     {% endfor %}
     created_at: number;
