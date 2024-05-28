@@ -788,6 +788,10 @@ The following table illustrates the mapping between Column Types, TypeScript, an
 | string     | string     | TEXT    |
 | text       | string     | TEXT    |
 | uuid       | string     | TEXT UNIQUE CHECK ({column_name} != '') DEFAULT (uuid()) |
+| foreign    | number     | FOREIGN KEY ({column_name}) REFERENCES {parent_table} (id) |
+
+> [!NOTE]
+> The `foreign` type is a special type that creates a foreign key in the column. The format to use it is `column_name:foreign`, where the `column_name`, should have the format `<parent_table>_id`.
 
 #### How it works
 

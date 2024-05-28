@@ -61,37 +61,55 @@ struct GenerateFiles {
 }
 
 fn generate_migration(command: &GenerateArgs) -> Result<GenerateFiles> {
+    let mut foreign = String::new();
+    let space = "\n                ";
     let columns = command.columns.clone().into_iter().enumerate().fold(
         String::new(),
         |mut acc, (index, column)| {
             let parts: Vec<&str> = column.split(':').collect();
             let column_name = parts[0].trim();
             let column_type = parts[1].trim();
-            let uuid_value = &format!("TEXT UNIQUE CHECK ({column_name} != '') DEFAULT (uuid())",);
-            let column_type = match column_type {
-                "blob" => "BLOB",
-                "boolean" => "BOOLEAN",
-                "timestamp" => "INTEGER DEFAULT (strftime('%s', 'now'))",
-                "float" | "real" => "REAL",
-                "integer" => "INTEGER",
-                "number" => "INTEGER",
-                "text" | "string" => "TEXT",
-                "uuid" => uuid_value,
-                _ => "TEXT",
-            };
 
             let extra_space = if index < command.columns.len() - 1 {
-                "\n                "
+                space
             } else {
                 ""
             };
 
-            acc.push_str(&format!(
-                "{} {} NOT NULL,{}",
-                snake_case(column_name),
-                column_type,
-                extra_space
-            ));
+            if column_type == "foreign" {
+                acc.push_str(&format!(
+                    "{} {} NOT NULL,{}",
+                    snake_case(column_name),
+                    "INTEGER",
+                    extra_space
+                ));
+
+                let parent_table = snake_case(column_name).replace("_id", "");
+                foreign.push_str(&format!(
+                    "FOREIGN KEY ({column_name}) REFERENCES {parent_table} (id),{extra_space}"
+                ));
+            } else {
+                let uuid_value =
+                    &format!("TEXT UNIQUE CHECK ({column_name} != '') DEFAULT (uuid())",);
+                let column_type = match column_type {
+                    "blob" => "BLOB",
+                    "boolean" => "BOOLEAN",
+                    "timestamp" => "INTEGER DEFAULT (strftime('%s', 'now'))",
+                    "float" | "real" => "REAL",
+                    "integer" => "INTEGER",
+                    "number" => "INTEGER",
+                    "text" | "string" => "TEXT",
+                    "uuid" => uuid_value,
+                    _ => "TEXT",
+                };
+
+                acc.push_str(&format!(
+                    "{} {} NOT NULL,{}",
+                    snake_case(column_name),
+                    column_type,
+                    extra_space
+                ));
+            }
 
             acc
         },
@@ -101,6 +119,13 @@ fn generate_migration(command: &GenerateArgs) -> Result<GenerateFiles> {
     let table = &command.table;
     let table_snake_case = snake_case(table);
     let prefix = now();
+    let foreign = if !foreign.is_empty() {
+        format!(",{space}{foreign}")
+    } else {
+        foreign
+    };
+    let foreign = foreign.trim_end_matches(space);
+    let foreign = foreign.trim_end_matches(',');
 
     let up_content = format!(
         r#"
@@ -109,7 +134,7 @@ fn generate_migration(command: &GenerateArgs) -> Result<GenerateFiles> {
                 uuid TEXT UNIQUE CHECK (uuid != '') DEFAULT (uuid()) NOT NULL,
                 {columns}
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-                updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+                updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')){foreign}
             );
 
             CREATE TRIGGER IF NOT EXISTS trigger_{table_snake_case}_update 
@@ -369,6 +394,7 @@ fn variables_generator(command: &GenerateArgs, table: &String) -> HashMap<String
                         "text" => Data::String("string".to_string()),
                         "string" => Data::String("string".to_string()),
                         "uuid" => Data::String("string".to_string()),
+                        "foreign" => Data::String("number".to_string()),
                         _ => Data::String("unknown".to_string()),
                     },
                 );
@@ -839,6 +865,45 @@ mod tests {
         assert_eq!(down.content.trim(), expected_down_content.trim());
         assert_eq!(up.path, expected_up_path);
         assert_eq!(down.path, expected_down_path);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_command_generate_with_foreign() -> Result<()> {
+        let command = &GenerateArgs {
+            table: "test-table".to_string(),
+            columns: vec![
+                "parent_id:foreign".to_string(),
+                "parent_2_id:foreign".to_string(),
+            ],
+            database: "main".to_string(),
+        };
+
+        let expected_up_content = r#"
+            CREATE TABLE IF NOT EXISTS test_table(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                uuid TEXT UNIQUE CHECK (uuid != '') DEFAULT (uuid()) NOT NULL,
+                parent_id INTEGER NOT NULL,
+                parent_2_id INTEGER NOT NULL,
+                created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+                updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+                FOREIGN KEY (parent_id) REFERENCES parent (id),
+                FOREIGN KEY (parent_2_id) REFERENCES parent_2 (id)
+            );
+
+            CREATE TRIGGER IF NOT EXISTS trigger_test_table_update 
+                AFTER UPDATE ON test_table
+                BEGIN
+                    UPDATE test_table
+                    SET updated_at=(strftime('%s', 'now'))
+                    WHERE id=OLD.id;
+                END;
+        "#;
+
+        let GenerateFiles { up, down: _ } = generate_migration(command)?;
+
+        assert_eq!(up.content.trim(), expected_up_content.trim());
 
         Ok(())
     }
