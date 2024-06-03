@@ -1003,6 +1003,7 @@ mod tests {
                     "string:string".to_string(),
                     "text:text".to_string(),
                     "uuid:uuid".to_string(),
+                    "foreign:foreign".to_string(),
                 ],
             };
             let table = "test_table".to_string();
@@ -1034,7 +1035,7 @@ mod tests {
 
             assert_eq!(
                 result.get("columnsLength").unwrap().to_string(),
-                "10".to_string()
+                "11".to_string()
             );
             assert_eq!(
                 result
@@ -1049,7 +1050,7 @@ mod tests {
                 _ => panic!("Expected columns to be an array"),
             };
 
-            assert_eq!(columns.len(), 10);
+            assert_eq!(columns.len(), 11);
 
             columns.iter().enumerate().for_each(|(index, column)| {
                 if index == 0 {
@@ -1058,7 +1059,7 @@ mod tests {
                     assert_eq!(column.get("columnFirst").unwrap().to_string(), "false");
                 }
 
-                if index == 9 {
+                if index == 10 {
                     assert_eq!(column.get("columnLast").unwrap().to_string(), "true");
                 } else {
                     assert_eq!(column.get("columnLast").unwrap().to_string(), "false");
@@ -1136,6 +1137,12 @@ mod tests {
                         "string"
                     );
                     assert_eq!(column.get("columnType").unwrap().to_string(), "uuid");
+                } else if index == 10 {
+                    assert_eq!(
+                        column.get("columnTypeMatchTS").unwrap().to_string(),
+                        "number"
+                    );
+                    assert_eq!(column.get("columnType").unwrap().to_string(), "foreign");
                 }
 
                 let keys = vec![
