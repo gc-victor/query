@@ -77,17 +77,33 @@ fn generate_migration(command: &GenerateArgs) -> Result<GenerateFiles> {
             };
 
             if column_type == "foreign" {
-                acc.push_str(&format!(
-                    "{} {} NOT NULL,{}",
-                    snake_case(column_name),
-                    "INTEGER",
-                    extra_space
-                ));
+                let parent_table = snake_case(column_name)
+                    .replace("_uuid", "")
+                    .replace("_id", "");
 
-                let parent_table = snake_case(column_name).replace("_id", "");
-                foreign.push_str(&format!(
-                    "FOREIGN KEY ({column_name}) REFERENCES {parent_table} (id),{extra_space}"
-                ));
+                if column_name.ends_with("_uuid") {
+                    acc.push_str(&format!(
+                        "{} {} NOT NULL,{}",
+                        snake_case(column_name),
+                        "TEXT",
+                        extra_space
+                    ));
+
+                    foreign.push_str(&format!(
+                        "FOREIGN KEY ({column_name}) REFERENCES {parent_table} (uuid),{extra_space}"
+                    ));
+                } else {
+                    acc.push_str(&format!(
+                        "{} {} NOT NULL,{}",
+                        snake_case(column_name),
+                        "INTEGER",
+                        extra_space
+                    ));
+
+                    foreign.push_str(&format!(
+                        "FOREIGN KEY ({column_name}) REFERENCES {parent_table} (id),{extra_space}"
+                    ));
+                }
             } else {
                 let uuid_value =
                     &format!("TEXT UNIQUE CHECK ({column_name} != '') DEFAULT (uuid())",);
@@ -874,6 +890,8 @@ mod tests {
         let command = &GenerateArgs {
             table: "test-table".to_string(),
             columns: vec![
+                "parent_uuid:foreign".to_string(),
+                "parent_2_uuid:foreign".to_string(),
                 "parent_id:foreign".to_string(),
                 "parent_2_id:foreign".to_string(),
             ],
@@ -884,10 +902,14 @@ mod tests {
             CREATE TABLE IF NOT EXISTS test_table(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 uuid TEXT UNIQUE CHECK (uuid != '') DEFAULT (uuid()) NOT NULL,
+                parent_uuid TEXT NOT NULL,
+                parent_2_uuid TEXT NOT NULL,
                 parent_id INTEGER NOT NULL,
                 parent_2_id INTEGER NOT NULL,
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+                FOREIGN KEY (parent_uuid) REFERENCES parent (uuid),
+                FOREIGN KEY (parent_2_uuid) REFERENCES parent_2 (uuid),
                 FOREIGN KEY (parent_id) REFERENCES parent (id),
                 FOREIGN KEY (parent_2_id) REFERENCES parent_2 (id)
             );
