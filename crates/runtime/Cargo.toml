@@ -35,4 +35,4 @@ tracing = { version = "0.1.40", features = ["log"] }
 url = "2.5.1"
 uuid = { version = "1.8.0", default-features = false, features = ["fast-rng", "v4"] }
 uuid-simd = "0.8.0"
-webpki-roots = "0.26.1"
+webpki-roots = "0.26.2"
