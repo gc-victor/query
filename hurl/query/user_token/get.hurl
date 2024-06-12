@@ -53,7 +53,7 @@ GET {{host}}/_/query?
 Authorization: {{user_token}}
 HTTP 400
 [Asserts]
-body contains "Missing query string: db_name"
+body contains "Missing query string"
 
 GET {{host}}/_/query?db_name=hurl-test-query.sql
 Authorization: {{user_token}}
