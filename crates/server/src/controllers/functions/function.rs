@@ -287,10 +287,18 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
                             value = o && typeof o === "object" ? o : value;
                         }} catch {{}}
 
-                        if (value.content && value.type && value.filename) {{
-                            formData.append(key, new Blob([new Uint8Array(value.content).buffer], {{ type: value.type }}), value.filename);
+                        if (value.hasOwnProperty("__field_same_name__")) {{
+                            value = value.__field_same_name__;
                         }} else {{
-                            formData.append(key, value);
+                            value = [value];
+                        }}
+
+                        for (const v of value) {{
+                            if (v.content && v.type && v.filename) {{
+                                formData.append(key, new Blob([new Uint8Array(v.content).buffer], {{ type: v.type }}), v.filename);
+                            }} else {{
+                                formData.append(key, v);
+                            }}
                         }}
                     }}
 
@@ -321,10 +329,21 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
     let ctx = rt.ctx.clone();
 
     let res = async_with!(ctx => |ctx| {
-        let (module, _) = Module::declare(ctx, "script", handle_response)
-            .unwrap()
-            .eval()
-            .unwrap();
+        let module = match Module::declare(ctx, "script", handle_response) {
+            Ok(m) => m,
+            Err(e) => {
+                tracing::error!("Error: {}", e);
+                return handle_fatal_error();
+            },
+        };
+        let (module, _) = match module.eval() {
+            Ok(m) => m,
+            Err(e) => {
+                tracing::error!("Error: {}", e);
+                return handle_fatal_error();
+            },
+
+        };
         let func: Function = match module.get("___handleResponse") {
             Ok(f) => f,
             Err(e) => {
@@ -565,9 +584,23 @@ fn formdata_to_json(formdata: &str, boundary: &str) -> Result<String> {
                     r#"{{"content": {content}, "type": "{content_type}", "filename": "{filename}"}}"#
                 );
             }
-        }
+        };
 
-        map.insert(key, value);
+        if map.contains_key(&key) {
+            let values = map
+                .get(&key)
+                .unwrap_or(&String::new())
+                .trim_start_matches(r#"{"__field_same_name__":["#)
+                .trim_end_matches("]}")
+                .to_string();
+
+            map.insert(
+                key,
+                format!(r#"{{"__field_same_name__":[{values},{value}]}}"#),
+            );
+        } else {
+            map.insert(key, value);
+        }
     }
 
     Ok(json!(map).to_string())
