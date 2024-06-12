@@ -8,4 +8,4 @@ const cacheControlFunction = `globalThis.___handleRequest = async () => {
 	});
 }`;
 
-console.log(`[${Array.from(new TextEncoder("utf-8").encode(cacheControlFunction)).toString()}]`);
+console.log(`[${Array.from(new TextEncoder("utf-8").encode(funFunFunction)).toString()}]`);
