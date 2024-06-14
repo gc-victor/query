@@ -284,10 +284,12 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
 
                         try {{
                             const o = JSON.parse(value);
-                            value = o && typeof o === "object" ? o : value;
+                            value = (o && typeof o === "object") ? o : value;
                         }} catch {{}}
 
-                        if (value.hasOwnProperty("__field_same_name__")) {{
+                        if (typeof value === "string" && value.includes("__field_same_name__")) {{
+                            throw new Error("There is an error parsing the field " + key + " in the form.");
+                        }} else if (typeof value === "object" && value?.__field_same_name__) {{
                             value = value.__field_same_name__;
                         }} else {{
                             value = [value];
@@ -546,8 +548,9 @@ fn formdata_to_json(formdata: &str, boundary: &str) -> Result<String> {
         let value = captures.get(1).unwrap().as_str();
         let value = value.strip_prefix("\r\n").unwrap_or(value);
         let mut value = value.strip_suffix("\r\n").unwrap_or(value).to_string();
+        let is_content_type = value.starts_with("Content-Type:");
 
-        if value.starts_with("Content-Type:") {
+        if is_content_type {
             let filename_re = Regex::new(r#"; filename="([^"]*)""#).unwrap();
             let content_type_re = Regex::new(r#"Content-Type: ([\w/]+)"#).unwrap();
             let content_re = Regex::new(r#"\r\n\r\n([\s\S]*)$"#).unwrap();
@@ -560,14 +563,6 @@ fn formdata_to_json(formdata: &str, boundary: &str) -> Result<String> {
                 .captures(&value)
                 .and_then(|caps| caps.get(1))
                 .map_or("", |m| m.as_str());
-            // NOTE: Workaround to receive binary data as it fails when isn't a valid UTF-8 string
-            // It expects to receive a string, so we have to convert the binary data to a stringify-array and set it back to the formData.
-            // Example:
-            // ```javascript
-            // const arrayBuffer = await file.arrayBuffer();
-            // const uint8Array = new Uint8Array(arrayBuffer);
-            // formData.set(fieldName, new Blob([JSON.stringify(Array.from(uint8Array))], { type: file.type }), file.name);
-            // ```
             let content = content_re
                 .captures(&value)
                 .and_then(|caps| caps.get(1))
@@ -594,10 +589,25 @@ fn formdata_to_json(formdata: &str, boundary: &str) -> Result<String> {
                 .trim_end_matches("]}")
                 .to_string();
 
-            map.insert(
-                key,
-                format!(r#"{{"__field_same_name__":[{values},{value}]}}"#),
-            );
+            if is_content_type {
+                map.insert(
+                    key,
+                    format!(r#"{{"__field_same_name__":[{values},{value}]}}"#),
+                );
+            } else if values.starts_with('"') {
+                let value = value.replace('"', r#"\\""#);
+                map.insert(
+                    key,
+                    format!(r#"{{"__field_same_name__":[{values},"{value}"]}}"#),
+                );
+            } else {
+                let value = value.replace('"', r#"\\\""#);
+                let values = values.replace('"', r#"\\\""#);
+                map.insert(
+                    key,
+                    format!(r#"{{"__field_same_name__":["{values}","{value}"]}}"#),
+                );
+            };
         } else {
             map.insert(key, value);
         }
