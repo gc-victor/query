@@ -122,6 +122,9 @@ npm-un-prerelease:
 build-server:
 	cargo build --package=query-server --release
 
+build-server-watch:
+	cargo watch -c --ignore .dbs -x check -x clippy --shell "RUST_LOG=debug cargo build --package=query-server | bunyan"
+
 build-cli:
 	cargo build --package=query --profile dist
 
