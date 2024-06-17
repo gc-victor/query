@@ -100,11 +100,12 @@ where
         LogLevel::Error => 50,
     };
     let msg = js_format(args)?;
-    let msg = msg
-        .replace(NEWLINE, "\\n")
-        .replace('"', "\\\"")
-        .trim()
-        .to_string();
+    let msg = msg.replace(NEWLINE, "\\n");
+    let msg = if msg.contains("\\\"") {
+        msg
+    } else {
+        msg.replace('"', "\\\"")
+    };
     let time = now();
     let log = format!(r#"{{"console":true,"level":{level},"msg":"{msg}","time":"{time}"}}"#);
     let buf = log.as_bytes();
