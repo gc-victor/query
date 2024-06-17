@@ -595,7 +595,7 @@ fn formdata_to_json(formdata: &str, boundary: &str) -> Result<String> {
                     format!(r#"{{"__field_same_name__":[{values},{value}]}}"#),
                 );
             } else if values.starts_with('"') {
-                let value = value.replace('"', r#"\\""#);
+                let value = value.replace('"', r#"\\\""#);
                 map.insert(
                     key,
                     format!(r#"{{"__field_same_name__":[{values},"{value}"]}}"#),
