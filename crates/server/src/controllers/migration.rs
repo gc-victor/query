@@ -72,7 +72,7 @@ fn migration_controller(db_name: &str, query: &str) -> Result<(), HttpError> {
     match conn.execute_batch(
         format!(
             r#"
-                BEGIN;
+                BEGIN IMMEDIATE;
                 {}
                 COMMIT;
             "#,
