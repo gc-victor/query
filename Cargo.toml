@@ -15,7 +15,7 @@ license = "MIT"
 # Config for 'cargo dist'
 [workspace.metadata.dist]
 # The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
-cargo-dist-version = "0.15.1"
+cargo-dist-version = "0.18.0"
 # CI backends to support
 ci = "github"
 # The archive format to use for non-windows builds (defaults .tar.xz)
