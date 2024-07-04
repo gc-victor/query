@@ -2,6 +2,141 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.11] - 2024-07-04
+
+### 🚀 Features
+
+- *(server)* Add transaction immediate
+
+### 🐛 Bug Fixes
+
+- *(server)* Parse bad control characters
+
+### Build
+
+- *(deps)* Bump rustls from 0.23.9 to 0.23.10
+- *(deps)* Bump http-body-util from 0.1.1 to 0.1.2
+- *(deps)* Bump reqwest from 0.12.4 to 0.12.5
+- *(deps)* Bump uuid from 1.8.0 to 1.9.0
+- *(deps)* Bump lazy_static from 1.4.0 to 1.5.0
+- *(deps)* Bump webpki-roots from 0.26.2 to 0.26.3
+- *(deps)* Bump url from 2.5.1 to 2.5.2
+- *(deps)* Bump hyper from 1.3.1 to 1.4.0
+- *(deps)* Bump uuid from 1.9.0 to 1.9.1
+- *(deps)* Bump serde_bytes from 0.11.14 to 0.11.15
+- *(deps)* Bump mime_guess from 2.0.4 to 2.0.5
+- *(deps)* Bump hyper-util from 0.1.5 to 0.1.6
+- Update cargo dist 0.15.1 to 0.18.0
+
+### Release
+
+- Version 0.12.11
+
+## [0.12.10] - 2024-06-17
+
+### 🐛 Bug Fixes
+
+- *(server)* Add missing escape double quotes
+- *(runtime)* Remove console escaped double quotes
+
+### Release
+
+- Version 0.12.10
+
+## [0.12.9] - 2024-06-14
+
+### 🐛 Bug Fixes
+
+- *(server)* Multipart form-data fields with same name
+
+### ⚙️ Miscellaneous Tasks
+
+- Add build server watch
+
+### Release
+
+- Version 0.12.9
+
+## [0.12.8] - 2024-06-12
+
+### 🐛 Bug Fixes
+
+- Hurl tests
+- *(server)* Handle multiple form data fields with identical names
+
+### Build
+
+- *(deps)* Bump regex from 1.10.4 to 1.10.5
+- *(deps)* Bump toml from 0.8.13 to 0.8.14
+- *(deps)* Bump url from 2.5.0 to 2.5.1
+- *(deps)* Bump clap from 4.5.4 to 4.5.7
+- *(deps)* Bump webpki-roots from 0.26.1 to 0.26.2
+
+### Release
+
+- Version 0.12.8
+
+## [0.12.7] - 2024-06-05
+
+### 🚀 Features
+
+- *(cli)* Add generate foreign uuid
+
+### 🧪 Testing
+
+- *(cli)* Add missing foreign test
+
+### Build
+
+- *(deps)* Bump rustls from 0.23.8 to 0.23.9
+- *(deps)* Bump hyper-util from 0.1.4 to 0.1.5
+- *(deps)* Bump tokio from 1.37.0 to 1.38.0
+- Update cargo dist 0.15.0 to 0.15.1
+
+### Dev
+
+- *(deps)* Update @biomejs/biome from 1.6.4 to 1.8.0
+
+### Release
+
+- Version 0.12.7
+
+## [0.12.6] - 2024-06-02
+
+### 🚀 Features
+
+- *(example)* Add table min-w-full
+- *(cli)* Add generate foreign
+
+### 🐛 Bug Fixes
+
+- *(example)* Execute sh in the background
+- *(example)* Add missing fragments
+- *(example)* Add missing key
+- *(example)* Replace interface semicolons by commas
+- *(example)* Add missing keys
+
+### 📚 Documentation
+
+- Changelog version 0.12.5
+
+### Build
+
+- *(deps)* Bump rustls from 0.23.5 to 0.23.7
+- *(deps)* Bump toml from 0.8.12 to 0.8.13
+- *(deps)* Bump anyhow from 1.0.83 to 1.0.86
+- *(deps)* Bump toml_edit from 0.22.12 to 0.22.13
+- *(deps)* Bump serde from 1.0.201 to 1.0.202
+- *(deps)* Bump serde from 1.0.202 to 1.0.203
+- *(deps)* Bump rustls from 0.23.7 to 0.23.8
+- *(deps)* Bump hyper-rustls from 0.27.1 to 0.27.2
+- *(deps)* Bump hyper-util from 0.1.3 to 0.1.4
+- Update cargo dist 0.14.1 to 0.15.0
+
+### Release
+
+- Version 0.12.6
+
 ## [0.12.5] - 2024-05-15
 
 ### 🚀 Features
