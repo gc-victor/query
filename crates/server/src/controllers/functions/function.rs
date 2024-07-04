@@ -268,54 +268,59 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         {function}
 
         function ___handleRequestWrapper() {{
-            const options = {{
-                headers: {{ {headers} }},
-                method: '{method}',
-                url: '{url}',
-            }};
+            try {{
+                const options = {{
+                    headers: {{ {headers} }},
+                    method: '{method}',
+                    url: '{url}',
+                }};
 
-            if (!/GET|HEAD/.test('{method}')) {{
-                if (/multipart\/form-data/.test(options.headers['content-type'])) {{
-                    const object = {body_multi_part};
-                    const formData = new FormData();
-            
-                    for (const key in object) {{
-                        let value = object[key];
+                if (!/GET|HEAD/.test('{method}')) {{
+                    if (/multipart\/form-data/.test(options.headers['content-type'])) {{
+                        const object = {body_multi_part};
+                        const formData = new FormData();
+                
+                        for (const key in object) {{
+                            let value = object[key];
 
-                        try {{
-                            const o = JSON.parse(value);
-                            value = (o && typeof o === "object") ? o : value;
-                        }} catch {{}}
+                            try {{
+                                const o = JSON.parse(value);
+                                value = (o && typeof o === "object") ? o : value;
+                            }} catch {{}}
 
-                        if (typeof value === "string" && value.includes("__field_same_name__")) {{
-                            throw new Error("There is an error parsing the field " + key + " in the form.");
-                        }} else if (typeof value === "object" && value?.__field_same_name__) {{
-                            value = value.__field_same_name__;
-                        }} else {{
-                            value = [value];
-                        }}
-
-                        for (const v of value) {{
-                            if (v.content && v.type && v.filename) {{
-                                formData.append(key, new Blob([new Uint8Array(v.content).buffer], {{ type: v.type }}), v.filename);
+                            if (typeof value === "string" && value.includes("__field_same_name__")) {{
+                                throw new Error("There is an error parsing the field " + key + " in the form.");
+                            }} else if (typeof value === "object" && value?.__field_same_name__) {{
+                                value = value.__field_same_name__;
                             }} else {{
-                                formData.append(key, v);
+                                value = [value];
+                            }}
+
+                            for (const v of value) {{
+                                if (v.content && v.type && v.filename) {{
+                                    formData.append(key, new Blob([new Uint8Array(v.content).buffer], {{ type: v.type }}), v.filename);
+                                }} else {{
+                                    formData.append(key, v);
+                                }}
                             }}
                         }}
+
+                        options.body = formData;
+
+                        // NOTE: it allows to the Request to create a new boundary
+                        delete options.headers['content-type'];
+                    }} else {{
+                        options.body = {body};
                     }}
-
-                    options.body = formData;
-
-                    // NOTE: it allows to the Request to create a new boundary
-                    delete options.headers['content-type'];
-                }} else {{
-                    options.body = {body};
                 }}
+
+                const request = new Request('{url}', options);
+
+                return ___handleRequest(request);
+
+            }} catch (e) {{
+                console.error(e);
             }}
-
-            const request = new Request('{url}', options);
-
-            return ___handleRequest(request);
         }}
 
         export const ___handleResponse = ___hr.bind(null, ___handleRequestWrapper);
@@ -596,13 +601,22 @@ fn formdata_to_json(formdata: &str, boundary: &str) -> Result<String> {
                 );
             } else if values.starts_with('"') {
                 let value = value.replace('"', r#"\\\""#);
+                let value = value.replace('\n', "\\n");
+                let value = value.replace('\r', "\\r");
+                let value = value.replace('\t', "\\t");
                 map.insert(
                     key,
                     format!(r#"{{"__field_same_name__":[{values},"{value}"]}}"#),
                 );
             } else {
-                let value = value.replace('"', r#"\\\""#);
                 let values = values.replace('"', r#"\\\""#);
+                let values = values.replace('\n', "\\n");
+                let values = values.replace('\r', "\\r");
+                let values = values.replace('\t', "\\t");
+                let value = value.replace('"', r#"\\\""#);
+                let value = value.replace('\n', "\\n");
+                let value = value.replace('\r', "\\r");
+                let value = value.replace('\t', "\\t");
                 map.insert(
                     key,
                     format!(r#"{{"__field_same_name__":["{values}","{value}"]}}"#),
