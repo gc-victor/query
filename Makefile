@@ -14,6 +14,21 @@ HURL_user_token := "Bearer $(HURL_user_token)"
 export HURL_user_token
 export HURL_host = http://localhost:3000
 
+# Changelog
+
+update-changelog:
+	@commits=$$(git log --grep="release: version" --format="%H" -n 2); \
+	if [ $$(echo "$$commits" | wc -l) -lt 2 ]; then \
+		echo "Error: Less than two 'release' commits found."; \
+		exit 1; \
+	fi; \
+	last=$$(echo "$$commits" | head -n 1); \
+	prev=$$(echo "$$commits" | tail -n 1); \
+	git cliff $$prev..$$last --prepend CHANGELOG.md; \
+	echo "CHANGELOG.md has been updated with changes between commits:"; \
+	echo "Previous: $$prev"; \
+	echo "Latest: $$last"
+
 # Clean
 
 clean:
