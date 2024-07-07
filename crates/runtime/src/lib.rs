@@ -50,6 +50,7 @@ pub struct Runtime {
 const HANDLE_RESPONSE_SCRIPT_MODULE: &str = include_str!("js/handle-response.js");
 const SQLITE_SCRIPT_MODULE: &str = include_str!("js/sqlite.js");
 // Polyfill modules
+const CONSOLE_SCRIPT_MODULE: &str = include_str!("js/polyfills/console.js");
 const FETCH_SCRIPT_MODULE: &str = include_str!("js/polyfills/fetch.js");
 const FILE_SCRIPT_MODULE: &str = include_str!("js/polyfills/file.js");
 const FORM_DATA_SCRIPT_MODULE: &str = include_str!("js/polyfills/form-data.js");
@@ -76,6 +77,7 @@ impl Runtime {
         let resolver = BuiltinResolver::default()
             .with_module("js/handle-response")
             .with_module("js/sqlite")
+            .with_module("polyfill/console")
             .with_module("polyfill/fetch")
             .with_module("polyfill/file")
             .with_module("polyfill/form-data")
@@ -86,6 +88,7 @@ impl Runtime {
             BuiltinLoader::default()
                 .with_module("js/handle-response", HANDLE_RESPONSE_SCRIPT_MODULE)
                 .with_module("js/sqlite", SQLITE_SCRIPT_MODULE)
+                .with_module("polyfill/console", CONSOLE_SCRIPT_MODULE)
                 .with_module("polyfill/fetch", FETCH_SCRIPT_MODULE)
                 .with_module("polyfill/file", FILE_SCRIPT_MODULE)
                 .with_module("polyfill/form-data", FORM_DATA_SCRIPT_MODULE)

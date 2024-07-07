@@ -244,6 +244,7 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         r#"
         import {{ ___handleResponse as ___hr }} from 'js/handle-response';
         import 'js/sqlite';
+        import 'polyfill/console';
         import 'polyfill/fetch';
         import 'polyfill/file';
         import 'polyfill/form-data';
