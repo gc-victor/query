@@ -7,14 +7,11 @@ use std::{
 
 use rquickjs::{
     function::{Func, Rest},
-    Ctx, Object, Result, Type, Value,
+    Ctx, Error, Object, Result, Type, Value,
 };
-
-const NEWLINE: char = '\n';
 
 #[derive(Debug)]
 pub enum LogLevel {
-    Trace = 10,
     Debug = 20,
     Info = 30,
     Warn = 40,
@@ -26,23 +23,13 @@ pub fn init(ctx: &Ctx<'_>) -> Result<()> {
 
     let console = Object::new(ctx.clone())?;
 
-    console.set("assert", Func::from(console_assert))?;
     console.set("debug", Func::from(console_debug))?;
     console.set("error", Func::from(console_error))?;
     console.set("info", Func::from(console_info))?;
     console.set("log", Func::from(console_log))?;
-    console.set("trace", Func::from(console_trace))?;
     console.set("warn", Func::from(console_warn))?;
 
-    globals.set("console", console)?;
-
-    Ok(())
-}
-
-fn console_assert(expression: bool, args: Rest<Value<'_>>) -> Result<()> {
-    if !expression {
-        log_write(stderr(), args, LogLevel::Info)?;
-    }
+    globals.set("___print", console)?;
 
     Ok(())
 }
@@ -63,23 +50,8 @@ fn console_log(args: Rest<Value<'_>>) -> Result<()> {
     log_write(stdout(), args, LogLevel::Info)
 }
 
-fn console_trace(args: Rest<Value<'_>>) -> Result<()> {
-    log_write(stdout(), args, LogLevel::Trace)
-}
-
 fn console_warn(args: Rest<Value<'_>>) -> Result<()> {
     log_write(stderr(), args, LogLevel::Warn)
-}
-
-fn js_format(args: Rest<Value<'_>>) -> Result<String> {
-    let mut result = String::new();
-
-    for arg in args.iter() {
-        result.push_str(js_stringify(arg)?.as_str());
-        result.push(' ');
-    }
-
-    Ok(result)
 }
 
 impl fmt::Display for LogLevel {
@@ -93,19 +65,21 @@ where
     O: Write,
 {
     let level = match level {
-        LogLevel::Trace => 10,
         LogLevel::Debug => 20,
         LogLevel::Info => 30,
         LogLevel::Warn => 40,
         LogLevel::Error => 50,
     };
     let msg = js_format(args)?;
-    let msg = msg.replace(NEWLINE, "\\n");
+    let msg = msg.replace('\n', "\\n");
+    let msg = msg.replace('\r', "\\r");
+    let msg = msg.replace('\t', "\\t");
     let msg = if msg.contains("\\\"") {
         msg
     } else {
         msg.replace('"', "\\\"")
     };
+    let msg = msg.trim();
     let time = now();
     let log = format!(r#"{{"console":true,"level":{level},"msg":"{msg}","time":"{time}"}}"#);
     let buf = log.as_bytes();
@@ -115,19 +89,52 @@ where
     Ok(())
 }
 
+fn js_format(args: Rest<Value<'_>>) -> Result<String> {
+    let mut result = String::new();
+
+    for arg in args.iter() {
+        result.push_str(js_stringify(arg)?.as_str());
+        result.push(' ');
+    }
+
+    Ok(result)
+}
+
 pub fn js_stringify(value: &Value<'_>) -> Result<String> {
     let mut result = String::new();
 
     match value.type_of() {
-        Type::String => result = value.as_string().unwrap().to_string()?,
-        Type::Bool => result = value.as_bool().unwrap().to_string(),
-        Type::Int => result = value.as_int().unwrap().to_string(),
+        Type::String => {
+            result = value
+                .as_string()
+                .ok_or(Error::new_from_js("value", "string"))?
+                .to_string()?
+        }
+        Type::Bool => {
+            result = value
+                .as_bool()
+                .ok_or(Error::new_from_js("value", "bool"))?
+                .to_string()
+        }
+        Type::Int => {
+            result = value
+                .as_int()
+                .ok_or(Error::new_from_js("value", "int"))?
+                .to_string()
+        }
         Type::BigInt => {
-            result = value.as_big_int().unwrap().clone().to_i64()?.to_string();
+            result = value
+                .as_big_int()
+                .ok_or(Error::new_from_js("value", "bigint"))?
+                .clone()
+                .to_i64()?
+                .to_string();
             result.push('n');
         }
         Type::Float => {
-            let float = value.as_float().unwrap();
+            let float = value
+                .as_float()
+                .ok_or(Error::new_from_js("value", "float"))?;
 
             if float.is_infinite() {
                 if float.is_sign_negative() {
@@ -140,7 +147,9 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
             }
         }
         Type::Array => {
-            let array = value.as_array().unwrap();
+            let array = value
+                .as_array()
+                .ok_or(Error::new_from_js("value", "array"))?;
 
             result.push('[');
 
@@ -165,7 +174,11 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
             result.push(']');
         }
         Type::Symbol => {
-            let description = value.as_symbol().unwrap().description()?;
+            let description = value
+                .as_symbol()
+                .ok_or(Error::new_from_js("value", "symbol"))?
+                .description()?;
+
             let description = description.as_string().unwrap().to_string()?;
 
             result.push_str("Symbol(");
@@ -177,7 +190,9 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
             result.push(')');
         }
         Type::Exception => {
-            let exception = value.as_exception().unwrap();
+            let exception = value
+                .as_exception()
+                .ok_or(Error::new_from_js("value", "exception"))?;
 
             if let Some(message) = exception.message() {
                 let name: String = exception.get("name")?;
@@ -185,7 +200,7 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
                 result.push_str(&name);
                 result.push_str(": ");
                 result.push_str(&message);
-                result.push(NEWLINE);
+                result.push('\n');
             }
 
             if let Some(stack) = exception.stack() {
@@ -193,7 +208,9 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
             }
         }
         Type::Object => {
-            let obj = value.as_object().unwrap();
+            let obj = value
+                .as_object()
+                .ok_or(Error::new_from_js("value", "object"))?;
             let keys: Vec<String> = obj
                 .keys::<String>()
                 .map(|k| k.unwrap().to_string())
@@ -270,4 +287,223 @@ fn now() -> std::string::String {
         "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:09}Z",
         year, month, day, hours, minutes, seconds, millis
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rquickjs::function::Rest;
+    use rquickjs::{Context, Ctx, Runtime};
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Console {
+        pub console: bool,
+        pub level: u8,
+        pub msg: String,
+        pub time: String,
+    }
+
+    #[test]
+    fn test_log_string() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+
+            let value = ctx.eval(r#"["test"]"#).unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+
+            assert_eq!("test", console.msg);
+        });
+    }
+
+    #[test]
+    fn test_log_int() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[1]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("1", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_bool() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[true]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("true", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_float() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[1.5]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("1.5", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_bigint() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[BigInt('9007199254740991')]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("9007199254740991n", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_array() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[[1,2,3]]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("[1,2,3]", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_array_max_depth() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[[1,[2,[3]]]]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("[1,[2,[3]]]", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_object() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[{'a':1}]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("{a:1}", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_object_complex() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[{[['a','b']]:{'c': [{1: 'd'}]}}]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("{a,b:{c:[{1:'d'}]}}", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_object_max_depth() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[{1:{2:{3:4}}}]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("{1:{2:{3:4}}}", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_symbol() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[Symbol('a')]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("Symbol(a)", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_function() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("const myfunc = () => {}; [myfunc]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("[Function: myfunc]", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_promise() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[Promise.resolve(1)]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("[object Promise]", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_proxy() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[new Proxy({ a: 1 }, {})]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("{a:1}", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_undefined() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[undefined]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("undefined", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_null() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("[null]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("null", console.msg);
+        })
+    }
+
+    fn test_with<F, R>(func: F) -> R
+    where
+        F: FnOnce(Ctx) -> R,
+    {
+        let rt = Runtime::new().unwrap();
+        let ctx = Context::full(&rt).unwrap();
+        ctx.with(func)
+    }
 }

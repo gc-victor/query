@@ -1,4 +1,4 @@
-const funFunFunction = `globalThis.___handleRequest = async (req) => {
+const multipartFunction = `globalThis.___handleRequest = async (req) => {
     try {
         const formData = await req.formData();
         const email = formData.get("email");
@@ -28,4 +28,4 @@ const funFunFunction = `globalThis.___handleRequest = async (req) => {
     }
 };`;
 
-console.log(`[${Array.from(new TextEncoder("utf-8").encode(funFunFunction)).toString()}]`);
+console.log(`[${Array.from(new TextEncoder("utf-8").encode(multipartFunction)).toString()}]`);
