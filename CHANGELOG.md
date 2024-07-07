@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.12] - 2024-07-07
+
+### 🚀 Features
+
+- *(runtime)* Enhance console
+
+### 📚 Documentation
+
+- Changelog versions to 0.12.11
+
+### ⚙️ Miscellaneous Tasks
+
+- Update changelog
+
+### Release
+
+- Version 0.12.12
+
 ## [0.12.11] - 2024-07-04
 
 ### 🚀 Features
