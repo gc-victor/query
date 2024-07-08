@@ -285,10 +285,7 @@ fn query_command(args: Vec<&str>) {
 
     let pm = detect_package_manager();
 
-    let package_global = match which(binary) {
-        Some(package_global) => package_global,
-        None => String::new(),
-    };
+    let package_global = which(binary).unwrap_or_default();
     let hash_package_global = !package_global.is_empty();
     let hash_package_local_module = has_module(binary);
     let hash_package = hash_package_local_module || hash_package_global;

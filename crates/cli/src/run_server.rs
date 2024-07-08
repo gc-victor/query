@@ -21,18 +21,12 @@ const ESBUILD_BINARY: &str = "esbuild";
 pub fn run_query_server(verbose: bool, silent: bool) {
     let pm = detect_package_manager();
 
-    let query_server_global = match which(QUERY_SERVER_BINARY) {
-        Some(query_server_global) => query_server_global,
-        None => String::new(),
-    };
+    let query_server_global = which(QUERY_SERVER_BINARY).unwrap_or_default();
     let hash_query_server_global = !query_server_global.is_empty();
     let hash_query_server_local_module = has_module(QUERY_SERVER_MODULE);
     let hash_query_server = hash_query_server_local_module || hash_query_server_global;
 
-    let esbuild_global = match which(ESBUILD_BINARY) {
-        Some(esbuild_global) => esbuild_global,
-        None => String::new(),
-    };
+    let esbuild_global = which(ESBUILD_BINARY).unwrap_or_default();
     let hash_esbuild_global = !esbuild_global.is_empty();
     let hash_esbuild_local_module = has_module(ESBUILD_MODULE);
     let hash_esbuild = hash_esbuild_local_module || hash_esbuild_global;

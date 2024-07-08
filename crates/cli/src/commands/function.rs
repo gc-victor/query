@@ -268,10 +268,7 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
         args.push(flag);
     }
 
-    let esbuild_global = match which("esbuild") {
-        Some(esbuild_global) => esbuild_global,
-        None => String::new(),
-    };
+    let esbuild_global = which("esbuild").unwrap_or_default();
     let hash_esbuild_global = !esbuild_global.is_empty();
     let hash_esbuild_local_module = has_module("esbuild");
     let hash_esbuild = hash_esbuild_local_module || hash_esbuild_global;
