@@ -1,5 +1,8 @@
-use std::collections::HashMap;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    collections::HashMap,
+    thread,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use anyhow::Result;
 use hyper::{body::Incoming, header::CONTENT_TYPE, http::HeaderName, Method, Request, Response};
@@ -140,13 +143,19 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
 
                 return Ok(response);
             } else if cache_function.status != 0 && is_primary() {
-                match connect_cache_function_db()?.execute(
-                    r#"DELETE FROM cache_function WHERE path = ?"#,
-                    [&cache_function_path],
-                ) {
-                    Ok(_) => tracing::info!("Cache Deleted: {}", cache_function_path),
-                    Err(e) => tracing::error!("Error: {:?}", e),
-                };
+                let cache_function_path_cloned = cache_function_path.clone();
+
+                thread::spawn(move || -> Result<()> {
+                    match connect_cache_function_db()?.execute(
+                        r#"DELETE FROM cache_function WHERE path = ?"#,
+                        [&cache_function_path_cloned],
+                    ) {
+                        Ok(_) => tracing::info!("Cache Deleted: {}", cache_function_path_cloned),
+                        Err(e) => tracing::error!("Error: {:?}", e),
+                    };
+
+                    Ok(())
+                });
             }
         }
     }
@@ -451,16 +460,22 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
                 let headers = headers.trim_end_matches(',');
                 let headers = format!("{{{}}}", headers);
 
-                match connect_cache_function_db()?.execute(
-                    r#"
-                        INSERT OR IGNORE INTO cache_function (path, body, expires_at, headers, status)
-                        VALUES (?, ?, ?, ?, ?)
-                        "#,
-                    [cache_function_path, &cloned_body, &expires_at.to_string(), &headers, &status],
-                ) {
-                    Ok(_) => tracing::info!("Cache Created: {}", cache_function_path),
-                    Err(e) => tracing::error!("Error: {:?}", e),
-                };
+                let cache_function_path_cloned = cache_function_path.clone();
+
+                thread::spawn(move || -> Result<()> {
+                    match connect_cache_function_db()?.execute(
+                        r#"
+                            INSERT OR IGNORE INTO cache_function (path, body, expires_at, headers, status)
+                            VALUES (?, ?, ?, ?, ?)
+                            "#,
+                        [&cache_function_path_cloned, &cloned_body, &expires_at.to_string(), &headers, &status],
+                    ) {
+                        Ok(_) => tracing::info!("Cache Created: {}", cache_function_path_cloned),
+                        Err(e) => tracing::error!("Error: {:?}", e),
+                    };
+
+                    Ok(())
+                });
             }
         }
     }

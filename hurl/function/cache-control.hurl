@@ -22,6 +22,8 @@ header "Query-Cache-Hit" not exists
 # The cache should be hit
 GET {{host}}/_/function/hurl/cache-control
 Authorization: {{user_token}}
+[Options]
+delay: 10
 HTTP 200
 [Asserts]
 body contains "Hurl!"
@@ -34,7 +36,7 @@ header "Query-Cache-Hit" contains "true"
 GET {{host}}/_/function/hurl/cache-control
 Authorization: {{user_token}}
 [Options]
-delay: 750
+delay: 550
 HTTP 200
 [Asserts]
 body contains "Hurl!"
