@@ -58,6 +58,8 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         path = "/".to_string();
     }
 
+    let method_lower_case = method.to_lowercase();
+
     if method == "GET" {
         if path == "/pages/" {
             path = "/pages".to_string();
@@ -344,9 +346,10 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
 
     let rt = runtime().await;
     let ctx = rt.ctx.clone();
+    let module_name = format!("{}::{}", path, method_lower_case);
 
     let res = async_with!(ctx => |ctx| {
-        let module = match Module::declare(ctx, "script", handle_response) {
+        let module = match Module::declare(ctx, module_name, handle_response) {
             Ok(m) => m,
             Err(e) => {
                 tracing::error!("Error: {}", e);

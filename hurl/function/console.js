@@ -10,8 +10,8 @@ Constructor: function anonymous(
 
 }
 Exception: An error occurred!
-    at s (script:26:202)
-    at ___handleRequestWrapper (script:78:24)
+    at s (/console::get:26:202)
+    at ___handleRequestWrapper (/console::get:78:24)
     at ___handleResponse (js/handle-response:2:28)
 Float: 1.1
 Function: function(){}
