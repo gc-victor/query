@@ -4,11 +4,11 @@ globalThis.console = {
             ___print.error("Assertion failed:", mapArgsAndJoin(args));
         }
     },
-    debug: (...args) => ___print.debug(mapArgsAndJoin(args)),
-    error: (...args) => ___print.error(mapArgsAndJoin(args)),
-    info: (...args) => ___print.info(mapArgsAndJoin(args)),
-    log: (...args) => ___print.log(mapArgsAndJoin(args)),
-    warn: (...args) => ___print.warn(mapArgsAndJoin(args)),
+    debug: (...args) => ___print.debug(...mapArgsAndJoin(args)),
+    error: (...args) => ___print.error(...mapArgsAndJoin(args)),
+    info: (...args) => ___print.info(...mapArgsAndJoin(args)),
+    log: (...args) => ___print.log(...mapArgsAndJoin(args)),
+    warn: (...args) => ___print.warn(...mapArgsAndJoin(args)),
 };
 
 function mapArgsAndJoin(args) {
@@ -20,31 +20,29 @@ function mapArgsAndJoin(args) {
         const result = substitutions(args);
 
         if (result !== args[0]) {
-            return result;
+            return [result];
         }
     }
 
-    return args
-        .map((arg) => {
-            if (arg === null) {
-                return "null";
-            }
+    return args.map((arg) => {
+        if (arg === null) {
+            return "null";
+        }
 
-            if (arg instanceof Error) {
-                return `${arg.message}\\n${arg.stack || ""}`;
-            }
+        if (arg instanceof Error) {
+            return `${arg.message}\\n${arg.stack || ""}`;
+        }
 
-            if (typeof arg === "symbol") {
-                return arg.toString();
-            }
+        if (typeof arg === "function") {
+            return arg.toString();
+        }
 
-            if (typeof arg === "object" && !(arg instanceof Promise)) {
-                return customStringify(arg);
-            }
+        if (typeof arg === "object" && !(arg instanceof Promise)) {
+            return customStringify(arg);
+        }
 
-            return arg;
-        })
-        .join(" ");
+        return arg;
+    });
 }
 
 function customStringify(obj, visited = new Set()) {
