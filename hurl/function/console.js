@@ -18,7 +18,7 @@ Function: function(){}
 Int: 1
 Null:: null
 Object: {"a":1,"b":"1","c":{"a":{"a":{"a":1,"b":"1"}}}}
-Promise: [object Promise]
+Promise: Promise {}
 Proxy: {"a":1}
 String: a
 Symbol: Symbol(a)

@@ -1,4 +1,3 @@
-// CREDIT: https://github.com/yasojs/yaso/blob/e2b56fef23a46cb80f7ed188531d02be6cf1b6b5/src/console.rs
 use std::{
     fmt,
     io::{stderr, stdout, Write},
@@ -6,6 +5,7 @@ use std::{
 };
 
 use rquickjs::{
+    atom::PredefinedAtom,
     function::{Func, Rest},
     Ctx, Error, Object, Result, Type, Value,
 };
@@ -241,23 +241,31 @@ pub fn js_stringify(value: &Value<'_>) -> Result<String> {
             result.push('}');
         }
         Type::Module => result.push_str("[Module]"),
-        Type::Constructor | Type::Function => {
-            result.push_str("[Function");
+        Type::Function | Type::Constructor => {
+            // NOTE: the polyfills/console.js converts the functions and classes to a string
+            let obj = value.as_object().unwrap();
+            let is_class = value.as_constructor().is_some();
 
-            let name: String = value.as_function().unwrap().get("name")?;
-
-            if !name.is_empty() {
-                result.push_str(": ");
-                result.push_str(&name);
-                result.push(']');
-            } else {
-                result.push_str(" (anonymous)]");
+            const ANONYMOUS: &str = "(anonymous)";
+            let mut name: String = obj
+                .get(PredefinedAtom::Name)
+                .unwrap_or(String::with_capacity(ANONYMOUS.len()));
+            if name.is_empty() {
+                name.push_str(ANONYMOUS);
             }
+
+            if is_class {
+                result.push_str("[class: ");
+            } else {
+                result.push_str("[function: ");
+            }
+            result.push_str(&name);
+            result.push(']');
         }
         Type::Uninitialized | Type::Undefined => result.push_str("undefined"),
         Type::Null => result.push_str("null"),
         Type::Unknown => result.push_str("{unknown}"),
-        Type::Promise => result.push_str("[object Promise]"),
+        Type::Promise => result.push_str("Promise {}"),
     };
 
     Ok(result)
@@ -442,11 +450,23 @@ mod tests {
     fn test_log_function() {
         test_with(|ctx| {
             let mut buffer = Vec::new();
-            let value = ctx.eval("const myfunc = () => {}; [myfunc]").unwrap();
+            let value = ctx.eval("const myFn = () => {}; [myFn]").unwrap();
             log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
             let output = &String::from_utf8(buffer).unwrap();
             let console: Console = serde_json::from_str(output).unwrap();
-            assert_eq!("[Function: myfunc]", console.msg);
+            assert_eq!("[function: myFn]", console.msg);
+        })
+    }
+
+    #[test]
+    fn test_log_class() {
+        test_with(|ctx| {
+            let mut buffer = Vec::new();
+            let value = ctx.eval("class MyClass {}; [MyClass]").unwrap();
+            log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
+            let output = &String::from_utf8(buffer).unwrap();
+            let console: Console = serde_json::from_str(output).unwrap();
+            assert_eq!("[class: MyClass]", console.msg);
         })
     }
 
@@ -458,7 +478,7 @@ mod tests {
             log_write(&mut buffer, Rest(value), LogLevel::Info).unwrap();
             let output = &String::from_utf8(buffer).unwrap();
             let console: Console = serde_json::from_str(output).unwrap();
-            assert_eq!("[object Promise]", console.msg);
+            assert_eq!("Promise {}", console.msg);
         })
     }
 
