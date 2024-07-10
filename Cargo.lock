@@ -289,9 +289,9 @@ checksum = "514de17de45fdb8dc022b1a7975556c53c86f9f0aa5f534b98977b171857c2c9"
 
 [[package]]
 name = "cc"
-version = "1.0.90"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cd6604a82acf3039f1144f54b8eb34e91ffba622051189e71b781822d5ee1f5"
+checksum = "eaff6f8ce506b9773fa786672d63fc7a191ffea1be33f72bbd4aeacefca9ffc8"
 
 [[package]]
 name = "cfg-if"
@@ -634,9 +634,9 @@ checksum = "a357d28ed41a50f9c765dbfe56cbc04a64e53e5fc58ba79fbc34c10ef3df831f"
 
 [[package]]
 name = "encoding_rs"
-version = "0.8.33"
+version = "0.8.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7268b386296a025e474d5140678f75d6de9493ae55a5d709eeb9dd08149945e1"
+checksum = "b45de904aa0b010bce2ab45264d0631681847fa7b6f2eaa7dab7619943bc4f59"
 dependencies = [
  "cfg-if",
 ]
@@ -2305,6 +2305,8 @@ dependencies = [
  "anyhow",
  "base64-simd",
  "bytes",
+ "chrono",
+ "encoding_rs",
  "fxhash",
  "hex-simd",
  "http-body-util",
@@ -2314,6 +2316,7 @@ dependencies = [
  "itoa",
  "jsonwebtoken",
  "once_cell",
+ "rand",
  "rbase64",
  "regex",
  "ring",

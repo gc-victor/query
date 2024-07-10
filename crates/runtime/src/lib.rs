@@ -18,6 +18,7 @@ mod crypto;
 mod encoding;
 mod environment;
 mod events;
+mod exceptions;
 mod http;
 mod json;
 mod module;
@@ -108,6 +109,7 @@ impl Runtime {
             crate::crypto::init(&ctx)?;
             crate::encoding::init(&ctx)?;
             crate::events::init(&ctx)?;
+            crate::exceptions::init(&ctx)?;
             crate::http::init(&ctx)?;
             crate::process::init(&ctx)?;
             crate::timers::init(&ctx)?;

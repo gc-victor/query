@@ -1,0 +1,40 @@
+use std::sync::{Arc, RwLock};
+
+use rquickjs::class::{Trace, Tracer};
+
+use super::{Emitter, EventList, Events};
+
+#[rquickjs::class]
+#[derive(Clone)]
+pub struct EventTarget<'js> {
+    pub events: Events<'js>,
+}
+
+impl<'js> Emitter<'js> for EventTarget<'js> {
+    fn get_event_list(&self) -> Arc<RwLock<EventList<'js>>> {
+        self.events.clone()
+    }
+}
+
+impl<'js> Trace<'js> for EventTarget<'js> {
+    fn trace<'a>(&self, tracer: Tracer<'a, 'js>) {
+        self.trace_event_emitter(tracer);
+    }
+}
+
+#[rquickjs::methods]
+impl<'js> EventTarget<'js> {
+    #[qjs(constructor)]
+    pub fn new() -> Self {
+        Self {
+            #[allow(clippy::arc_with_non_send_sync)]
+            events: Arc::new(RwLock::new(Vec::new())),
+        }
+    }
+}
+
+impl<'js> Default for EventTarget<'js> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
