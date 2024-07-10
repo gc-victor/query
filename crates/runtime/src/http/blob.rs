@@ -1,11 +1,11 @@
-#![allow(clippy::inherent_to_string)]
-
 use std::ops::RangeInclusive;
 
 use rquickjs::{
-    atom::PredefinedAtom, class::Trace, function::Opt, ArrayBuffer, Class, Coerced, Ctx, Exception,
-    FromJs, Object, Result, Value,
+    class::Trace, function::Opt, ArrayBuffer, Class, Coerced, Ctx, Exception, FromJs, Object,
+    Result, TypedArray, Value,
 };
+
+use super::file::File;
 
 enum EndingType {
     Native,
@@ -41,7 +41,11 @@ fn normalize_type(mut mime_type: String) -> String {
 #[rquickjs::methods]
 impl Blob {
     #[qjs(constructor)]
-    fn new<'js>(ctx: Ctx<'js>, parts: Opt<Value<'js>>, options: Opt<Object<'js>>) -> Result<Self> {
+    pub fn new<'js>(
+        ctx: Ctx<'js>,
+        parts: Opt<Value<'js>>,
+        options: Opt<Object<'js>>,
+    ) -> Result<Self> {
         let mut endings = EndingType::Transparent;
         let mut mime_type = String::new();
 
@@ -80,13 +84,17 @@ impl Blob {
         self.mime_type.clone()
     }
 
-    async fn text(&mut self) -> String {
+    pub async fn text(&mut self) -> String {
         String::from_utf8_lossy(&self.data).to_string()
     }
 
     #[qjs(rename = "arrayBuffer")]
-    async fn array_buffer<'js>(&self, ctx: Ctx<'js>) -> Result<ArrayBuffer<'js>> {
+    pub async fn array_buffer<'js>(&self, ctx: Ctx<'js>) -> Result<ArrayBuffer<'js>> {
         ArrayBuffer::new(ctx, self.data.to_vec())
+    }
+
+    async fn bytes<'js>(&self, ctx: Ctx<'js>) -> Result<Value<'js>> {
+        TypedArray::new(ctx, self.data.to_vec()).map(|m| m.into_value())
     }
 
     pub fn slice(&self, start: Opt<isize>, end: Opt<isize>, content_type: Opt<String>) -> Blob {
@@ -110,15 +118,6 @@ impl Blob {
             data: data.to_vec(),
         }
     }
-
-    pub fn to_string(&self) -> String {
-        "[object Blob]".to_string()
-    }
-
-    #[qjs(rename = PredefinedAtom::SymbolToStringTag)]
-    pub fn symbol_to_string_tag(&self) -> String {
-        "Blob".to_string()
-    }
 }
 
 impl Blob {
@@ -129,6 +128,14 @@ impl Blob {
 
     pub fn get_bytes(&self) -> Vec<u8> {
         self.data.clone()
+    }
+
+    //FIXME: cant use procedural macro for Symbol rename + static, see https://github.com/DelSkayn/rquickjs/issues/315
+    pub fn has_instance(value: Value<'_>) -> bool {
+        if let Some(obj) = value.as_object() {
+            return obj.instance_of::<Self>() || obj.instance_of::<File>();
+        }
+        false
     }
 }
 
@@ -147,7 +154,7 @@ fn bytes_from_parts<'js>(
     for elem in array.iter::<Value>() {
         let elem = elem?;
         if let Some(object) = elem.as_object() {
-            if let Some(x) = Class::<Blob>::from_object(&object.clone()) {
+            if let Some(x) = Class::<Blob>::from_object(object) {
                 data.extend_from_slice(&x.borrow().data);
                 continue;
             }

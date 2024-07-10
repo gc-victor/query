@@ -35,3 +35,11 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 url = "2.5"
 uuid = { version = "1.9", features = ["v4"] }
 openssl = { version = "0.10", features = ["vendored"] }
+
+[patch.crates-io]
+rquickjs-core = { path = "target/patch/rquickjs-core-0.6.2" }
+
+[package.metadata.patch.rquickjs-core]
+name = "rquickjs-core"
+version = "*"
+patches = ["crates/runtime/patches/promise-poll.patch"]

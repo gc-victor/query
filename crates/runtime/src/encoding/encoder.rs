@@ -1,5 +1,3 @@
-use std::result::Result;
-
 use hex_simd::AsciiCase;
 
 macro_rules! encoder_enum {
@@ -15,6 +13,7 @@ macro_rules! encoder_enum {
         }
 
         impl $enum_name {
+            #[allow(clippy::should_implement_trait)]
             pub fn from_str(encoding: &str) -> Result<Self, String> {
 
                 let encoding:String = encoding.chars()
