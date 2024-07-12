@@ -24,7 +24,7 @@ rand = "0.8.5"
 rbase64 = "2.0"
 regex = "1.10"
 ring = "0.17.8"
-rquickjs = { version = "0.6.2", features = ["full-async", "parallel", "rust-alloc"] }
+rquickjs = { version = "0.6.2", features = ["full-async", "parallel", "rust-alloc"], default-features = false }
 rusqlite = { version = "0.31", features = ["backup", "blob", "bundled", "functions", "limits", "serde_json", "trace", "uuid"] }
 rustls = { version = "0.23.10", default-features = false, features = ["ring", "tls12"] }
 ryu = "1.0.18"

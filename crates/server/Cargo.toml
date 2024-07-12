@@ -23,7 +23,7 @@ jsonwebtoken = "9.2"
 query-runtime = { path = "../runtime" }
 rbase64 = "2.0"
 regex = "1.10"
-rquickjs = "0.6.2"
+rquickjs = { version = "0.6.2", features = ["full-async", "parallel", "rust-alloc"], default-features = false }
 rusqlite = { version = "0.31", features = ["backup", "blob", "bundled", "functions", "limits", "serde_json", "trace", "uuid"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_bytes = "0.11"
@@ -35,11 +35,3 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 url = "2.5"
 uuid = { version = "1.9", features = ["v4"] }
 openssl = { version = "0.10", features = ["vendored"] }
-
-[patch.crates-io]
-rquickjs-core = { path = "target/patch/rquickjs-core-0.6.2" }
-
-[package.metadata.patch.rquickjs-core]
-name = "rquickjs-core"
-version = "*"
-patches = ["crates/runtime/patches/promise-poll.patch"]
