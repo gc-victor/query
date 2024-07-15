@@ -14,7 +14,7 @@ encoding_rs = "0.8.34"
 fxhash = "0.2.1"
 hex-simd = "0.8.0"
 http-body-util = "0.1.2"
-hyper = { version = "1.4.0", features = ["client", "http1", "http2"] }
+hyper = { version = "1.4.1", features = ["client", "http1", "http2"] }
 hyper-rustls = { version = "0.27.2", default-features = false, features = ["http1", "http2", "ring", "webpki-tokio"] }
 hyper-util = "0.1.6"
 itoa = "1.0.10"
