@@ -23,7 +23,7 @@ header "Query-Cache-Hit" not exists
 GET {{host}}/_/function/hurl/cache-control
 Authorization: {{user_token}}
 [Options]
-delay: 10
+delay: 50
 HTTP 200
 [Asserts]
 body contains "Hurl!"

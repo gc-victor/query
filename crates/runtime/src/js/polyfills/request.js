@@ -376,6 +376,8 @@ function toFormData(headers, body) {
 // NOTE: same in response.js
 function parseMultipart(body, boundary) {
     let name = "";
+    let filename = "";
+    let type = "";
 
     const formData = new FormData();
     const chunks = body.split(boundary);
@@ -388,16 +390,29 @@ function parseMultipart(body, boundary) {
             const line = lines[l].trim();
 
             if (!line) continue;
-            if (/content-type/i.test(line)) continue;
+            if (line === "--") continue;
+            if (/content-type/i.test(line)) {
+                type = line.match(/Content-Type:\s*(.*)/i);
+                type = type ? type[1] : "";
+
+                continue;
+            }
             if (/content-disposition/i.test(line)) {
                 name = line.match(/\sname\=\"(.*?)\"/);
                 name = name ? name[1] : "";
                 name = name.replace("[]", "");
 
+                filename = line.match(/\sfilename\=\"(.*?)\"/);
+                filename = filename ? filename[1] : "";
+
                 continue;
             }
 
-            formData.append(name, line);
+            if (filename && type) {
+                formData.append(name, new Blob([new TextEncoder().encode(line)], { type: type }), filename);
+            } else if (line) {
+                formData.append(name, line);
+            }
         }
     }
 
