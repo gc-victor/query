@@ -5,13 +5,11 @@ use std::{
 };
 
 use anyhow::Result;
-use hyper::{body::Incoming, header::CONTENT_TYPE, http::HeaderName, Method, Request, Response};
+use hyper::{body::Incoming, http::HeaderName, Request, Response};
 use regex::Regex;
-use rquickjs::{async_with, ArrayBuffer, Function, Module, Object, Promise, Value};
+use rquickjs::{async_with, Function, Module, Object, Promise, Value};
 use rusqlite::{named_params, Row};
 use serde::{Deserialize, Serialize};
-use serde_bytes::ByteBuf;
-use serde_json::json;
 use tracing::instrument;
 
 use crate::env::Env;
@@ -19,7 +17,7 @@ use crate::sqlite::connect_db::connect_cache_function_db;
 use crate::{
     controllers::utils::{
         body::{Body, BoxBody},
-        http_error::{bad_request, internal_server_error, not_found, HttpError},
+        http_error::{internal_server_error, not_found, HttpError},
     },
     sqlite::connect_db::connect_function_db,
 };
@@ -29,7 +27,7 @@ use super::runtime::runtime;
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct HandleResponse {
-    pub body: Option<ByteBuf>,
+    pub body: Option<String>,
     pub headers: Option<HashMap<String, String>>,
     pub status: u16,
 }
@@ -195,52 +193,18 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         Err(_) => Err(not_found()),
     }?;
 
-    let mut headers: Vec<String> = vec![];
-    let mut boundary = String::new();
+    let mut headers: HashMap<String, String> = HashMap::new();
 
     for (key, value) in req.headers() {
-        let key = key.as_str().to_lowercase();
-
-        if key == "content-type" {
-            let content_type_header = req.headers().get(CONTENT_TYPE).unwrap();
-            let content_type = content_type_header
-                .to_str()
-                .map_err(|e| internal_server_error(e.to_string()))?;
-
-            if content_type.contains("multipart/form-data") {
-                boundary = content_type
-                    .split(';')
-                    .find_map(|part| part.trim().strip_prefix("boundary="))
-                    .ok_or_else(|| bad_request("Can't find the boundary".to_string()))?
-                    .to_string();
-            }
-        }
-
-        headers.push(format!(
-            r#""{key}": "{}""#,
-            // NOTE: workaround to fix an error in the js-engine caused by sec-ch-ua
+        // NOTE: workaround to fix an error in the js-engine caused by sec-ch-ua
+        headers.insert(
+            key.as_str().to_lowercase(),
             value.to_str().unwrap().to_string().replace('"', "'"),
-        ));
+        );
     }
 
-    let body_multi_part = if !boundary.is_empty() {
-        let bytes = Body::to_bytes(req.body_mut()).await?;
-        let body_bytes = bytes.to_vec();
-        let body = String::from_utf8_lossy(&body_bytes);
-
-        formdata_to_json(&body, &boundary)?
-    } else {
-        "{}".to_string()
-    };
-
-    let body = if req.method() != Method::GET && boundary.is_empty() {
-        let bytes = Body::to_bytes(req.body_mut()).await?;
-        let body = String::from_utf8(bytes.to_vec()).expect("response was not valid utf-8");
-
-        format!("`{}`", body)
-    } else {
-        "''".to_string()
-    };
+    let body = Body::to_bytes(req.body_mut()).await?;
+    let body = body.to_vec();
 
     let host = req.headers().get("host").unwrap();
     let host = host.to_str().unwrap();
@@ -251,168 +215,89 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         "https"
     };
 
+    let rt = runtime().await;
+    let ctx = rt.ctx.clone();
+    let module_name = format!("{}::{}", path, method_lower_case);
+    let method_str = req.method().as_str();
+    let url = format!("{}://{}{}", scheme, host, uri);
     let handle_response = format!(
         r#"
-        import {{ ___handleResponse as ___hr }} from 'js/handle-response';
-        import 'js/sqlite';
+        import 'polyfill/blob';
         import 'polyfill/console';
         import 'polyfill/fetch';
         import 'polyfill/file';
         import 'polyfill/form-data';
         import 'polyfill/request';   
-        import 'polyfill/response';   
-        import {{
-            ReadableStream,
-            ReadableStreamBYOBReader,
-            ReadableStreamDefaultReader,
-            TransformStream,
-            WritableStream,
-            WritableStreamDefaultWriter,
-        }} from 'polyfill/web-streams';
-
-        globalThis.ReadableStream = ReadableStream;
-        globalThis.ReadableStreamBYOBReader = ReadableStreamBYOBReader;
-        globalThis.ReadableStreamDefaultReader = ReadableStreamDefaultReader;
-        globalThis.TransformStream = TransformStream;
-        globalThis.WritableStream = WritableStream;
-        globalThis.WritableStreamDefaultWriter = WritableStreamDefaultWriter;
+        import 'polyfill/response';
+        import 'polyfill/web-streams';
+        
+        import 'js/sqlite';
+        import {{ ___handleResponse as ___hr }} from 'js/handle-response';
 
         {function}
 
-        function ___handleRequestWrapper() {{
-            try {{
-                const options = {{
-                    headers: {{ {headers} }},
-                    method: '{method}',
-                    url: '{url}',
-                }};
-
-                if (!/GET|HEAD/.test('{method}')) {{
-                    if (/multipart\/form-data/.test(options.headers['content-type'])) {{
-                        const object = {body_multi_part};
-                        const formData = new FormData();
-                
-                        for (const key in object) {{
-                            let value = object[key];
-
-                            try {{
-                                const o = JSON.parse(value);
-                                value = (o && typeof o === "object") ? o : value;
-                            }} catch {{}}
-
-                            if (typeof value === "string" && value.includes("__field_same_name__")) {{
-                                throw new Error("There is an error parsing the field " + key + " in the form.");
-                            }} else if (typeof value === "object" && value?.__field_same_name__) {{
-                                value = value.__field_same_name__;
-                            }} else {{
-                                value = [value];
-                            }}
-
-                            for (const v of value) {{
-                                if (v.content && v.type && v.filename) {{
-                                    formData.append(key, new Blob([new Uint8Array(v.content).buffer], {{ type: v.type }}), v.filename);
-                                }} else {{
-                                    formData.append(key, v);
-                                }}
-                            }}
-                        }}
-
-                        options.body = formData;
-
-                        // NOTE: it allows to the Request to create a new boundary
-                        delete options.headers['content-type'];
-                    }} else {{
-                        options.body = {body};
-                    }}
-                }}
-
-                const request = new Request('{url}', options);
-
-                return ___handleRequest(request);
-
-            }} catch (e) {{
-                console.error(e);
-            }}
-        }}
-
-        export const ___handleResponse = ___hr.bind(null, ___handleRequestWrapper);
+        export const ___handleResponse = ___hr.bind(null);
         "#,
-        body = body,
-        body_multi_part = body_multi_part,
-        headers = headers.join(", "),
-        method = req.method().as_str(),
-        url = format!("{}://{}{}", scheme, host, uri),
     );
 
-    let rt = runtime().await;
-    let ctx = rt.ctx.clone();
-    let module_name = format!("{}::{}", path, method_lower_case);
-
     let res = async_with!(ctx => |ctx| {
-        let module = match Module::declare(ctx, module_name, handle_response) {
+        let module = match Module::declare(ctx.clone(), module_name, handle_response) {
             Ok(m) => m,
             Err(e) => {
                 tracing::error!("Error: {}", e);
                 return handle_fatal_error();
-            },
+            }
         };
-        let (module, _) = match module.eval() {
-            Ok(m) => m,
-            Err(e) => {
-                tracing::error!("Error: {}", e);
-                return handle_fatal_error();
-            },
 
+        let module = match module.eval() {
+            Ok(m) => m.0,
+            Err(e) => {
+                tracing::error!("Error: {}", e);
+                return handle_fatal_error();
+            },
         };
-        let func: Function = match module.get("___handleResponse") {
+
+        let handle_response: Function = match module.get("___handleResponse") {
             Ok(f) => f,
             Err(e) => {
-                tracing::error!("Error: {:?}", e);
+                tracing::error!("Error: {}", e);
                 return handle_fatal_error();
             },
         };
-        let promise: Promise = match func.call(()) {
-            Ok(p) => p,
+
+        let promise: Promise = match handle_response.call((headers, method_str, url, body)) {
+            Ok(o) => o,
             Err(e) => {
-                tracing::error!("Error: {:?}", e);
+                tracing::error!("Error: {}", e);
                 return handle_fatal_error();
             },
         };
+
         let response: Object = match promise.into_future().await {
             Ok(r) => r,
             Err(e) => {
-                tracing::error!("Error: {:?}", e);
+                tracing::error!("Error: {}", e);
                 return handle_fatal_error();
             },
         };
 
         let body: Value = response.get("body").unwrap();
-        let bytes = if body.is_object() {
-            let body = body.as_object().unwrap();
-            let buffer: ArrayBuffer = body.get("buffer").unwrap();
-
-            buffer.as_bytes().unwrap().to_vec()
-        } else {
-            vec![]
-        };
+        let body = body.as_string().unwrap();
+        let body = body.to_string().unwrap();
+        let body = if body.is_empty() { None } else { Some(body) };
 
         let headers = response.get("headers").unwrap();
         let status = response.get("status").unwrap();
 
         HandleResponse {
-            body: Some(ByteBuf::from(bytes)),
+            body,
             headers,
             status
         }
     })
     .await;
 
-    let body = res
-        .body
-        .map(|b| String::from_utf8(b.to_vec()))
-        .transpose()
-        .map_err(|e| internal_server_error(e.to_string()))?
-        .unwrap_or_default();
+    let body = res.body.unwrap_or_default();
     let cloned_body = body.clone();
 
     let mut response = match Response::builder()
@@ -552,101 +437,6 @@ fn path_match(path: &str, method: &str) -> Result<String> {
     }
 
     Ok(result)
-}
-
-fn formdata_to_json(formdata: &str, boundary: &str) -> Result<String> {
-    let boundary = format!("--{}", boundary);
-    let mut map = HashMap::new();
-    let parts: Vec<&str> = formdata.split(&boundary).collect();
-
-    for part in parts {
-        if !part.contains("name=") {
-            continue;
-        }
-
-        let key_re = Regex::new(r#"; name="([^"]*)""#).unwrap();
-        let captures: regex::Captures<'_> = key_re.captures(part).unwrap();
-        let key = captures.get(1).unwrap().as_str().to_string();
-        let re = Regex::new(r#"name="[^"]*"\r\n([\s\S]*)$"#).unwrap();
-        let captures: regex::Captures<'_> = re.captures(part).unwrap();
-        let value = captures.get(1).unwrap().as_str();
-        let value = value.strip_prefix("\r\n").unwrap_or(value);
-        let mut value = value.strip_suffix("\r\n").unwrap_or(value).to_string();
-        let is_content_type = value.starts_with("Content-Type:");
-
-        if is_content_type {
-            let filename_re = Regex::new(r#"; filename="([^"]*)""#).unwrap();
-            let content_type_re = Regex::new(r#"Content-Type: ([\w/]+)"#).unwrap();
-            let content_re = Regex::new(r#"\r\n\r\n([\s\S]*)$"#).unwrap();
-
-            let filename = filename_re
-                .captures(part)
-                .and_then(|caps| caps.get(1))
-                .map_or("", |m| m.as_str());
-            let content_type = content_type_re
-                .captures(&value)
-                .and_then(|caps| caps.get(1))
-                .map_or("", |m| m.as_str());
-            let content = content_re
-                .captures(&value)
-                .and_then(|caps| caps.get(1))
-                .map_or("", |m| m.as_str());
-
-            if content_type.starts_with("text") {
-                let content = content.as_bytes();
-
-                value = format!(
-                    r#"{{"content": {content:?}, "type": "{content_type}", "filename": "{filename}"}}"#
-                );
-            } else {
-                value = format!(
-                    r#"{{"content": {content}, "type": "{content_type}", "filename": "{filename}"}}"#
-                );
-            }
-        };
-
-        if map.contains_key(&key) {
-            let values = map
-                .get(&key)
-                .unwrap_or(&String::new())
-                .trim_start_matches(r#"{"__field_same_name__":["#)
-                .trim_end_matches("]}")
-                .to_string();
-
-            if is_content_type {
-                map.insert(
-                    key,
-                    format!(r#"{{"__field_same_name__":[{values},{value}]}}"#),
-                );
-            } else if values.starts_with('"') {
-                let value = value.replace('"', r#"\\\""#);
-                let value = value.replace('\n', "\\n");
-                let value = value.replace('\r', "\\r");
-                let value = value.replace('\t', "\\t");
-                map.insert(
-                    key,
-                    format!(r#"{{"__field_same_name__":[{values},"{value}"]}}"#),
-                );
-            } else {
-                let values = values.replace('"', r#"\\\""#);
-                let values = values.replace('\n', "\\n");
-                let values = values.replace('\r', "\\r");
-                let values = values.replace('\t', "\\t");
-                let value = value.replace('"', r#"\\\""#);
-                let value = value.replace('\n', "\\n");
-                let value = value.replace('\r', "\\r");
-                let value = value.replace('\t', "\\t");
-                map.insert(
-                    key,
-                    format!(r#"{{"__field_same_name__":["{values}","{value}"]}}"#),
-                );
-            };
-        } else {
-            map.insert(key, value);
-        }
-    }
-
-    Ok(json!(map).to_string())
 }
 
 fn is_primary() -> bool {

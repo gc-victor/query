@@ -37,6 +37,19 @@ function mapArgsAndJoin(args) {
             return arg.toString();
         }
 
+        if (arg instanceof Uint8Array) {
+            const arr = Array.from(arg);
+
+            return `Uint8Array(${arr.length}) [${arr.join(", ")}]`;
+        }
+
+        if (arg instanceof ArrayBuffer) {
+            const uint8Array = new Uint8Array(arg);
+            const hexString = Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join(' ');
+
+            return `ArrayBuffer {[Uint8Contents]: <${hexString}>, byteLength: ${uint8Array.length}}`;
+        }
+
         if (typeof arg === "object" && !(arg instanceof Promise)) {
             return customStringify(arg);
         }

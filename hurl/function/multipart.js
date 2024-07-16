@@ -17,9 +17,7 @@ const multipartFunction = `globalThis.___handleRequest = async (req) => {
             },
         });
     } catch (e) {
-        console.log(e.message);
-
-        return new Response(e.message, {
+        return new Response(e.message + "\\n" + (e.stack || ""), {
             status: 500,
             headers: {
                 "content-type": "text/plain;charset=UTF-8",
