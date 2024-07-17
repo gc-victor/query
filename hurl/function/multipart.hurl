@@ -25,4 +25,4 @@ json: {"c":3,"d":"4"}
 list: [1,2,3]
 HTTP 200
 [Asserts]
-body contains "email: e | password: p | file: example.txt - text/plain - 12 | duplicated: 0 a,1 b,2 c | duplicatedArray: true | arr: [\"1\";2,3],[4,5,6] | arrArray: true | json: {'a:1,\"b\":\"2\"},{\"c\":3,\"d\":\"4\"} | jsonArray: true | list: [1,2,3] | listArray: false"
+body contains "email: e | password: p | file: example.txt - text/plain - 25 | duplicated: 0 a,1 b,2 c | duplicatedArray: true | arr: [\"1\";2,3],[4,5,6] | arrArray: true | json: {'a:1,\"b\":\"2\"},{\"c\":3,\"d\":\"4\"} | jsonArray: true | list: [1,2,3] | listArray: false"

@@ -227,10 +227,10 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         import 'polyfill/fetch';
         import 'polyfill/file';
         import 'polyfill/form-data';
-        import 'polyfill/request';   
+        import 'polyfill/request';
         import 'polyfill/response';
         import 'polyfill/web-streams';
-        
+
         import 'js/sqlite';
         import {{ ___handleResponse as ___hr }} from 'js/handle-response';
 
