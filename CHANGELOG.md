@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.14] - 2024-07-17
+
+### 🐛 Bug Fixes
+
+- *(runtime)* Parse multipart
+
+### 📚 Documentation
+
+- Changelog version 0.12.13
+
+### Dev
+
+- *(deps)* Update @biomejs/biome from 1.8.0 to 1.8.3
+
+### Release
+
+- Version 0.12.14
+
 ## [0.12.13] - 2024-07-17
 
 ### 🚀 Features
