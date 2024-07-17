@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.13] - 2024-07-17
+
+### 🚀 Features
+
+- *(server)* Optimize cache function deletion and creation
+- *(server)* Path as module name
+- *(runtime)* Llrt updates
+- *(server)* Remove rquickjs patch
+- *(server)* Handle functions
+
+### 🐛 Bug Fixes
+
+- *(runtime)* Convert args to string
+
+### 🚜 Refactor
+
+- *(cli)* Add clippy fixes
+
+### 📚 Documentation
+
+- Changelog versions to 0.12.12
+
+### ⚙️ Miscellaneous Tasks
+
+- Add help
+
+### Build
+
+- *(deps)* Bump serde from 1.0.203 to 1.0.204
+- *(deps)* Bump serde_json from 1.0.117 to 1.0.120
+- *(deps)* Bump clap from 4.5.7 to 4.5.8
+- *(deps)* Bump toml_edit from 0.22.14 to 0.22.15
+- *(deps)* Bump clap from 4.5.8 to 4.5.9
+- *(deps)* Bump hyper from 1.4.0 to 1.4.1
+- *(deps)* Bump uuid from 1.9.1 to 1.10.0
+- Update cargo dist 0.18.0 to 0.19.1
+
+### Release
+
+- Version 0.12.13
+
 ## [0.12.12] - 2024-07-07
 
 ### 🚀 Features
