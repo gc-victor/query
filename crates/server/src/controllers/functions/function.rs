@@ -6,6 +6,7 @@ use std::{
 
 use anyhow::Result;
 use hyper::{body::Incoming, http::HeaderName, Request, Response};
+use query_runtime::Runtime;
 use regex::Regex;
 use rquickjs::{async_with, Function, Module, Object, Promise, Value};
 use rusqlite::{named_params, Row};
@@ -21,8 +22,6 @@ use crate::{
     },
     sqlite::connect_db::connect_function_db,
 };
-
-use super::runtime::runtime;
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -41,7 +40,10 @@ struct CacheFunction {
 }
 
 #[instrument(err(Debug))]
-pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, HttpError> {
+pub async fn function(
+    req: &mut Request<Incoming>,
+    runtime: &Runtime,
+) -> Result<Response<BoxBody>, HttpError> {
     let method = req.method().as_str();
     let cache_function_path = &req.uri().path().to_string();
     let mut path = req.uri().path().to_string();
@@ -215,33 +217,15 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         "https"
     };
 
-    let rt = runtime().await;
-    let ctx = rt.ctx.clone();
-    let module_name = format!("{}::{}", path, method_lower_case);
+    let module_name = format!("{}::{}", cache_function_path, method_lower_case)
+        .trim_start_matches('/')
+        .to_string();
     let method_str = req.method().as_str();
     let url = format!("{}://{}{}", scheme, host, uri);
-    let handle_response = format!(
-        r#"
-        import 'polyfill/blob';
-        import 'polyfill/console';
-        import 'polyfill/fetch';
-        import 'polyfill/file';
-        import 'polyfill/form-data';
-        import 'polyfill/request';
-        import 'polyfill/response';
-        import 'polyfill/web-streams';
-
-        import 'js/sqlite';
-        import {{ ___handleResponse as ___hr }} from 'js/handle-response';
-
-        {function}
-
-        export const ___handleResponse = ___hr.bind(null);
-        "#,
-    );
+    let ctx = runtime.ctx.clone();
 
     let res = async_with!(ctx => |ctx| {
-        let module = match Module::declare(ctx.clone(), module_name, handle_response) {
+        let module = match Module::declare(ctx.clone(), module_name.to_string(), function) {
             Ok(m) => m,
             Err(e) => {
                 tracing::error!("Error: {}", e);
@@ -249,22 +233,28 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
             }
         };
 
-        let module = match module.eval() {
-            Ok(m) => m.0,
+        let _ = match module.eval() {
+            Ok(m) => m,
             Err(e) => {
                 tracing::error!("Error: {}", e);
                 return handle_fatal_error();
             },
         };
 
-        let handle_response: Function = match module.get("___handleResponse") {
+        let global_this: Object = match ctx.clone().globals().get("globalThis") {
+            Ok(o) => o,
+            Err(e) => {
+                tracing::error!("Error: {}", e);
+                return handle_fatal_error();
+            },
+        };
+        let handle_response: Function = match global_this.get("___handleResponse") {
             Ok(f) => f,
             Err(e) => {
                 tracing::error!("Error: {}", e);
                 return handle_fatal_error();
             },
         };
-
         let promise: Promise = match handle_response.call((headers, method_str, url, body)) {
             Ok(o) => o,
             Err(e) => {

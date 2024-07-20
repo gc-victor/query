@@ -2347,6 +2347,7 @@ dependencies = [
  "hyper",
  "hyper-util",
  "jsonwebtoken",
+ "lazy_static",
  "openssl",
  "query-runtime",
  "rbase64",

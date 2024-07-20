@@ -6,15 +6,14 @@ pub mod sqlite;
 
 use std::convert::Infallible;
 use std::net::SocketAddr;
+use std::sync::Arc;
 
-use controllers::asset::asset;
-use controllers::asset_builder::asset_builder;
-use controllers::utils::body::{Body, BoxBody};
 use dotenv::dotenv;
 use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper::{body::Incoming as IncomingBody, Request, Response, StatusCode};
 use hyper_util::rt::TokioIo;
+use query_runtime::Runtime;
 use tokio::net::TcpListener;
 use tracing::{subscriber::set_global_default, Instrument};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
@@ -25,6 +24,8 @@ use crate::sqlite::create_asset_db::create_asset_db;
 use crate::sqlite::create_cache_function_db::create_cache_function_db;
 use crate::{
     controllers::{
+        asset::asset,
+        asset_builder::asset_builder,
         branch::branch,
         functions::{function::function, function_builder::function_builder},
         migration::migration,
@@ -33,6 +34,7 @@ use crate::{
         token::token,
         user::user,
         user_token::user_token,
+        utils::body::{Body, BoxBody},
         utils::http_error::HttpError,
         utils::responses::{
             bad_request, internal_server_error, method_not_allowed, not_found, not_implemented,
@@ -77,17 +79,33 @@ async fn main() -> Result<(), std::io::Error> {
         message = format!("\nListening on http://{addr} - v{VERSION}\n")
     );
 
+    let runtime = match Runtime::new().await {
+        Ok(runtime) => runtime,
+        Err(e) => {
+            tracing::error!("Could not create the runtime: {e}");
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Could not create the runtime",
+            ));
+        }
+    };
+    let runtime = Arc::new(runtime);
+
     loop {
         let (stream, _) = listener.accept().await?;
         let io = TokioIo::new(stream);
+        let runtime = Arc::clone(&runtime);
 
         tokio::task::spawn(async move {
-            let service = service_fn(move |req| async {
-                let request_id = uuid::Uuid::new_v4().to_string();
-                let span = tracing::info_span!("request", request_id = %request_id);
-                let _enter = span.enter();
+            let service = service_fn(move |req| {
+                let runtime_clone = Arc::clone(&runtime);
+                async move {
+                    let request_id = uuid::Uuid::new_v4().to_string();
+                    let span = tracing::info_span!("request", request_id = %request_id);
+                    let _enter = span.enter();
 
-                Ok::<_, Infallible>(handler(req).instrument(span.clone()).await)
+                    Ok::<_, Infallible>(handler(req, &runtime_clone).instrument(span.clone()).await)
+                }
             });
 
             if let Err(err) = http1::Builder::new().serve_connection(io, service).await {
@@ -97,11 +115,11 @@ async fn main() -> Result<(), std::io::Error> {
     }
 }
 
-async fn handler(req: Request<IncomingBody>) -> Response<BoxBody> {
+async fn handler(req: Request<IncomingBody>, runtime: &Runtime) -> Response<BoxBody> {
     let path = req.uri().path().to_owned();
     let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
 
-    router(req, &segments)
+    router(req, &segments, runtime)
         .await
         .unwrap_or_else(|e: HttpError| -> Response<BoxBody> {
             let code = e.code.as_u16();
@@ -122,6 +140,7 @@ async fn handler(req: Request<IncomingBody>) -> Response<BoxBody> {
 async fn router(
     req: Request<IncomingBody>,
     segments: &[&str],
+    runtime: &Runtime,
 ) -> Result<Response<BoxBody>, HttpError> {
     if segments.is_empty() {
         if Env::proxy() == "true" {
@@ -131,7 +150,7 @@ async fn router(
         if Env::app() == "true" {
             let mut req = req;
 
-            return function(&mut req).await;
+            return function(&mut req, runtime).await;
         }
 
         return Err(HttpError {
@@ -151,7 +170,7 @@ async fn router(
             "asset" => asset(&mut req, segments).await,
             "asset-builder" => asset_builder(&mut req, segments).await,
             "branch" => branch(&mut req, segments).await,
-            "function" => function(&mut req).await,
+            "function" => function(&mut req, runtime).await,
             "function-builder" => function_builder(&mut req, segments).await,
             "healthcheck" => Ok(Response::new(Body::from("OK"))),
             "migration" => migration(&mut req, segments).await,
@@ -176,7 +195,7 @@ async fn router(
             }
 
             if Env::app() == "true" {
-                return function(&mut req).await;
+                return function(&mut req, runtime).await;
             }
 
             Err(HttpError {

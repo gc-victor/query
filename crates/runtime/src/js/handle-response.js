@@ -1,4 +1,4 @@
-export async function ___handleResponse(headers, method, url, body) {
+async function ___handleResponse(headers, method, url, body) {
     try {
         const options = {
             headers: headers,
@@ -40,3 +40,5 @@ export async function ___handleResponse(headers, method, url, body) {
         };
     }
 }
+
+globalThis.___handleResponse = ___handleResponse.bind(null);

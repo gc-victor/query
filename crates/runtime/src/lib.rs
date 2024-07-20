@@ -1,5 +1,6 @@
 use std::{
-    cmp::min, env, future::Future, mem::MaybeUninit, result::Result as StdResult, time::Instant,
+    cmp::min, env, fmt, future::Future, mem::MaybeUninit, result::Result as StdResult,
+    time::Instant,
 };
 
 use rquickjs::{
@@ -7,8 +8,8 @@ use rquickjs::{
     function::{Constructor, Opt},
     loader::{BuiltinLoader, BuiltinResolver, ModuleLoader},
     prelude::Func,
-    AsyncContext, AsyncRuntime, CatchResultExt, CaughtError, Ctx, Error, Function, IntoJs, Object,
-    Result, String as JsString, Value,
+    AsyncContext, AsyncRuntime, CatchResultExt, CaughtError, Ctx, Error, Function, IntoJs, Module,
+    Object, Result, String as JsString, Value,
 };
 use tokio::sync::oneshot::{self, Receiver};
 
@@ -45,6 +46,12 @@ use crate::{
 pub struct Runtime {
     pub runtime: AsyncRuntime,
     pub ctx: AsyncContext,
+}
+
+impl std::fmt::Debug for Runtime {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Runtime {{ runtime: <hidden>, ctx: <hidden> }}")
+    }
 }
 
 // JS modules
@@ -117,7 +124,20 @@ impl Runtime {
             crate::process::init(&ctx)?;
             crate::timers::init(&ctx)?;
             crate::sqlite::init(&ctx)?;
+
             init(&ctx)?;
+
+            Module::import(&ctx, "polyfill/blob").unwrap();
+            Module::import(&ctx, "polyfill/console").unwrap();
+            Module::import(&ctx, "polyfill/fetch").unwrap();
+            Module::import(&ctx, "polyfill/file").unwrap();
+            Module::import(&ctx, "polyfill/form-data").unwrap();
+            Module::import(&ctx, "polyfill/request").unwrap();
+            Module::import(&ctx, "polyfill/response").unwrap();
+            Module::import(&ctx, "polyfill/web-streams").unwrap();
+            Module::import(&ctx, "js/handle-response").unwrap();
+            Module::import(&ctx, "js/sqlite").unwrap();
+
             Ok::<_, Error>(())
         })
         .await?;
