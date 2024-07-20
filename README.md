@@ -270,12 +270,6 @@ We use LiteFS, a Fly addon that provides a simple way to replicate your SQLite d
 fly consul attach
 ```
 
-For the backups of your databases you have to create a LiteFS Cloud cluster in [the LiteFS section](https://fly.io/dashboard/personal/litefs) of the fly.io dashboard. Take note of your auth token (you’ll need it later). LiteFS Cloud is optional, but highly recommended if your data is important to you!
-
-```sh
-fly secrets set LITEFS_CLOUD_TOKEN=YOUR_LITEFS_CLOUD_AUTH_TOKEN
-```
-
 Then you can deploy your app running:
 
 ```sh
