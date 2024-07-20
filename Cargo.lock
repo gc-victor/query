@@ -283,9 +283,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
-version = "1.6.0"
+version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "514de17de45fdb8dc022b1a7975556c53c86f9f0aa5f534b98977b171857c2c9"
+checksum = "a12916984aab3fa6e39d655a33e09c0071eb36d6ab3aea5c2d78551f1df6d952"
 
 [[package]]
 name = "cc"
@@ -397,13 +397,14 @@ checksum = "98cc8fbded0c607b7ba9dd60cd98df59af97e84d24e49c8557331cfc26d301ce"
 
 [[package]]
 name = "cliclack"
-version = "0.2.5"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4febf49beeedc40528e4956995631f1bbdb4d8804ef940b44351f393a996c739"
+checksum = "178885eafa17af5b359629e9a4d278940ae790c0bff75843985dc65574c3ac42"
 dependencies = [
  "console",
  "indicatif",
  "once_cell",
+ "strsim",
  "textwrap",
  "zeroize",
 ]
@@ -2291,7 +2292,7 @@ dependencies = [
  "tabled",
  "tokio",
  "toml",
- "toml_edit 0.22.15",
+ "toml_edit 0.22.16",
  "tracing",
  "tracing-subscriber",
  "walkdir",
@@ -2305,7 +2306,6 @@ dependencies = [
  "anyhow",
  "base64-simd",
  "bytes",
- "chrono",
  "encoding_rs",
  "fxhash",
  "hex-simd",
@@ -2347,7 +2347,6 @@ dependencies = [
  "hyper",
  "hyper-util",
  "jsonwebtoken",
- "lazy_static",
  "openssl",
  "query-runtime",
  "rbase64",
@@ -3045,9 +3044,9 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "strsim"
-version = "0.11.0"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ee073c9e4cd00e28217186dbe12796d692868f432bf2e97ee73bed0c56dfa01"
+checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "subtle"
@@ -3325,7 +3324,7 @@ dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "toml_edit 0.22.15",
+ "toml_edit 0.22.16",
 ]
 
 [[package]]
@@ -3350,9 +3349,9 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.22.15"
+version = "0.22.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d59a3a72298453f564e2b111fa896f8d07fabb36f51f06d7e875fc5e0b5a3ef1"
+checksum = "278f3d518e152219c994ce877758516bca5e118eaed6996192a774fb9fbf0788"
 dependencies = [
  "indexmap",
  "serde",
