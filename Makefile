@@ -14,45 +14,101 @@ HURL_user_token := "Bearer $(HURL_user_token)"
 export HURL_user_token
 export HURL_host = http://localhost:3000
 
+# Add this at the beginning of your Makefile
+.PHONY: help
 help:
-	@echo "Usage: make <command>"
-	@echo ""
-	@echo "Commands:"
-	@echo "  build-server          Build the server"
-	@echo "  build-server-watch    Build the server and watch for changes"
-	@echo "  build-cli             Build the CLI"
-	@echo "  clean                 Clean the project"
-	@echo "  clean-dbs             Clean the databases"
-	@echo "  clean-hurl-dbs        Clean the Hurl databases"
-	@echo "  cli                   Run the CLI"
-	@echo "  coverage              Generate coverage report"
-	@echo "  coverage-clean        Clean coverage report"
-	@echo "  coverage-html         Generate HTML coverage report"
-	@echo "  coverage-lcov         Generate LCOV coverage report"
-	@echo "  coverage-report       Generate coverage report"
-	@echo "  coverage-watch        Watch for changes and generate coverage report"
-	@echo "  dev                   Run the server in development mode"
-	@echo "  dev-build             Build the server in development mode"
-	@echo "  dev-cli               Run the CLI in development mode"
-	@echo "  dev-proxy             Run the server in development mode with proxy"
-	@echo "  dev-bun               Run the Bunyan logger"
-	@echo "  dist-plan             Plan the distribution"
-	@echo "  docs                  Generate the documentation"
-	@echo "  fmt                   Format the code"
-	@echo "  fmt-server            Format the server code"
-	@echo "  fmt-cli               Format the CLI code"
-	@echo "  help                  Show this help message"
-	@echo "  install-cargo-dist    Install cargo-dist"
-	@echo "  install-esbuild       Install esbuild"
-	@echo "  install-hurl          Install Hurl"
-	@echo "  install-llvm-cov      Install llvm-cov"
-	@echo "  install-nextest        Install cargo-nextest"
-	@echo "  install-watch         Install cargo-watch"
-	@echo "  lint                  Lint the code"
-	@echo "  npm-publish           Publish the npm package"
-	@echo "  npm-prerelease        Publish the npm package as a prerelease"
-	@echo "  npm-un-prerelease     Unpublish the npm package as a prerelease"
-	@echo "  release               Release the project"
+	@echo "Available commands:"
+	@echo
+	@echo "Build:"
+	@echo "  build-server            - Build the query server in release mode"
+	@echo "  build-server-watch      - Watch and build the query server, with debug logging"
+	@echo "  build-cli               - Build the CLI with the dist profile"
+	@echo
+	@echo "Changelog:"
+	@echo "  update-changelog        - Update CHANGELOG.md with changes between the last two release commits"
+	@echo
+	@echo "Clean:"
+	@echo "  clean                   - Remove Cargo.lock and clean the build artifacts"
+	@echo "  clean-dbs               - Remove all database files"
+	@echo "  clean-hurl-dbs          - Remove Hurl-specific database files"
+	@echo
+	@echo "CLI:"
+	@echo "  install-esbuild         - Install esbuild"
+	@echo "  cli                     - Run the CLI"
+	@echo
+	@echo "Coverage:"
+	@echo "  install-llvm-cov        - Install cargo-llvm-cov"
+	@echo "  coverage-clean          - Clean coverage data"
+	@echo "  coverage                - Run coverage analysis"
+	@echo "  coverage-watch          - Watch and run coverage analysis"
+	@echo "  coverage-report         - Generate coverage report"
+	@echo "  coverage-html           - Generate HTML coverage report"
+	@echo "  coverage-lcov           - Generate LCOV coverage report"
+	@echo
+	@echo "Distribution:"
+	@echo "  install-cargo-dist      - Install cargo-dist"
+	@echo "  dist-plan               - Plan distribution"
+	@echo
+	@echo "Documentation:"
+	@echo "  docs                    - Generate and open documentation"
+	@echo
+	@echo "Formatting:"
+	@echo "  fmt                     - Format all code"
+	@echo "  fmt-server              - Format server code"
+	@echo "  fmt-cli                 - Format CLI code"
+	@echo
+	@echo "Hurl:"
+	@echo "  install-hurl            - Install Hurl"
+	@echo "  hurl                    - Run Hurl tests"
+	@echo "  hurl-test               - Run Hurl tests in test mode"
+	@echo "  hurl-test-all           - Run all Hurl tests in test mode"
+	@echo
+	@echo "Linting:"
+	@echo "  lint                    - Run clippy on all targets"
+	@echo
+	@echo "npm:"
+	@echo "  npm-publish             - Publish npm packages"
+	@echo "  npm-prerelease          - Publish prerelease npm packages"
+	@echo "  npm-un-prerelease       - Unpublish prerelease npm packages"
+	@echo
+	@echo "Run:"
+	@echo "  install-watch           - Install cargo-watch"
+	@echo "  run                     - Run the server"
+	@echo "  run-cli                 - Run the CLI"
+	@echo "  run-release             - Run the server in release mode"
+	@echo "  run-cli-release         - Run the CLI in release mode"
+	@echo "  dev                     - Run the server in development mode"
+	@echo "  dev-build               - Watch and build the server"
+	@echo "  dev-cli                 - Watch and run the CLI"
+	@echo "  dev-proxy               - Run the server with proxy enabled"
+	@echo "  dev-bun                 - Run the Bun development server"
+	@echo
+	@echo "Testing:"
+	@echo "  install-nextest         - Install cargo-nextest"
+	@echo "  test                    - Run tests"
+	@echo "  nextest                 - Run tests with nextest"
+	@echo "  nextest-query           - Run query tests with nextest"
+	@echo "  nextest-query-server    - Run query-server tests with nextest"
+	@echo "  nextest-match           - Run specific tests with nextest"
+	@echo "  test-watch              - Watch and run tests"
+	@echo
+	@echo "Tagging:"
+	@echo "  tag                     - Create a new version tag"
+	@echo "  tag-delete              - Delete a version tag"
+	@echo "  tag-rollback            - Rollback a version tag"
+	@echo
+	@echo "For more details on each command, check the Makefile"
+
+# Build
+
+build-server:
+	cargo build --package=query-server --release
+
+build-server-watch:
+	cargo watch -c --ignore .dbs -x check -x clippy --shell "RUST_LOG=debug cargo build --package=query-server | bunyan"
+
+build-cli:
+	cargo build --package=query --profile dist
 
 # Changelog
 
@@ -171,17 +227,6 @@ npm-un-prerelease:
 		npm unpublish @qery/query@$(ARGUMENTS) --force ;\
 		npm unpublish @qery/query-server@$(ARGUMENTS) --force ;\
 	fi
-
-# Release
-
-build-server:
-	cargo build --package=query-server --release
-
-build-server-watch:
-	cargo watch -c --ignore .dbs -x check -x clippy --shell "RUST_LOG=debug cargo build --package=query-server | bunyan"
-
-build-cli:
-	cargo build --package=query --profile dist
 
 # Run
 
