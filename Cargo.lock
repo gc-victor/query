@@ -2306,7 +2306,6 @@ dependencies = [
  "anyhow",
  "base64-simd",
  "bytes",
- "encoding_rs",
  "fxhash",
  "hex-simd",
  "http-body-util",

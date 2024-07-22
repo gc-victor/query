@@ -14,8 +14,8 @@ impl TextEncoder {
     }
 
     #[qjs(get)]
-    fn encoding(&self) -> String {
-        "utf-8".to_string()
+    fn encoding(&self) -> &str {
+        "utf-8"
     }
 
     pub fn encode<'js>(&self, ctx: Ctx<'js>, string: String) -> Result<Value<'js>> {
@@ -41,11 +41,16 @@ impl TextEncoder {
                 std::slice::from_raw_parts_mut(raw.ptr.as_ptr().add(source_offset), source_length)
             };
 
-            let mut enc = encoding_rs::UTF_8.new_encoder();
-            (_, _, written, _) = enc.encode_from_utf8(string.as_str(), bytes, false);
-            read = string[..written]
-                .chars()
-                .fold(0, |acc, ch| acc + ch.len_utf16());
+            let bytes_len = bytes.len();
+            for ch in string.chars() {
+                let len = ch.len_utf8();
+                if written + len > bytes_len {
+                    break;
+                }
+                written += len;
+            }
+            bytes[..written].copy_from_slice(&string.as_bytes()[..written]);
+            read = string[..written].chars().map(|ch| ch.len_utf16()).sum();
         }
 
         let obj = Object::new(ctx)?;
