@@ -5,16 +5,7 @@ use rquickjs::{
     Array, ArrayBuffer, Ctx, Exception, IntoJs, Object, Result, TypedArray, Value,
 };
 
-use crate::{
-    encoding::encoder::Encoder,
-    utils::{
-        object::{
-            get_array_buffer_bytes, get_array_bytes, get_bytes, get_coerced_string_bytes,
-            get_start_end_indexes, get_string_bytes, obj_to_array_buffer,
-        },
-        result::ResultExt,
-    },
-};
+use crate::{encoding::encoder::Encoder, utils::{object::{get_array_buffer_bytes, get_array_bytes, get_bytes, get_coerced_string_bytes, get_start_end_indexes, get_string_bytes, obj_to_array_buffer}, result::ResultExt}};
 
 pub struct Buffer(pub Vec<u8>);
 
@@ -26,13 +17,6 @@ impl<'js> IntoJs<'js> for Buffer {
 }
 
 impl<'js> Buffer {
-    #[allow(dead_code)]
-    pub fn to_string(&self, ctx: &Ctx<'js>, encoding: &str) -> Result<String> {
-        Encoder::from_str(encoding)
-            .and_then(|enc| enc.encode_to_string(self.0.as_ref()))
-            .or_throw(ctx)
-    }
-
     fn from_array_buffer(ctx: &Ctx<'js>, buffer: ArrayBuffer<'js>) -> Result<Value<'js>> {
         let constructor: Constructor = ctx.globals().get(stringify!(Buffer))?;
         constructor.construct((buffer,))
@@ -100,7 +84,7 @@ fn to_string(this: This<Object<'_>>, ctx: Ctx, encoding: Opt<String>) -> Result<
     let bytes: &[u8] = typed_array.as_ref();
     let encoding = encoding.0.unwrap_or_else(|| String::from("utf-8"));
     let encoder = Encoder::from_str(&encoding).or_throw(&ctx)?;
-    encoder.encode_to_string(bytes).or_throw(&ctx)
+    encoder.encode_to_string(bytes, true).or_throw(&ctx)
 }
 
 fn alloc<'js>(
@@ -254,9 +238,11 @@ fn set_prototype<'js>(ctx: &Ctx<'js>, constructor: Object<'js>) -> Result<()> {
 }
 
 pub fn init<'js>(ctx: &Ctx<'js>) -> Result<()> {
-    let buffer = ctx.eval::<Object<'js>, &str>(&format!(
-        "class {0} extends Uint8Array {{}}\n{0}",
-        stringify!(Buffer)
+    let buffer = ctx.eval::<Object<'js>, &str>(concat!(
+        "class ",
+        stringify!(Buffer),
+        " extends Uint8Array {}\n",
+        stringify!(Buffer),
     ))?;
     set_prototype(ctx, buffer)
 }
