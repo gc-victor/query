@@ -114,30 +114,36 @@ impl Runtime {
 
         let ctx = AsyncContext::full(&runtime).await?;
         ctx.with(|ctx| {
-            crate::buffer::init(&ctx)?;
-            crate::console::init(&ctx)?;
-            crate::crypto::init(&ctx)?;
-            crate::encoding::init(&ctx)?;
-            crate::events::init(&ctx)?;
-            crate::exceptions::init(&ctx)?;
-            crate::http::init(&ctx)?;
-            crate::process::init(&ctx)?;
-            crate::timers::init(&ctx)?;
-            crate::sqlite::init(&ctx)?;
+            (|| {
+                crate::buffer::init(&ctx)?;
+                crate::console::init(&ctx)?;
+                crate::crypto::init(&ctx)?;
+                crate::encoding::init(&ctx)?;
+                crate::events::init(&ctx)?;
+                crate::exceptions::init(&ctx)?;
+                crate::http::init(&ctx)?;
+                crate::process::init(&ctx)?;
+                crate::timers::init(&ctx)?;
+                crate::sqlite::init(&ctx)?;
+    
+                init(&ctx)?;
+    
+                Module::import(&ctx, "polyfill/blob")?;
+                Module::import(&ctx, "polyfill/console")?;
+                Module::import(&ctx, "polyfill/fetch")?;
+                Module::import(&ctx, "polyfill/file")?;
+                Module::import(&ctx, "polyfill/form-data")?;
+                Module::import(&ctx, "polyfill/request")?;
+                Module::import(&ctx, "polyfill/response")?;
+                Module::import(&ctx, "polyfill/web-streams")?;
+                Module::import(&ctx, "js/handle-response")?;
+                Module::import(&ctx, "js/sqlite")?;
 
-            init(&ctx)?;
-
-            Module::import(&ctx, "polyfill/blob").unwrap();
-            Module::import(&ctx, "polyfill/console").unwrap();
-            Module::import(&ctx, "polyfill/fetch").unwrap();
-            Module::import(&ctx, "polyfill/file").unwrap();
-            Module::import(&ctx, "polyfill/form-data").unwrap();
-            Module::import(&ctx, "polyfill/request").unwrap();
-            Module::import(&ctx, "polyfill/response").unwrap();
-            Module::import(&ctx, "polyfill/web-streams").unwrap();
-            Module::import(&ctx, "js/handle-response").unwrap();
-            Module::import(&ctx, "js/sqlite").unwrap();
-
+                Ok(())
+            })()
+            .catch(&ctx)
+            .unwrap_or_else(|err| print_error(err));
+            
             Ok::<_, Error>(())
         })
         .await?;
