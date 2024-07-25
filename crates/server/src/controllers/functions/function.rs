@@ -40,10 +40,7 @@ struct CacheFunction {
 }
 
 #[instrument(err(Debug))]
-pub async fn function(
-    req: &mut Request<Incoming>,
-    runtime: &Runtime,
-) -> Result<Response<BoxBody>, HttpError> {
+pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, HttpError> {
     let method = req.method().as_str();
     let cache_function_path = &req.uri().path().to_string();
     let mut path = req.uri().path().to_string();
@@ -217,15 +214,34 @@ pub async fn function(
         "https"
     };
 
-    let module_name = format!("{}::{}", cache_function_path, method_lower_case)
-        .trim_start_matches('/')
-        .to_string();
+    let ctx = match Runtime::new().await {
+        Ok(r) => Ok(r.ctx),
+        Err(e) => Err(internal_server_error(e.to_string())),
+    }?;
+    let module_name = format!("{}::{}", path, method_lower_case);
     let method_str = req.method().as_str();
     let url = format!("{}://{}{}", scheme, host, uri);
-    let ctx = runtime.ctx.clone();
+
+    let handle_response = format!(
+        r#"
+        import 'polyfill/blob';
+        import 'polyfill/console';
+        import 'polyfill/fetch';
+        import 'polyfill/file';
+        import 'polyfill/form-data';
+        import 'polyfill/request';
+        import 'polyfill/response';
+        import 'polyfill/web-streams';
+
+        import 'js/sqlite';
+        import 'js/handle-response';
+
+        {function}
+        "#,
+    );
 
     let res = async_with!(ctx => |ctx| {
-        let module = match Module::declare(ctx.clone(), module_name.to_string(), function) {
+        let module = match Module::declare(ctx.clone(), module_name, handle_response) {
             Ok(m) => m,
             Err(e) => {
                 tracing::error!("Error: {}", e);
@@ -255,6 +271,7 @@ pub async fn function(
                 return handle_fatal_error();
             },
         };
+
         let promise: Promise = match handle_response.call((headers, method_str, url, body)) {
             Ok(o) => o,
             Err(e) => {
