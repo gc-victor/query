@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.15] - 2024-07-20
+
+### 🚀 Features
+
+- *(server)* Speed up runtime
+
+### 📚 Documentation
+
+- Changelog version 0.12.14
+- Remove litefs cloud
+
+### ⚙️ Miscellaneous Tasks
+
+- Update help
+
+### Build
+
+- *(deps)* Update dependencies
+
+### Release
+
+- Version 0.12.15
+
 ## [0.12.14] - 2024-07-17
 
 ### 🐛 Bug Fixes
