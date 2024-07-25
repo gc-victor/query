@@ -5,7 +5,16 @@ use rquickjs::{
     Array, ArrayBuffer, Ctx, Exception, IntoJs, Object, Result, TypedArray, Value,
 };
 
-use crate::{encoding::encoder::Encoder, utils::{object::{get_array_buffer_bytes, get_array_bytes, get_bytes, get_coerced_string_bytes, get_start_end_indexes, get_string_bytes, obj_to_array_buffer}, result::ResultExt}};
+use crate::{
+    encoding::encoder::Encoder,
+    utils::{
+        object::{
+            get_array_buffer_bytes, get_array_bytes, get_bytes, get_coerced_string_bytes,
+            get_start_end_indexes, get_string_bytes, obj_to_array_buffer,
+        },
+        result::ResultExt,
+    },
+};
 
 pub struct Buffer(pub Vec<u8>);
 

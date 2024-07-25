@@ -8,8 +8,8 @@ use rquickjs::{
     function::{Constructor, Opt},
     loader::{BuiltinLoader, BuiltinResolver, ModuleLoader},
     prelude::Func,
-    AsyncContext, AsyncRuntime, CatchResultExt, CaughtError, Ctx, Error, Function, IntoJs, Module,
-    Object, Result, String as JsString, Value,
+    AsyncContext, AsyncRuntime, CatchResultExt, CaughtError, Ctx, Error, Function, IntoJs, Object,
+    Result, String as JsString, Value,
 };
 use tokio::sync::oneshot::{self, Receiver};
 
@@ -125,25 +125,14 @@ impl Runtime {
                 crate::process::init(&ctx)?;
                 crate::timers::init(&ctx)?;
                 crate::sqlite::init(&ctx)?;
-    
+
                 init(&ctx)?;
-    
-                Module::import(&ctx, "polyfill/blob")?;
-                Module::import(&ctx, "polyfill/console")?;
-                Module::import(&ctx, "polyfill/fetch")?;
-                Module::import(&ctx, "polyfill/file")?;
-                Module::import(&ctx, "polyfill/form-data")?;
-                Module::import(&ctx, "polyfill/request")?;
-                Module::import(&ctx, "polyfill/response")?;
-                Module::import(&ctx, "polyfill/web-streams")?;
-                Module::import(&ctx, "js/handle-response")?;
-                Module::import(&ctx, "js/sqlite")?;
 
                 Ok(())
             })()
             .catch(&ctx)
             .unwrap_or_else(|err| print_error(err));
-            
+
             Ok::<_, Error>(())
         })
         .await?;

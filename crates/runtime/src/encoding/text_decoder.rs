@@ -1,6 +1,9 @@
 use rquickjs::{function::Opt, Ctx, Object, Result, Value};
 
-use crate::utils::{object::{get_bytes, ObjectExt}, result::ResultExt};
+use crate::utils::{
+    object::{get_bytes, ObjectExt},
+    result::ResultExt,
+};
 
 use super::encoder::Encoder;
 
