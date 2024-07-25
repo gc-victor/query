@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.16] - 2024-07-25
+
+### 🚀 Features
+
+- *(runtime)* Llrt updates
+
+### 🐛 Bug Fixes
+
+- Rollback readme
+- *(server)* Memory
+
+### 📚 Documentation
+
+- Changelog version 0.12.15
+
+### Build
+
+- *(deps)* Bump openssl from 0.10.64 to 0.10.66
+- *(deps)* Bump tokio from 1.38.0 to 1.38.1
+- *(deps)* Bump toml from 0.8.14 to 0.8.15
+- *(deps)* Bump rusqlite from 0.31.0 to 0.32.0
+- *(deps)* Bump rustls from 0.23.10 to 0.23.11
+- *(deps)* Bump time from 0.3.34 to 0.3.36
+
+### Release
+
+- Version 0.12.16
+
 ## [0.12.15] - 2024-07-20
 
 ### 🚀 Features
