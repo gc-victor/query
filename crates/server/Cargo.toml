@@ -35,3 +35,4 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 url = "2.5"
 uuid = { version = "1.10", features = ["v4"] }
 openssl = { version = "0.10", features = ["vendored"] }
+time = "0.3.36"
