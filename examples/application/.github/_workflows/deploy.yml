@@ -1,0 +1,59 @@
+name: Query App Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Query App
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20]
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Cache
+        id: query-cache
+        uses: actions/cache@v4
+        with:
+          path: .query/.cache
+          key: query-cache-${{ github.run_id }}
+          restore-keys: query-cache
+
+      - name: Use pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Set token
+        env:
+          QUERY_PRIVATE_TOKEN: ${{ secrets.QUERY_PRIVATE_TOKEN }}
+        run: |
+          echo "[default] $QUERY_PRIVATE_TOKEN" > .query/.token
+
+      - name: Set remote URL
+        run: |
+          sed -i "s|http://localhost:3000|__YOUR_URL__|" .query/Query.toml
+
+      - name: Purge cached functions
+        run: node_modules/.bin/query purge
+
+      - name: Deploy
+        run: .query/tasks/deploy.sh
+
+      - name: Cache content
+        run : cat .query/.cache
