@@ -4,14 +4,12 @@ import { fetcher } from "@/lib/server/fetcher";
 import { handleRequestError } from "@/lib/server/handle-request-error";
 import { AUTHORIZATION_REQUEST, CONTENT_TYPE_REQUEST } from "@/lib/server/header";
 import { Method } from "@/lib/server/method";
+import { queryTokenService } from "@/lib/server/query-token";
 import { ok } from "@/lib/server/responses";
-import { tokenService, validateToken } from "@/lib/server/token";
 
 export async function handleRequest(req: Request): Promise<Response> {
     try {
-        validateToken("post", req);
-
-        const token = await tokenService.load("post", req);
+        const queryToken = await queryTokenService.load("post");
 
         const uuid = req.url.split("/").pop();
         const query = "SELECT * FROM post WHERE uuid = :uuid;";
@@ -23,7 +21,7 @@ export async function handleRequest(req: Request): Promise<Response> {
             method: Method.POST,
             body: JSON.stringify({ db_name: POST_DATABASE, query, params }),
             headers: {
-                [AUTHORIZATION_REQUEST]: `Bearer ${token.query_token}`,
+                [AUTHORIZATION_REQUEST]: `Bearer ${queryToken.token}`,
                 [CONTENT_TYPE_REQUEST]: "application/json",
             },
         });

@@ -2,19 +2,18 @@
     "name": "query-app",
     "type": "module",
     "dependencies": {
-        "preact": "10.21",
-        "preact-render-to-string": "6.4",
-        "valibot": "0.30"
+        "preact": "~10.23.1",
+        "preact-render-to-string": "~6.5.7",
+        "valibot": "~0.36.0"
     },
     "devDependencies": {
-        "@biomejs/biome": "~1.7",
-        "@qery/query": "~0.12",
-        "@qery/query-server": "~0.12",
-        "esbuild": "^0.21",
-        "tailwindcss": "~3.4",
+        "@biomejs/biome": "~1.8.3",
+        "@qery/query": "~0.12.16",
+        "@qery/query-server": "~0.12.16",
+        "esbuild": "^0.23.0",
+        "tailwindcss": "~3.4.7",
         "tailwindcss-cli": "~0.1.2",
-        "typescript": "~5.4",
-        "update-browserslist-db": "latest"
-
+        "typescript": "~5.5.4",
+        "update-browserslist-db": "^1.1.0"
     }
 }

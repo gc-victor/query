@@ -2,7 +2,7 @@ import { ValiError, flatten } from "valibot";
 
 import { AdminUserSessionError } from "@/lib/server/admin-user-session";
 import { ResponseError } from "@/lib/server/response-error";
-import { TokenError } from "@/lib/server/token";
+import { TokenError } from "@/lib/server/query-token";
 import {
     BAD_REQUEST_CODE,
     INTERNAL_SERVER_ERROR_CODE,
@@ -33,7 +33,7 @@ export function handleRequestError(e: Error): Response {
     }
 
     if (e instanceof ValiError) {
-        return new Response(JSON.stringify({ errors: flatten(e).nested }), {
+        return new Response(JSON.stringify({ errors: flatten(e.issues).nested }), {
             status: BAD_REQUEST_CODE,
         });
     }

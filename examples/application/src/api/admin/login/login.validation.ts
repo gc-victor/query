@@ -1,6 +1,6 @@
-import { minLength, object, string } from "valibot";
+import { minLength, object, string, pipe } from "valibot";
 
 export const LoginValidation = object({
-    email: string([minLength(1, "Please enter a email.")]),
-    password: string([minLength(1, "Please enter a password.")]),
+    email: pipe(string(), minLength(1, "Please enter an email.")),
+    password: pipe(string(), minLength(1, "Please enter a password."))
 });

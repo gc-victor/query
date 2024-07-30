@@ -9,13 +9,11 @@ import { AUTHORIZATION_REQUEST, CONTENT_TYPE_REQUEST } from "@/lib/server/header
 import { Method } from "@/lib/server/method";
 import { ok } from "@/lib/server/responses";
 import { slugify } from "@/lib/server/slugify";
-import { tokenService, validateToken } from "@/lib/server/token";
+import { queryTokenService } from "@/lib/server/query-token";
 
 export async function handleRequest(req: Request): Promise<Response> {
     try {
-        validateToken("post", req);
-
-        const token = await tokenService.load("post", req);
+        const queryToken = await queryTokenService.load("post");
 
         const post = await req.json();
         const title = post.title;
@@ -37,7 +35,7 @@ export async function handleRequest(req: Request): Promise<Response> {
             method: Method.POST,
             body: JSON.stringify({ db_name: POST_DATABASE, query, params }),
             headers: {
-                [AUTHORIZATION_REQUEST]: `Bearer ${token.query_token}`,
+                [AUTHORIZATION_REQUEST]: `Bearer ${queryToken.token}`,
                 [CONTENT_TYPE_REQUEST]: "application/json",
             },
         });

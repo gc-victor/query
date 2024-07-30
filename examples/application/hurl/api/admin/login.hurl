@@ -26,7 +26,7 @@ POST {{host}}/_/function/api/admin/login
 email: without_password
 HTTP 400
 [Asserts]
-body contains "{\"errors\":{\"password\":[\"Invalid type\"]}}"
+body contains "{\"errors\":{\"password\":[\"Invalid type: Expected string but received null\"]}}"
 cookie "session" not exists
 
 POST {{host}}/_/function/api/admin/login
@@ -34,7 +34,7 @@ POST {{host}}/_/function/api/admin/login
 password: without_email
 HTTP 400
 [Asserts]
-body contains "{\"errors\":{\"email\":[\"Invalid type\"]}}"
+body contains "{\"errors\":{\"email\":[\"Invalid type: Expected string but received null\"]}}"
 cookie "session" not exists
 
 POST {{host}}/_/function/api/admin/login

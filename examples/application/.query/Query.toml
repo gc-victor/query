@@ -16,17 +16,17 @@ bundle = ".query/tasks/bundle.sh &"
 tailwind = "node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
 
 [task.create]
-migration = "node_modules/.bin/query task migration -y &"
-deploy = ".query/tasks/deploy.sh &"
+migration = "node_modules/.bin/query task migration -y"
+deploy = ".query/tasks/deploy.sh"
 
 [task.dev]
-bundle = ".query/tasks/bundle.sh &"
-tailwind = "node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
+bundle = ".query/tasks/bundle.sh & node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css &"
 
 [task.migration]
 20240116141458 = "node_modules/.bin/query migration admin_user_session.sql migrations/admin_user_session.sql/20240116141458-admin_user_session-up.sql"
+20240117102214 = "node_modules/.bin/query migration query_config.sql migrations/post.sql/20240117102214-create-token-up.sql"
 20240117102216 = "node_modules/.bin/query migration post.sql migrations/post.sql/20240117102216-post-up.sql"
 
 [task.test]
 ## Install hurl (https://hurl.dev/docs/installation.html)
-hurl = "hurl --test --continue-on-error --variables-file hurl/.env hurl/**/*.hurl hurl/**/**/*.hurl"
+hurl = "hurl --test --continue-on-error --file-root hurl --variables-file hurl/.env hurl/**/*.hurl hurl/**/**/*.hurl"
