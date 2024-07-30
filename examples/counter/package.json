@@ -2,13 +2,13 @@
     "name": "query-minimal",
     "type": "module",
     "devDependencies": {
-        "@biomejs/biome": "~1.7",
+        "@biomejs/biome": "~1.8",
         "@qery/query": "~0.12",
         "@qery/query-server": "~0.12",
-        "esbuild": "^0.21",
+        "esbuild": "^0.23",
         "tailwindcss": "~3.4",
         "tailwindcss-cli": "~0.1.2",
-        "typescript": "~5.4"
+        "typescript": "~5.5"
     },
     "dependencies": {
         "@preact/signals": "^1.2.3",
