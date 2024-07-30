@@ -8,8 +8,11 @@ pub enum Commands {
     Asset(AssetArgs),
     /// Manage branches
     Branch(BranchArgs),
-    /// Create a new project
-    Create,
+    /// Create a new project using a template
+    /// - You can choose from the default templates if you don't use an argument
+    /// - If you provide a repository URL as an argument, the project will be created using it
+    #[clap(verbatim_doc_comment)]
+    Create(CreateArgs),
     /// Development experience
     Dev(DevArgs),
     /// Push all the functions without setting a path
@@ -59,6 +62,11 @@ pub struct AssetArgs {
 pub struct BranchArgs {
     #[command(subcommand)]
     pub command: BranchCommands,
+}
+
+#[derive(Args)]
+pub struct CreateArgs {
+    pub repo_url: Option<String>,
 }
 
 #[derive(Subcommand)]
