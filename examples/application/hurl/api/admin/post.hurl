@@ -9,22 +9,10 @@ HTTP 200
 [Captures]
 user_token: jsonpath "$.data[0].token"
 
-POST {{host}}/_/user
-Authorization: Bearer {{user_token}}
-```json
-{
-    "email": "query_admin_post",
-    "password": "password",
-    "admin": true,
-    "active": true
-}
-```
-HTTP 201
-
 POST {{host}}/_/function/api/admin/login
 [FormParams]
-email: query_admin_post
-password: password
+email: admin
+password: admin
 HTTP 200
 [Asserts]
 header "Set-Cookie" contains "session="
@@ -38,12 +26,26 @@ session: {{session}}
 title: Test Title
 content: Test content
 slug: /test-title
-image: file,test.txt;
+image: file,post.jpg; image/jpeg
 HTTP 200
 [Asserts]
 jsonpath "$.data[0].success" == true
 
-GET {{host}}/_/function/api/admin/post
+POST {{host}}/_/query
+Authorization: Bearer {{user_token}}
+```json
+{
+  "db_name": "post.sql",
+  "query": "SELECT uuid FROM post WHERE slug = '/test-title'"
+}
+```
+HTTP 200
+[Asserts]
+jsonpath "$.data[0].uuid" exists
+[Captures]
+uuid: jsonpath "$.data[0].uuid"
+
+GET {{host}}/_/function/api/admin/post/uuid/{{uuid}}
 [Cookies]
 session: {{session}}
 HTTP 200
@@ -51,7 +53,7 @@ HTTP 200
 jsonpath "$.data[0].title" == "Test Title"
 jsonpath "$.data[0].content" == "Test content"
 jsonpath "$.data[0].slug" == "/test-title"
-jsonpath "$.data[0].image_url" == "post/cache/test.txt"
+jsonpath "$.data[0].image_url" == "post/cache/post.jpg"
 [Captures]
 uuid: jsonpath "$.data[0].uuid"
 
@@ -63,20 +65,10 @@ uuid: {{uuid}}
 title: Test Title 2
 content: Test content 2
 slug: /test-title-2
-image: file,test-2.txt;
+image: file,post-2.jpg; image/jpeg
 HTTP 200
 [Asserts]
 jsonpath "$.data[0].success" == true
-
-GET {{host}}/_/function/api/admin/post
-[Cookies]
-session: {{session}}
-HTTP 200
-[Asserts]
-jsonpath "$.data[0].title" == "Test Title 2"
-jsonpath "$.data[0].content" == "Test content 2"
-jsonpath "$.data[0].slug" == "/test-title-2"
-jsonpath "$.data[0].image_url" == "post/cache/test-2.txt"
 
 GET {{host}}/_/function/api/admin/post/uuid/{{uuid}}
 [Cookies]
@@ -86,7 +78,7 @@ HTTP 200
 jsonpath "$.data[0].title" == "Test Title 2"
 jsonpath "$.data[0].content" == "Test content 2"
 jsonpath "$.data[0].slug" == "/test-title-2"
-jsonpath "$.data[0].image_url" == "post/cache/test-2.txt"
+jsonpath "$.data[0].image_url" == "post/cache/post-2.jpg"
 
 DELETE {{host}}/_/function/api/admin/post
 [Cookies]
@@ -99,12 +91,3 @@ session: {{session}}
 HTTP 200
 [Asserts]
 jsonpath "$.data[0].success" == true
-
-DELETE {{host}}/_/user
-Authorization: Bearer {{user_token}}
-```json
-{
-  "email": "query_admin_post"
-}
-```
-HTTP 200

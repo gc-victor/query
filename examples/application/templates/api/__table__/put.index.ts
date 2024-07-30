@@ -8,14 +8,12 @@ import { handleRequestError } from "@/lib/server/handle-request-error";
 import { AUTHORIZATION_REQUEST, CONTENT_TYPE_REQUEST } from "@/lib/server/header";
 import { Method } from "@/lib/server/method";
 import { ok } from "@/lib/server/responses";
-import { tokenService, validateToken } from "@/lib/server/token";
+import { queryTokenService } from "@/lib/server/query-token";
 import { {{ tablePascalCase }}UpdateValidation } from "./{{ tableLowerCase }}.validation";
 
 export async function handleRequest(req: Request): Promise<Response> {
     try {
-        validateToken("{{ table }}", req);
-
-        const token = await tokenService.load("{{ table }}", req);
+        const queryToken = await queryTokenService.load("{{ table }}");
 
         const {{ tableCamelCase }} = await req.json();
 
@@ -38,7 +36,7 @@ export async function handleRequest(req: Request): Promise<Response> {
             method: Method.POST,
             body: JSON.stringify({ db_name: {{ tableConstantCase }}_DATABASE, query, params }),
             headers: {
-                [AUTHORIZATION_REQUEST]: `Bearer ${token.query_token}`,
+                [AUTHORIZATION_REQUEST]: `Bearer ${queryToken.token}`,
                 [CONTENT_TYPE_REQUEST]: "application/json",
             },
         });

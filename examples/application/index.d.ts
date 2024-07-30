@@ -1,10 +1,10 @@
 /// <reference lib="dom" />
 
+import type { JSX as PreactJSX } from 'preact';
 
 declare module 'preact' {
     namespace JSX {
-        interface IntrinsicElements {
-            [elemName: string]: DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
+        interface IntrinsicElements extends PreactJSX.IntrinsicElements {
             'table-element': TableElementProps;
         }
     }
@@ -17,7 +17,6 @@ interface TableElementProps extends HTMLAttributes<HTMLTableElement> {
 interface Table extends React.HTMLAttributes {
     url: string;
 }
-
 
 declare global {
     // NOTE: To avoid editor ts error
@@ -47,5 +46,3 @@ declare global {
         export default content;
     }
 }
-
-export type { };
