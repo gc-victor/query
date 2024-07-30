@@ -49,7 +49,7 @@ async fn main() {
     match &command {
         Commands::Asset(command) => command_asset(command).await.unwrap(),
         Commands::Branch(command) => command_branch(command).await.unwrap(),
-        Commands::Create => command_create().await.unwrap(),
+        Commands::Create(command) => command_create(command).await.unwrap(),
         Commands::Dev(command) => command_dev(command).await.unwrap(),
         Commands::Function(command) => command_function(command).await.unwrap(),
         Commands::Generate(command) => command_generate(command).await.unwrap(),

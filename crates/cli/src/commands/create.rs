@@ -27,6 +27,8 @@ use crate::{
     },
 };
 
+use super::commands::CreateArgs;
+
 #[derive(Debug, Deserialize)]
 pub struct Package {
     name: String,
@@ -37,22 +39,29 @@ type Packages = Vec<Package>;
 
 static PROJECTS_FOLDER: &str = "examples";
 
-pub async fn command_create() -> Result<()> {
-    // Get packages
+pub async fn command_create(command: &CreateArgs) -> Result<()> {
+    let repo_url = command.repo_url.clone();
 
-    let packages: Packages = fetch_packages().await?;
+    // Init prompt
 
     intro("Create a Query application".to_string().cyan().reversed())?;
 
-    // Prompts
+    let packages: Packages = if repo_url.is_none() {
+        fetch_packages().await?
+    } else {
+        vec![]
+    };
+    let application = if let Some(url) = &repo_url {
+        url.split('/').last().unwrap().to_string()
+    } else {
+        let items: Vec<(String, String, String)> = packages
+            .iter()
+            .map(|p| (p.name.clone(), p.name.clone(), "".to_string()))
+            .collect();
+        let items = &items[..];
 
-    let items: Vec<(String, String, String)> = packages
-        .iter()
-        .map(|p| (p.name.clone(), p.name.clone(), "".to_string()))
-        .collect();
-    let items = &items[..];
-
-    let application = select("Pick an application type").items(items).interact()?;
+        select("Pick an application type").items(items).interact()?
+    };
 
     let default_path = &format!("./{}-{}", application, &generate_token(2)?);
     let dest: String = input("Where should we create your application?")
@@ -103,19 +112,28 @@ pub async fn command_create() -> Result<()> {
 
     intro("Creating your application...".to_string().cyan().reversed())?;
 
-    let package = packages.iter().find(|p| p.name == application).unwrap();
-
     let copy_spinner = spinner();
 
     copy_spinner.start("Cloning application...");
 
-    match git_clone(package).await {
-        Ok(_) => {}
-        Err(e) => {
-            eprintln!("{}", format!("Error: {}", e).red());
-            exit(1);
-        }
-    };
+    if let Some(url) = repo_url {
+        match git_clone_full(&url).await {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("{}", format!("Error: {}", e).red());
+                exit(1);
+            }
+        };
+    } else {
+        let package = packages.iter().find(|p| p.name == application).unwrap();
+        match git_clone(package).await {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("{}", format!("Error: {}", e).red());
+                exit(1);
+            }
+        };
+    }
 
     copy_spinner.stop("Application cloned");
 
@@ -367,25 +385,6 @@ async fn fetch_packages() -> Result<Packages> {
     let client = Client::new();
     let response = client.get(&url).headers(headers).send().await?;
 
-    if !response.status().is_success() {
-        let packages = vec![
-            Package {
-                name: "application".to_string(),
-                path: PROJECTS_FOLDER.to_owned() + "/application",
-            },
-            Package {
-                name: "minimal".to_string(),
-                path: PROJECTS_FOLDER.to_owned() + "/minimal",
-            },
-            Package {
-                name: "counter".to_string(),
-                path: PROJECTS_FOLDER.to_owned() + "/counter",
-            },
-        ];
-
-        return Ok(packages);
-    }
-
     let text = response.text().await?;
     let json: Packages = serde_json::from_str(&text)?;
 
@@ -475,6 +474,48 @@ async fn git_clone(package: &Package) -> Result<()> {
     }
 
     fs::remove_dir_all(PROJECTS_FOLDER)?;
+
+    Ok(())
+}
+
+async fn git_clone_full(repo_url: &str) -> Result<()> {
+    let error_handler = |e| {
+        eprintln!("{}", format!("Error: {e}").red());
+        exit(1)
+    };
+
+    let response = match reqwest::get(repo_url).await.map_err(error_handler) {
+        Ok(response) => response,
+        Err(_) => {
+            eprintln!(
+                "{}",
+                format!("Error: {} could not be reached", repo_url).red()
+            );
+            exit(1);
+        }
+    };
+
+    let status = response.status();
+
+    if !status.is_success() {
+        eprintln!("{}", format!("Error: {} {}", repo_url, status).red());
+        exit(1);
+    }
+
+    Command::new("git")
+        .args([
+            "clone",
+            "--depth=1",
+            "--single-branch",
+            "--branch",
+            "main",
+            repo_url,
+            ".",
+        ])
+        .output()
+        .await?;
+
+    fs::remove_dir_all(".git")?;
 
     Ok(())
 }
