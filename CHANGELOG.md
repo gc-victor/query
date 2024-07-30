@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.17] - 2024-07-30
+
+### 🚀 Features
+
+- Runtime cache
+- *(cli)* Add create repository
+- *(example)* Update application
+
+### 📚 Documentation
+
+- Changelog version 0.12.16
+
+### Build
+
+- *(deps)* Bump tokio from 1.38.1 to 1.39.2
+- *(deps)* Bump clap from 4.5.9 to 4.5.11
+- *(deps)* Bump rusqlite from 0.32.0 to 0.32.1
+- *(deps)* Bump toml_edit from 0.22.16 to 0.22.17
+- *(deps)* Bump serde_json from 1.0.120 to 1.0.121
+
+### Release
+
+- Version 0.12.17
+
 ## [0.12.16] - 2024-07-25
 
 ### 🚀 Features
