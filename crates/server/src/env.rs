@@ -41,6 +41,10 @@ impl Env {
     pub fn admin_password() -> String {
         when_admin_password()
     }
+
+    pub fn runtime_max_malloc_size() -> i64 {
+        when_runtime_max_malloc_size()
+    }
 }
 
 fn when_port() -> u16 {
@@ -81,6 +85,13 @@ fn when_admin_password() -> String {
     env::var("QUERY_SERVER_ADMIN_PASSWORD").expect("QUERY_SERVER_ADMIN_PASSWORD is not set")
 }
 
+fn when_runtime_max_malloc_size() -> i64 {
+    env::var("QUERY_SERVER_RUNTIME_MAX_MALLOC_SIZE")
+        .unwrap_or("2097152".to_string())
+        .parse::<i64>()
+        .unwrap()
+}
+
 #[cfg(test)]
 mod tests {
     use std::env;
@@ -94,8 +105,6 @@ mod tests {
         env::set_var("QUERY_SERVER_ADMIN_EMAIL", "email");
         env::set_var("QUERY_SERVER_ADMIN_PASSWORD", "password");
     }
-
-    // TODO: Test Env::validate for each env case
 
     #[test]
     fn test_port() {
@@ -234,5 +243,20 @@ mod tests {
         env::remove_var("QUERY_SERVER_ADMIN_PASSWORD");
 
         Env::admin_password();
+    }
+
+    #[test]
+    fn test_runtime_max_malloc_size_default() {
+        env::remove_var("QUERY_SERVER_RUNTIME_MAX_MALLOC_SIZE");
+
+        assert_eq!(Env::runtime_max_malloc_size(), 2097152);
+    }
+
+    #[test]
+    fn test_runtime_max_malloc_size() {
+        env::remove_var("QUERY_SERVER_RUNTIME_MAX_MALLOC_SIZE");
+        env::set_var("QUERY_SERVER_RUNTIME_MAX_MALLOC_SIZE", "1048576");
+
+        assert_eq!(Env::runtime_max_malloc_size(), 1048576);
     }
 }
