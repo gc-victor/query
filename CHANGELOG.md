@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.18] - 2024-07-31
+
+### 🚀 Features
+
+- *(example)* Update application deploy workflow
+- *(ci)* Add examples dependabot
+- *(docs)* Update create repo url
+
+### 🐛 Bug Fixes
+
+- *(server)* Revert rutime cache (#225)
+
+### 📚 Documentation
+
+- Changelog version 0.12.17
+
+### Build
+
+- *(deps-dev)* Bump @qery/query in /examples/application
+- *(deps-dev)* Bump typescript in /examples/counter
+- *(deps-dev)* Bump esbuild from 0.21.5 to 0.23.0 in /examples/counter
+- *(deps-dev)* Bump @biomejs/biome in /examples/counter
+- *(deps)* Bump toml from 0.8.15 to 0.8.16
+- *(deps)* Bump rustls from 0.23.11 to 0.23.12
+- *(deps-dev)* Bump @qery/query-server in /examples/application (#224)
+
+### Release
+
+- Version 0.12.18
+
 ## [0.12.17] - 2024-07-30
 
 ### 🚀 Features
