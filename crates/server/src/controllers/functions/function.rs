@@ -1,12 +1,12 @@
 use std::{
     collections::HashMap,
-    ops::DerefMut,
     thread,
     time::{SystemTime, UNIX_EPOCH},
 };
 
 use anyhow::Result;
 use hyper::{body::Incoming, http::HeaderName, Request, Response};
+use query_runtime::Runtime;
 use regex::Regex;
 use rquickjs::{async_with, Function, Module, Object, Promise, Value};
 use rusqlite::{named_params, Row};
@@ -14,9 +14,7 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
 use crate::env::Env;
-use crate::{
-    controllers::functions::runtime::RUNTIME, sqlite::connect_db::connect_cache_function_db,
-};
+use crate::sqlite::connect_db::connect_cache_function_db;
 use crate::{
     controllers::utils::{
         body::{Body, BoxBody},
@@ -216,10 +214,10 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         "https"
     };
 
-    let mut runtime_cache = RUNTIME.lock().await;
-    let runtime_cache = &mut *runtime_cache.deref_mut();
-    let runtime = runtime_cache.get().await.as_ref().unwrap();
-    let ctx = runtime.ctx.clone();
+    let ctx = match Runtime::new().await {
+        Ok(r) => Ok(r.ctx),
+        Err(e) => Err(internal_server_error(e.to_string())),
+    }?;
     let module_name = format!("{}::{}", path, method_lower_case);
     let method_str = req.method().as_str();
     let url = format!("{}://{}{}", scheme, host, uri);
