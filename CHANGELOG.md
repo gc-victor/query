@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.19] - 2024-08-02
+
+### 🐛 Bug Fixes
+
+- *(cli)* Has node_modules binary
+
+### 📚 Documentation
+
+- Changelog version 0.12.18
+
+### Release
+
+- Version 0.12.19
+
 ## [0.12.18] - 2024-07-31
 
 ### 🚀 Features
