@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::ser::PrettyFormatter;
 use serde_json::Serializer;
 
-use crate::utils::{detect_package_manager, has_module, which};
+use crate::utils::{detect_package_manager, has_node_modules_binary, which};
 
 const QUERY_SERVER_MODULE: &str = "@qery/query-server";
 const QUERY_SERVER_BINARY: &str = "query-server";
@@ -23,13 +23,13 @@ pub fn run_query_server(verbose: bool, silent: bool) {
 
     let query_server_global = which(QUERY_SERVER_BINARY).unwrap_or_default();
     let hash_query_server_global = !query_server_global.is_empty();
-    let hash_query_server_local_module = has_module(QUERY_SERVER_MODULE);
-    let hash_query_server = hash_query_server_local_module || hash_query_server_global;
+    let hash_query_server_local_binary = has_node_modules_binary(QUERY_SERVER_BINARY);
+    let hash_query_server = hash_query_server_local_binary || hash_query_server_global;
 
     let esbuild_global = which(ESBUILD_BINARY).unwrap_or_default();
     let hash_esbuild_global = !esbuild_global.is_empty();
-    let hash_esbuild_local_module = has_module(ESBUILD_MODULE);
-    let hash_esbuild = hash_esbuild_local_module || hash_esbuild_global;
+    let hash_esbuild_local_binary = has_node_modules_binary(ESBUILD_BINARY);
+    let hash_esbuild = hash_esbuild_local_binary || hash_esbuild_global;
 
     if !hash_query_server && !hash_esbuild {
         eprintln!(
@@ -44,7 +44,7 @@ pub fn run_query_server(verbose: bool, silent: bool) {
     }
 
     if !hash_query_server {
-        eprintln!("The {} modules isn't installed.", QUERY_SERVER_BINARY);
+        eprintln!("The {} module isn't installed.", QUERY_SERVER_MODULE);
         eprintln!(
             "Please, run `{} install --save-dev {}` first.",
             pm.npm, QUERY_SERVER_MODULE
@@ -53,7 +53,7 @@ pub fn run_query_server(verbose: bool, silent: bool) {
     }
 
     if !hash_esbuild {
-        eprintln!("The {} modules isn't installed.", ESBUILD_BINARY);
+        eprintln!("The {} module isn't installed.", ESBUILD_MODULE);
         eprintln!(
             "Please, run `{} install --save-dev {}` first.",
             pm.npm, ESBUILD_MODULE
@@ -61,7 +61,7 @@ pub fn run_query_server(verbose: bool, silent: bool) {
         exit(1);
     }
 
-    let mut child: std::process::Child = if hash_query_server_local_module {
+    let mut child: std::process::Child = if hash_query_server_local_binary {
         let current_dir = env::current_dir().unwrap();
         let package = current_dir
             .join("node_modules")

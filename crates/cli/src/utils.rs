@@ -210,7 +210,7 @@ pub fn detect_package_manager() -> PackageManager {
     npm_pm
 }
 
-pub fn has_module(package: &str) -> bool {
+pub fn has_node_modules_binary(package: &str) -> bool {
     Path::new("node_modules")
         .join(".bin")
         .join(package)

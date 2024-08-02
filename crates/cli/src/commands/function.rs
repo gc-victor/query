@@ -25,7 +25,7 @@ use walkdir::WalkDir;
 use crate::{
     cache::{Cache, CacheItem},
     config::CONFIG,
-    utils::{detect_package_manager, has_module, http_client, line_break, which},
+    utils::{detect_package_manager, has_node_modules_binary, http_client, line_break, which},
 };
 
 use super::commands::FunctionArgs;
@@ -270,8 +270,8 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
 
     let esbuild_global = which("esbuild").unwrap_or_default();
     let hash_esbuild_global = !esbuild_global.is_empty();
-    let hash_esbuild_local_module = has_module("esbuild");
-    let hash_esbuild = hash_esbuild_local_module || hash_esbuild_global;
+    let hash_esbuild_local_binary = has_node_modules_binary("esbuild");
+    let hash_esbuild = hash_esbuild_local_binary || hash_esbuild_global;
 
     let pm = detect_package_manager();
     if !hash_esbuild {
@@ -282,7 +282,7 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
         exit(1);
     }
 
-    if hash_esbuild_local_module {
+    if hash_esbuild_local_binary {
         let package = Path::new("node_modules").join(".bin").join("esbuild");
         let package = package.to_str().unwrap().to_string();
 
