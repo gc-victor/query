@@ -18,8 +18,8 @@ use crate::{
     config::CLI,
     run_server::run_query_server,
     utils::{
-        block_until_server_is_ready, check_port_usage, detect_package_manager, has_module,
-        stop_query_server, which,
+        block_until_server_is_ready, check_port_usage, detect_package_manager,
+        has_node_modules_binary, stop_query_server, which,
     },
 };
 
@@ -287,8 +287,8 @@ fn query_command(args: Vec<&str>) {
 
     let package_global = which(binary).unwrap_or_default();
     let hash_package_global = !package_global.is_empty();
-    let hash_package_local_module = has_module(binary);
-    let hash_package = hash_package_local_module || hash_package_global;
+    let hash_package_local_binary = has_node_modules_binary(binary);
+    let hash_package = hash_package_local_binary || hash_package_global;
 
     if !hash_package {
         eprintln!("The {} binary isn't installed.", binary);
@@ -299,7 +299,7 @@ fn query_command(args: Vec<&str>) {
         exit(1);
     }
 
-    let mut child: std::process::Child = if hash_package_local_module {
+    let mut child: std::process::Child = if hash_package_local_binary {
         let npx = pm.npx.to_string();
         let npx = npx.split(' ').collect::<Vec<&str>>();
         let npx = npx[0];
