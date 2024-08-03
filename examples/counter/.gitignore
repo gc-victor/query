@@ -181,4 +181,3 @@ dist/
 .query/.history
 .query/.token
 
-pnpm-lock.yaml
