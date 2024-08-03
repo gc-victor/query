@@ -1,5 +1,11 @@
 use std::{
-    cmp::min, env, fmt, future::Future, mem::MaybeUninit, result::Result as StdResult,
+    cmp::min,
+    env, fmt,
+    future::{poll_fn, Future},
+    mem::MaybeUninit,
+    pin::pin,
+    result::Result as StdResult,
+    task::Poll,
     time::Instant,
 };
 
@@ -8,10 +14,13 @@ use rquickjs::{
     function::{Constructor, Opt},
     loader::{BuiltinLoader, BuiltinResolver, ModuleLoader},
     prelude::Func,
-    AsyncContext, AsyncRuntime, CatchResultExt, CaughtError, Ctx, Error, Function, IntoJs, Object,
-    Result, String as JsString, Value,
+    qjs, AsyncContext, AsyncRuntime, CatchResultExt, CaughtError, Ctx, Error, Function, IntoJs,
+    Object, Result, String as JsString, Value,
 };
+
 use tokio::sync::oneshot::{self, Receiver};
+
+use crate::timers::poll_timers;
 
 mod buffer;
 mod console;
@@ -27,7 +36,7 @@ mod number;
 mod process;
 mod sqlite;
 mod test_utils;
-mod timers;
+pub mod timers;
 mod url;
 mod utils;
 
@@ -140,9 +149,31 @@ impl Runtime {
         Ok(Runtime { runtime, ctx })
     }
 
-    pub fn idle(self) -> StdResult<(), Box<dyn std::error::Error + Sync + Send>> {
+    pub async fn idle(self) -> StdResult<(), Box<dyn std::error::Error + Sync + Send>> {
+        let rt = self
+            .ctx
+            .with(|ctx| unsafe { qjs::JS_GetRuntime(ctx.as_raw().as_ptr()) as usize })
+            .await;
+
+        let rt = rt as *mut qjs::JSRuntime;
+
+        let runtime = self.runtime;
+
+        poll_fn(move |cx| {
+            poll_timers(rt);
+
+            let mut pending_job = pin!(runtime.idle());
+
+            if pending_job.as_mut().poll(cx).is_ready() && !poll_timers(rt) {
+                return Poll::Ready(());
+            }
+            cx.waker().wake_by_ref();
+            Poll::Pending
+        })
+        .await;
+
         drop(self.ctx);
-        drop(self.runtime);
+
         Ok(())
     }
 }
