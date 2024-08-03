@@ -205,6 +205,17 @@ hurl-test: clean-hurl-dbs
 hurl-test-all: clean-hurl-dbs
 	hurl --test --continue-on-error --file-root hurl hurl/**/*.hurl hurl/**/**/*.hurl
 
+hurl-function:
+	@name="$(ARGUMENTS)"; \
+	if [ -f "hurl/function/$$name.js" ]; then \
+		output=$$(node hurl/function/$$name.js); \
+		sed -i "s/\"function\": \[.*\]/\"function\": $$output/" hurl/function/$$name.hurl 2>/dev/null && \
+		echo "Updated hurl/function/$$name.hurl" || \
+		echo "Error: hurl/function/$$name.hurl not found"; \
+	else \
+		echo "Error: hurl/function/$$name.js not found"; \
+	fi
+
 # Lint
 
 lint:
