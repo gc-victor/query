@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::Result;
 use hyper::{body::Incoming, http::HeaderName, Request, Response};
-use query_runtime::Runtime;
+use query_runtime::{timers::TimerPoller, Runtime};
 use regex::Regex;
 use rquickjs::{async_with, Function, Module, Object, Promise, Value};
 use rusqlite::{named_params, Row};
@@ -279,6 +279,12 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
                 return handle_fatal_error();
             },
         };
+
+        loop {
+            if !ctx.poll_timers() {
+                break;
+            }
+        }
 
         let response: Object = match promise.into_future().await {
             Ok(r) => r,
