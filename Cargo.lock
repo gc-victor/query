@@ -2306,8 +2306,10 @@ name = "query-runtime"
 version = "0.12.19"
 dependencies = [
  "anyhow",
+ "argon2",
  "base64-simd",
  "bytes",
+ "chacha20poly1305",
  "fxhash",
  "hex-simd",
  "http-body-util",

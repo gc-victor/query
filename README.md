@@ -1015,20 +1015,7 @@ export async function handleRequest(req) {
 
 The function has to export a function called `handleRequest` that receives a [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and returns a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response).
 
-To use a database you have to create a connection to the database:
-
-```js
-const db = new Database("example.sql");
-```
-
-The `Database` constructor receives the name of the database. If the database is found, it will create a connection to the database. It will provide the following methods:
-
-- `query` - To read data from the database.
-- `execute` - To write data in the database.
-
-A `query` and an `execute` can have params. The params are bound to the parameters based on the order of the array or an object with the format of `:AAA`, `$AAA`, or `@AAA` that serve as placeholders for values that are bound to the parameters at a later time. The params are optional.
-
-As Query uses [LiteFS proxy](https://fly.io/docs/litefs/config/#http-proxy-server), you have to remember to use `GET` to read data and `DELETE|POST|PUT|PATCH` to write data.
+In case of uses [LiteFS proxy](https://fly.io/docs/litefs/config/#http-proxy-server), you have to remember to use `GET` to read data and `DELETE|POST|PUT|PATCH` to write data.
 
 #### Handle Request Example
 
@@ -1069,6 +1056,38 @@ By default the folder to contain the functions has to be called `functions`. You
 It is important to note that the method used in a file is determined by the prefix `(delete|get|patch|post|put).*`, while the remaining part of the file name defines the final segment of the route. For instance, if the file name ends with `index`, it will be the root of the route, and if it is `[slug]`, it will be a route with a slug. The slug is a placeholder for a value used in the route.
 
 To define the different segments of the route, you must use the folder structure. For example, if you want to use the path `/example/:slug`, you have to create a folder called `example` and inside it a file called `get.[slug].js`. If you want to use the route `/:slug`, you have to create a folder called `[slug]` and inside of it a file called `get.index.js`. If you want to use the route `/`, you must create a file called `get.index.js`.
+
+#### API
+
+##### Database
+
+Database is a global class that provides access to the databases.
+
+To use a database you have to create a connection to the database:
+
+```js
+const db = new Database("example.sql");
+```
+
+The `Database` constructor receives the name of the database. If the database is found, it will create a connection to the database. It will provide the following methods:
+
+- `query` - To read data from the database.
+- `execute` - To write data in the database.
+
+A `query` and an `execute` can have params. The params are bound to the parameters based on the order of the array or an object with the format of `:AAA`, `$AAA`, or `@AAA` that serve as placeholders for values that are bound to the parameters at a later time. The params are optional.
+
+##### Argon2
+
+Argon2 is a password-hashing function that is used to hash passwords.
+
+To use Argon2 you have to import the `hash` or `verify` from the `query:argon2` module.
+
+```js
+import { hash, verify } from "query:argon2";
+```
+
+- `hash` - To hash a password. Returns a hashed password.
+- `verify` - To verify a password. Returns a boolean.
 
 #### Query Cache Control
 

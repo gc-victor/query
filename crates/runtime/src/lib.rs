@@ -22,6 +22,7 @@ use tokio::sync::oneshot::{self, Receiver};
 
 use crate::timers::poll_timers;
 
+mod argon2;
 mod buffer;
 mod console;
 mod crypto;
@@ -66,6 +67,7 @@ impl std::fmt::Debug for Runtime {
 // JS modules
 const HANDLE_RESPONSE_SCRIPT_MODULE: &str = include_str!("js/handle-response.js");
 const SQLITE_SCRIPT_MODULE: &str = include_str!("js/sqlite.js");
+const ARGON2_SCRIPT_MODULE: &str = include_str!("js/argon2.js");
 // Polyfill modules
 const BLOB_SCRIPT_MODULE: &str = include_str!("js/polyfills/blob.js");
 const CONSOLE_SCRIPT_MODULE: &str = include_str!("js/polyfills/console.js");
@@ -93,6 +95,7 @@ impl Runtime {
             .await;
 
         let resolver = BuiltinResolver::default()
+            .with_module("query:argon2")
             .with_module("js/handle-response")
             .with_module("js/sqlite")
             .with_module("polyfill/blob")
@@ -105,6 +108,7 @@ impl Runtime {
             .with_module("polyfill/web-streams");
         let loader = (
             BuiltinLoader::default()
+                .with_module("query:argon2", ARGON2_SCRIPT_MODULE)
                 .with_module("js/handle-response", HANDLE_RESPONSE_SCRIPT_MODULE)
                 .with_module("js/sqlite", SQLITE_SCRIPT_MODULE)
                 .with_module("polyfill/blob", BLOB_SCRIPT_MODULE)
@@ -124,6 +128,7 @@ impl Runtime {
         let ctx = AsyncContext::full(&runtime).await?;
         ctx.with(|ctx| {
             (|| {
+                crate::argon2::init(&ctx)?;
                 crate::buffer::init(&ctx)?;
                 crate::console::init(&ctx)?;
                 crate::crypto::init(&ctx)?;
