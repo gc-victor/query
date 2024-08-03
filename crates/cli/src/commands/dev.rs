@@ -47,17 +47,12 @@ lazy_static! {
 
         let mut commands = vec![];
 
-        let task = config
-            .get("task")
-            .and_then(|task| task.as_table())
-            .unwrap_or_else(|| {
-                eprintln!(
-                    "{} {}",
-                    String::from('●').red(),
-                    "No task found in the config file".to_string().red()
-                );
-                exit(1);
-            });
+        let task = match config.get("task").and_then(|t| t.as_table()) {
+            Some(t) => t,
+            None => {
+                return commands;
+            }
+        };
 
         if let Some(dev) = task.get("dev").and_then(|dev| dev.as_table()) {
             for (_, command) in dev {
