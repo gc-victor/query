@@ -23,7 +23,7 @@ importers:
         version: 1.8.3
       '@qery/query':
         specifier: ~0.12
-        version: 0.12.5
+        version: 0.12.19
       '@qery/query-server':
         specifier: ~0.12
         version: 0.12.19
@@ -310,8 +310,8 @@ packages:
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
-  '@qery/query@0.12.5':
-    resolution: {integrity: sha512-UIWwXAgEdeC2m/zbUCgaQ8QU1KSGSHjW0TOTO6dTJLnEzA/tRk7h+mRO0y/GT9463Qp89UHNdU//J8mZRte4TQ==}
+  '@qery/query@0.12.19':
+    resolution: {integrity: sha512-p8lfFPFXO7U4XXU1irake4NYdh3d4PXcfNm+ePtmb4WYNY2Sp0NcFh5RM++wUb4QRg4ObwLQI75sdckMKQCj0g==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
@@ -1327,14 +1327,14 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@qery/query@0.12.5':
+  '@qery/query@0.12.19':
     dependencies:
-      axios: 1.6.8
+      axios: 1.7.3
       axios-proxy-builder: 0.1.2
       console.table: 0.10.0
       detect-libc: 2.0.3
-      rimraf: 5.0.7
-      tar: 7.1.0
+      rimraf: 5.0.10
+      tar: 7.4.3
     transitivePeerDependencies:
       - debug
 
