@@ -16,7 +16,7 @@ importers:
         version: 0.12.4
       '@qery/query-server':
         specifier: ~0.12
-        version: 0.12.4
+        version: 0.12.19
       esbuild:
         specifier: ^0.21
         version: 0.21.2
@@ -229,8 +229,8 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@qery/query-server@0.12.4':
-    resolution: {integrity: sha512-oi2c1gwMJMI+ffRc6q+47HiTmA1kUaQdZWGYV7SSMh/v9hgbzvZYwQxN7l7M6iEJvARZ0958p2izvIZlM4rzMQ==}
+  '@qery/query-server@0.12.19':
+    resolution: {integrity: sha512-giVHUBDNpMoJUzXP6rXzonMWutqeR24fYGa8UzpXvY22molv6kW8Mf/NHxqjP2EtcDYfx2G1io/sWeUrxgKdYA==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
@@ -263,6 +263,9 @@ packages:
 
   axios@1.6.8:
     resolution: {integrity: sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==}
+
+  axios@1.7.3:
+    resolution: {integrity: sha512-Ar7ND9pU99eJ9GpoGQKhKf58GpUOgnzuaB7ueNQ5BMi0p+LZ5oaEnfF999fAArcTIBwXTCHAmGcHOZJaWPq9Nw==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -378,6 +381,10 @@ packages:
     resolution: {integrity: sha512-UZ7eQ+h8ywIRAW1hIEl2AqdwzJucU/Kp59+8kkZeSvafXhZjul247BvIJjEVFVeON6d7lM46XX1HXCduKAS8VA==}
     engines: {node: '>=16 || 14 >=14.17'}
 
+  minipass@7.1.2:
+    resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
+    engines: {node: '>=16 || 14 >=14.17'}
+
   minizlib@3.0.1:
     resolution: {integrity: sha512-umcy022ILvb5/3Djuu8LWeqUa8D68JaBzlttKeMWen48SjabqS3iY5w/vzeMzMUNhLDifyhbOwKDSznB1vvrwg==}
     engines: {node: '>= 18'}
@@ -397,6 +404,10 @@ packages:
 
   proxy-from-env@1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
+
+  rimraf@5.0.10:
+    resolution: {integrity: sha512-l0OE8wL34P4nJH/H2ffoaniAokM2qSmrtXHmlpvYr5AVVX8msAyW0l8NVJFDxlSK4u3Uh/f41cQheDVdnYijwQ==}
+    hasBin: true
 
   rimraf@5.0.7:
     resolution: {integrity: sha512-nV6YcJo5wbLW77m+8KjH8aB/7/rxQy9SZ0HY5shnwULfS+9nmTtVXAJET5NdZmCzA4fPI/Hm1wo/Po/4mopOdg==}
@@ -433,6 +444,10 @@ packages:
 
   tar@7.1.0:
     resolution: {integrity: sha512-ENhg4W6BmjYxl8GTaE7/h99f0aXiSWv4kikRZ9n2/JRxypZniE84ILZqimAhxxX7Zb8Px6pFdheW3EeHfhnXQQ==}
+    engines: {node: '>=18'}
+
+  tar@7.4.3:
+    resolution: {integrity: sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==}
     engines: {node: '>=18'}
 
   tunnel@0.0.6:
@@ -586,14 +601,14 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@qery/query-server@0.12.4':
+  '@qery/query-server@0.12.19':
     dependencies:
-      axios: 1.6.8
+      axios: 1.7.3
       axios-proxy-builder: 0.1.2
       console.table: 0.10.0
       detect-libc: 2.0.3
-      rimraf: 5.0.7
-      tar: 7.1.0
+      rimraf: 5.0.10
+      tar: 7.4.3
     transitivePeerDependencies:
       - debug
 
@@ -625,6 +640,14 @@ snapshots:
       tunnel: 0.0.6
 
   axios@1.6.8:
+    dependencies:
+      follow-redirects: 1.15.6
+      form-data: 4.0.0
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
+  axios@1.7.3:
     dependencies:
       follow-redirects: 1.15.6
       form-data: 4.0.0
@@ -753,10 +776,12 @@ snapshots:
 
   minipass@7.1.1: {}
 
+  minipass@7.1.2: {}
+
   minizlib@3.0.1:
     dependencies:
       minipass: 7.1.1
-      rimraf: 5.0.7
+      rimraf: 5.0.10
 
   mkdirp@3.0.1: {}
 
@@ -765,9 +790,13 @@ snapshots:
   path-scurry@1.11.1:
     dependencies:
       lru-cache: 10.2.2
-      minipass: 7.1.1
+      minipass: 7.1.2
 
   proxy-from-env@1.1.0: {}
+
+  rimraf@5.0.10:
+    dependencies:
+      glob: 10.3.15
 
   rimraf@5.0.7:
     dependencies:
@@ -806,6 +835,15 @@ snapshots:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0
       minipass: 7.1.1
+      minizlib: 3.0.1
+      mkdirp: 3.0.1
+      yallist: 5.0.0
+
+  tar@7.4.3:
+    dependencies:
+      '@isaacs/fs-minipass': 4.0.1
+      chownr: 3.0.0
+      minipass: 7.1.2
       minizlib: 3.0.1
       mkdirp: 3.0.1
       yallist: 5.0.0
