@@ -33,6 +33,7 @@ mod http;
 mod json;
 mod module;
 mod number;
+mod plugin;
 mod process;
 mod sqlite;
 mod test_utils;
@@ -65,6 +66,7 @@ impl std::fmt::Debug for Runtime {
 
 // JS modules
 const HANDLE_RESPONSE_SCRIPT_MODULE: &str = include_str!("js/handle-response.js");
+const PLUGIN_SCRIPT_MODULE: &str = include_str!("js/plugin.js");
 const SQLITE_SCRIPT_MODULE: &str = include_str!("js/sqlite.js");
 // Polyfill modules
 const BLOB_SCRIPT_MODULE: &str = include_str!("js/polyfills/blob.js");
@@ -102,7 +104,8 @@ impl Runtime {
             .with_module("polyfill/form-data")
             .with_module("polyfill/request")
             .with_module("polyfill/response")
-            .with_module("polyfill/web-streams");
+            .with_module("polyfill/web-streams")
+            .with_module("query:plugin");
         let loader = (
             BuiltinLoader::default()
                 .with_module("js/handle-response", HANDLE_RESPONSE_SCRIPT_MODULE)
@@ -114,7 +117,8 @@ impl Runtime {
                 .with_module("polyfill/form-data", FORM_DATA_SCRIPT_MODULE)
                 .with_module("polyfill/request", REQUEST_SCRIPT_MODULE)
                 .with_module("polyfill/response", RESPONSE_SCRIPT_MODULE)
-                .with_module("polyfill/web-streams", WEB_STREAMS_SCRIPT_MODULE),
+                .with_module("polyfill/web-streams", WEB_STREAMS_SCRIPT_MODULE)
+                .with_module("query:plugin", PLUGIN_SCRIPT_MODULE),
             ModuleLoader::default()
                 .with_module("module", ModuleModule)
                 .with_module("url", UrlModule),
@@ -131,6 +135,7 @@ impl Runtime {
                 crate::events::init(&ctx)?;
                 crate::exceptions::init(&ctx)?;
                 crate::http::init(&ctx)?;
+                crate::plugin::init(&ctx)?;
                 crate::process::init(&ctx)?;
                 crate::timers::init(&ctx)?;
                 crate::sqlite::init(&ctx)?;

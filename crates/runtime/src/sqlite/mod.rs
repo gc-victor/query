@@ -1,7 +1,7 @@
 use rquickjs::{function::Func, Ctx, Exception, Result};
 use serde_json::Value;
 
-mod connect_db;
+pub mod connect_db;
 mod functions;
 
 use crate::utils::bind_to_params::{bind_array_to_params, bind_object_to_params};
