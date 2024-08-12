@@ -10,13 +10,13 @@ importers:
     dependencies:
       '@preact/signals':
         specifier: ^1.2.3
-        version: 1.2.3(preact@10.22.0)
+        version: 1.2.3(preact@10.23.1)
       preact:
-        specifier: ^10.21.0
-        version: 10.22.0
+        specifier: ^10.23.1
+        version: 10.23.1
       preact-render-to-string:
         specifier: ^6.4.2
-        version: 6.4.2(preact@10.22.0)
+        version: 6.4.2(preact@10.23.1)
     devDependencies:
       '@biomejs/biome':
         specifier: ~1.8
@@ -372,9 +372,6 @@ packages:
 
   axios-proxy-builder@0.1.2:
     resolution: {integrity: sha512-6uBVsBZzkB3tCC8iyx59mCjQckhB8+GQrI9Cop8eC7ybIsvs/KtnNgEBfRMSEa7GqK2VBGUzgjNYMdPIfotyPA==}
-
-  axios@1.6.8:
-    resolution: {integrity: sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==}
 
   axios@1.7.3:
     resolution: {integrity: sha512-Ar7ND9pU99eJ9GpoGQKhKf58GpUOgnzuaB7ueNQ5BMi0p+LZ5oaEnfF999fAArcTIBwXTCHAmGcHOZJaWPq9Nw==}
@@ -922,8 +919,8 @@ packages:
     peerDependencies:
       preact: '>=10'
 
-  preact@10.22.0:
-    resolution: {integrity: sha512-RRurnSjJPj4rp5K6XoP45Ui33ncb7e4H7WiOHVpjbkvqvA3U+N8Z6Qbo0AE6leGYBV66n8EhEaFixvIu3SkxFw==}
+  preact@10.23.1:
+    resolution: {integrity: sha512-O5UdRsNh4vdZaTieWe3XOgSpdMAmkIYBCT3VhQDlKrzyCm8lUYsk0fmVEvoQQifoOjFRTaHZO69ylrzTW2BH+A==}
 
   pretty-format@3.8.0:
     resolution: {integrity: sha512-WuxUnVtlWL1OfZFQFuqvnvs6MiAGk9UNsBostyBOB0Is9wb5uRESevA6rnl/rkksXaGX3GzZhPup5d6Vp1nFew==}
@@ -976,11 +973,6 @@ packages:
 
   rimraf@5.0.10:
     resolution: {integrity: sha512-l0OE8wL34P4nJH/H2ffoaniAokM2qSmrtXHmlpvYr5AVVX8msAyW0l8NVJFDxlSK4u3Uh/f41cQheDVdnYijwQ==}
-    hasBin: true
-
-  rimraf@5.0.7:
-    resolution: {integrity: sha512-nV6YcJo5wbLW77m+8KjH8aB/7/rxQy9SZ0HY5shnwULfS+9nmTtVXAJET5NdZmCzA4fPI/Hm1wo/Po/4mopOdg==}
-    engines: {node: '>=14.18'}
     hasBin: true
 
   run-parallel@1.2.0:
@@ -1054,10 +1046,6 @@ packages:
     resolution: {integrity: sha512-U7sxQk/n397Bmx4JHbJx/iSOOv5G+II3f1kpLpY2QeUv5DcPdcTsYLlusZfq1NthHS1c1cZoyFmmkex1rzke0A==}
     engines: {node: '>=14.0.0'}
     hasBin: true
-
-  tar@7.1.0:
-    resolution: {integrity: sha512-ENhg4W6BmjYxl8GTaE7/h99f0aXiSWv4kikRZ9n2/JRxypZniE84ILZqimAhxxX7Zb8Px6pFdheW3EeHfhnXQQ==}
-    engines: {node: '>=18'}
 
   tar@7.4.3:
     resolution: {integrity: sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==}
@@ -1311,10 +1299,10 @@ snapshots:
 
   '@preact/signals-core@1.6.0': {}
 
-  '@preact/signals@1.2.3(preact@10.22.0)':
+  '@preact/signals@1.2.3(preact@10.23.1)':
     dependencies:
       '@preact/signals-core': 1.6.0
-      preact: 10.22.0
+      preact: 10.23.1
 
   '@qery/query-server@0.12.19':
     dependencies:
@@ -1388,14 +1376,6 @@ snapshots:
   axios-proxy-builder@0.1.2:
     dependencies:
       tunnel: 0.0.6
-
-  axios@1.6.8:
-    dependencies:
-      follow-redirects: 1.15.6
-      form-data: 4.0.0
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
 
   axios@1.7.3:
     dependencies:
@@ -1903,12 +1883,12 @@ snapshots:
       picocolors: 1.0.1
       source-map-js: 1.2.0
 
-  preact-render-to-string@6.4.2(preact@10.22.0):
+  preact-render-to-string@6.4.2(preact@10.23.1):
     dependencies:
-      preact: 10.22.0
+      preact: 10.23.1
       pretty-format: 3.8.0
 
-  preact@10.22.0: {}
+  preact@10.23.1: {}
 
   pretty-format@3.8.0: {}
 
@@ -1955,10 +1935,6 @@ snapshots:
   rgba-regex@1.0.0: {}
 
   rimraf@5.0.10:
-    dependencies:
-      glob: 10.3.15
-
-  rimraf@5.0.7:
     dependencies:
       glob: 10.3.15
 
@@ -2093,15 +2069,6 @@ snapshots:
       sucrase: 3.35.0
     transitivePeerDependencies:
       - ts-node
-
-  tar@7.1.0:
-    dependencies:
-      '@isaacs/fs-minipass': 4.0.1
-      chownr: 3.0.0
-      minipass: 7.1.1
-      minizlib: 3.0.1
-      mkdirp: 3.0.1
-      yallist: 5.0.0
 
   tar@7.4.3:
     dependencies:
