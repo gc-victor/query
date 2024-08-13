@@ -15,8 +15,8 @@ importers:
         specifier: ^10.23.2
         version: 10.23.2
       preact-render-to-string:
-        specifier: ^6.4.2
-        version: 6.4.2(preact@10.23.2)
+        specifier: ^6.5.8
+        version: 6.5.8(preact@10.23.2)
     devDependencies:
       '@biomejs/biome':
         specifier: ~1.8
@@ -914,16 +914,13 @@ packages:
     resolution: {integrity: sha512-Wglpdk03BSfXkHoQa3b/oulrotAkwrlLDRSOb9D0bN86FdRyE9lppSp33aHNPgBa0JKCoB+drFLZkQoRRYae5A==}
     engines: {node: ^10 || ^12 || >=14}
 
-  preact-render-to-string@6.4.2:
-    resolution: {integrity: sha512-Sio5SvlyZSAXHuvnMgYzVQd67lNIuQe4uSjJ+2gfpJNC6L8zoHQR5xV7B/EjIqrAYWVyJ2eACkTCxVrIzZi6Vw==}
+  preact-render-to-string@6.5.8:
+    resolution: {integrity: sha512-VwldmyF+5G6eqTH26uyXY2+a9fh7ry8roYnIEwarB6OnT1bVN7lnlFvh0ldeKJ7/JtvMoWO5jz9tyykRlAIDyA==}
     peerDependencies:
       preact: '>=10'
 
   preact@10.23.2:
     resolution: {integrity: sha512-kKYfePf9rzKnxOAKDpsWhg/ysrHPqT+yQ7UW4JjdnqjFIeNUnNcEJvhuA8fDenxAGWzUqtd51DfVg7xp/8T9NA==}
-
-  pretty-format@3.8.0:
-    resolution: {integrity: sha512-WuxUnVtlWL1OfZFQFuqvnvs6MiAGk9UNsBostyBOB0Is9wb5uRESevA6rnl/rkksXaGX3GzZhPup5d6Vp1nFew==}
 
   pretty-hrtime@1.0.3:
     resolution: {integrity: sha512-66hKPCr+72mlfiSjlEB1+45IjXSqvVAIy6mocupoww4tBFE9R9IhwwUGoI4G++Tc9Aq+2rxOt0RFU6gPcrte0A==}
@@ -1883,14 +1880,11 @@ snapshots:
       picocolors: 1.0.1
       source-map-js: 1.2.0
 
-  preact-render-to-string@6.4.2(preact@10.23.2):
+  preact-render-to-string@6.5.8(preact@10.23.2):
     dependencies:
       preact: 10.23.2
-      pretty-format: 3.8.0
 
   preact@10.23.2: {}
-
-  pretty-format@3.8.0: {}
 
   pretty-hrtime@1.0.3: {}
 
