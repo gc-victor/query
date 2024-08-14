@@ -7,6 +7,7 @@ use std::{
 };
 
 use anyhow::Result;
+use colored::Colorize;
 use regex::{Captures, Regex};
 use serde::Deserialize;
 use walkdir::WalkDir;
@@ -31,8 +32,8 @@ pub async fn command_generate(command: &GenerateArgs) -> Result<()> {
     )?;
     fs::write(&down_path, down.content.as_bytes())?;
 
-    tracing::info!("{}", &up_path.display());
-    tracing::info!("{}", &down_path.display());
+    eprintln!("{} {}", String::from('●').green(), &up_path.display());
+    eprintln!("{} {}", String::from('●').green(), &down_path.display());
 
     let list_of_templates = generate_files_from_templates(command)?;
 
@@ -44,7 +45,8 @@ pub async fn command_generate(command: &GenerateArgs) -> Result<()> {
         }
 
         fs::write(&path, template.content.as_bytes())?;
-        tracing::info!("{}", &path.display());
+
+        eprintln!("{} {}", String::from('●').green(), &path.display());
     }
 
     Ok(())
@@ -589,7 +591,7 @@ fn template_engine(template: &str, variables: &HashMap<String, Data>) -> Result<
                     else_code.to_string()
                 }
             } else {
-                tracing::error!("Parsing key {} as boolean", key);
+                eprintln!("{} Parsing key {key} as boolean", String::from('●').red());
                 exit(1)
             }
         })

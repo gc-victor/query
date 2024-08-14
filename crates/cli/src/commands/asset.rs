@@ -6,16 +6,15 @@ use std::{
 };
 
 use anyhow::Result;
+use colored::Colorize;
 use reqwest::Method;
 use serde::Deserialize;
 use serde_json::json;
-use tracing::error;
-use tracing::info;
 use walkdir::WalkDir;
 
 use crate::{
     cache::{Cache, CacheItem},
-    utils::{http_client, line_break},
+    utils::http_client,
 };
 
 use super::commands::AssetArgs;
@@ -54,11 +53,12 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
 
             match http_client("asset-builder", Some(&body), Method::DELETE).await {
                 Ok(_) => {
-                    line_break();
-                    info!("Successfully asset deleted!!!!");
-                    line_break();
+                    eprintln!(
+                        "{} Successfully asset deleted!!!!",
+                        String::from('●').green()
+                    )
                 }
-                Err(err) => error!("{}", err),
+                Err(e) => eprintln!("{} {}", String::from('●').red(), e),
             };
 
             return Ok(());
@@ -75,11 +75,12 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
 
         match http_client("asset-builder", Some(&body), Method::POST).await {
             Ok(_) => {
-                line_break();
-                info!("Successfully asset updated!!!!");
-                line_break();
+                eprintln!(
+                    "{} Successfully asset updated!!!!",
+                    String::from('●').green()
+                )
             }
-            Err(err) => error!("{}", err),
+            Err(e) => eprintln!("{} {}", String::from('●').red(), e),
         };
     } else {
         for entry in WalkDir::new(path) {
@@ -113,16 +114,16 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
 
                     match http_client("asset-builder", Some(&body), Method::POST).await {
                         Ok(_) => {
-                            info!("Asset updated: {}", file_path);
+                            eprintln!("{} Asset updated: {file_path}", String::from('●').green());
                             cache.set(CacheItem {
                                 key: file_path,
                                 value: file_hash,
                             })?;
                         }
-                        Err(err) => error!("{}", err),
+                        Err(e) => eprintln!("{} {}", String::from('●').red(), e),
                     };
                 } else {
-                    info!("Asset cached: {file_path}");
+                    eprintln!("{} Asset cached: {file_path}", String::from('●').green());
                 }
             }
         }

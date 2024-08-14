@@ -1,10 +1,10 @@
 use std::fs;
 
+use colored::Colorize;
 use reqwest::Method;
 use serde_json::json;
-use tracing::{error, info};
 
-use crate::{utils::http_client, utils::line_break};
+use crate::utils::http_client;
 
 use super::commands::MigrationArgs;
 
@@ -27,10 +27,8 @@ pub async fn command_migration(command: &MigrationArgs) {
 
     match http_client("migration", Some(&body), Method::POST).await {
         Ok(_) => {
-            line_break();
-            info!("Migrated {path}!!!");
-            line_break();
+            eprintln!("{} Migrated {path}!!!", String::from('●').green());
         }
-        Err(err) => error!("{}", err),
+        Err(e) => eprintln!("{} {}", String::from('●').red(), e),
     };
 }

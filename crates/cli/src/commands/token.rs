@@ -88,13 +88,13 @@ pub async fn command_token(command: &TokenArgs) -> Result<()> {
                     };
 
                     if is_empty {
-                        eprintln!("{}", "No data returned".to_string().red().reversed());
+                        eprintln!("{} No data returned", String::from('●').red());
                     } else {
                         eprintln!("{}", json_to_table(&v["data"])?);
                     }
                 }
                 Err(err) => {
-                    eprintln!("{}", err.to_string().red().reversed());
+                    eprintln!("{} {}", String::from('●').red(), err);
                 }
             };
 

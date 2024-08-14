@@ -1,8 +1,8 @@
+use colored::Colorize;
 use reqwest::Method;
 use serde_json::json;
-use tracing::{error, info};
 
-use crate::{utils::http_client, utils::line_break};
+use crate::utils::http_client;
 
 pub async fn command_purge() {
     let body = json!({
@@ -13,10 +13,11 @@ pub async fn command_purge() {
 
     match http_client("query", Some(&body), Method::POST).await {
         Ok(_) => {
-            line_break();
-            info!("Successfully cache function purged!!!!");
-            line_break();
+            eprintln!(
+                "{} Successfully cache function purged!!!!",
+                String::from('●').green()
+            );
         }
-        Err(err) => error!("{}", err),
+        Err(e) => eprintln!("{} {}", String::from('●').red(), e),
     };
 }

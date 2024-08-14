@@ -10,6 +10,7 @@ use std::{
 };
 
 use anyhow::Result;
+use colored::Colorize;
 use openssl::sha::Sha256;
 use reqwest::{Method, StatusCode};
 use serde::Deserialize;
@@ -81,25 +82,39 @@ pub async fn command_plugin(command: &PluginArgs) {
             let releases_info = get_release_info(args.github_repo_url.as_str(), vec![])
                 .await
                 .unwrap_or_else(|err| {
-                    eprintln!("Error: Failed to get the release info: {}", err);
+                    eprintln!(
+                        "{} Failed to get the release info: {}",
+                        String::from('●').red(),
+                        err
+                    );
                     exit(1);
                 });
 
-            match update_plugins(releases_info).await {
-                Ok(_) => eprintln!("Successfully installed the plugin"),
-                Err(err) => eprintln!("Error: Failed to install the plugin: {}", err),
-            };
+            update_plugins(releases_info).await.unwrap_or_else(|err| {
+                eprintln!(
+                    "{} Failed to install the plugin: {}",
+                    String::from('●').red(),
+                    err
+                );
+            });
         }
         super::commands::PluginCommands::Update => {
             update_command().await.unwrap_or_else(|err| {
-                eprintln!("Error: Failed to update the plugins: {}", err);
+                eprintln!(
+                    "{} Failed to update the plugins: {}",
+                    String::from('●').red(),
+                    err
+                );
             });
         }
         super::commands::PluginCommands::Push(args) => {
-            match push_command(args).await {
-                Ok(_) => (),
-                Err(err) => eprintln!("Error: Failed to push the plugin: {}", err),
-            };
+            push_command(args).await.unwrap_or_else(|err| {
+                eprintln!(
+                    "{} Failed to push the plugin: {}",
+                    String::from('●').red(),
+                    err
+                );
+            });
         }
     }
 }
@@ -138,7 +153,11 @@ async fn get_release_info(github_repo_url: &str, exclude: Vec<String>) -> Result
     let response = match request.send().await {
         Ok(response) => response,
         Err(err) => {
-            eprintln!("Failed to fetch the release info: {}", err);
+            eprintln!(
+                "{} Failed to fetch the release info: {}",
+                String::from('●').red(),
+                err
+            );
             exit(1);
         }
     };
@@ -223,7 +242,11 @@ async fn update_plugins(release_info: Vec<ReleaseInfo>) -> Result<()> {
 
             plugins.push(table);
 
-            eprintln!("Successfully installed the plugin {}", release_url);
+            eprintln!(
+                "{} Successfully installed the plugin {}",
+                String::from('●').green(),
+                release.name
+            );
 
             continue;
         }
@@ -244,9 +267,19 @@ async fn update_plugins(release_info: Vec<ReleaseInfo>) -> Result<()> {
                     plugin["repo_url"] = repo_url;
                     plugin["published_at"] = published_at;
 
-                    eprintln!("Successfully updated the plugin {}", release_url);
+                    eprintln!(
+                        "{} Successfully updated the plugin {}",
+                        String::from('●').green(),
+                        release.name
+                    );
 
                     break;
+                } else {
+                    eprintln!(
+                        "{} The plugin {} is already installed",
+                        String::from('●').yellow(),
+                        release.name
+                    );
                 }
             }
         } else {
@@ -262,7 +295,11 @@ async fn update_plugins(release_info: Vec<ReleaseInfo>) -> Result<()> {
 
             updated_plugins.push(table);
 
-            eprintln!("Successfully installed the plugin {}", release_url);
+            eprintln!(
+                "{} Successfully installed the plugin {}",
+                String::from('●').green(),
+                release.name
+            );
         }
 
         plugins.extend(updated_plugins);
@@ -305,7 +342,11 @@ async fn download_plugin(url: &str, sha256_url: &str, name: &str) -> Result<Item
             match String::from_utf8(sha256_content) {
                 Ok(sha256) => sha256,
                 Err(err) => {
-                    eprintln!("Failed to convert the sha256 content to string: {}", err);
+                    eprintln!(
+                        "{} Failed to convert the sha256 content to string: {}",
+                        String::from('●').red(),
+                        err
+                    );
                     String::new()
                 }
             }
@@ -323,18 +364,26 @@ async fn get_file_content(url: &str) -> Result<Vec<u8>> {
     let response = match reqwest::get(url.to_string()).await {
         Ok(response) => response,
         Err(err) => {
-            eprintln!("Failed to send the request: {}", err);
+            eprintln!(
+                "{} Failed to send the request: {}",
+                String::from('●').red(),
+                err
+            );
             exit(1);
         }
     };
 
     if response.status() == StatusCode::NOT_FOUND {
-        eprintln!("File {} not found", url);
+        eprintln!("{} File {url} not found", String::from('●').red());
+
         exit(1);
     }
 
     if !response.status().is_success() {
-        eprintln!("Failed to download the file {}", url);
+        eprintln!(
+            "{} Failed to download the file {url}",
+            String::from('●').red()
+        );
         exit(1);
     }
 
@@ -365,14 +414,21 @@ async fn update_command() -> Result<()> {
         let releases_info = get_release_info(repo_url, vec![])
             .await
             .unwrap_or_else(|err| {
-                eprintln!("Failed to get the release info: {}", err);
+                eprintln!(
+                    "{} Failed to get the release info: {}",
+                    String::from('●').red(),
+                    err
+                );
                 exit(1);
             });
 
         update_plugins(releases_info).await?;
     }
 
-    eprintln!("The update has been completed!");
+    eprintln!(
+        "{} The update has been completed!",
+        String::from('●').green()
+    );
 
     Ok(())
 }
@@ -416,9 +472,12 @@ pub async fn push_command(args: &PluginPushArgs) -> Result<()> {
 
         match http_client("plugin-builder", Some(&body), Method::POST).await {
             Ok(_) => {
-                eprintln!("Successfully plugin updated!!!!");
+                eprintln!(
+                    "{} Successfully plugin updated!!!!",
+                    String::from('●').green()
+                );
             }
-            Err(err) => eprintln!("{}", err),
+            Err(e) => eprintln!("{} {}", String::from('●').red(), e),
         };
     } else {
         let plugin_file_path = &PLUGINS_TOML_FILE_PATH.clone();
@@ -442,7 +501,8 @@ pub async fn push_command(args: &PluginPushArgs) -> Result<()> {
                 Some(file_path) => file_path,
                 None => {
                     eprintln!(
-                        "The file path {} is not found",
+                        "{} The file path {} is not found",
+                        String::from('●').red(),
                         file_path.to_str().unwrap_or_default()
                     );
                     exit(1);
@@ -456,14 +516,18 @@ pub async fn push_command(args: &PluginPushArgs) -> Result<()> {
             };
 
             if is_cached {
-                eprintln!("Plugin cached: {file_path}");
+                eprintln!("{} Plugin cached: {file_path}", String::from('●').green());
+
                 continue;
             }
 
             let data = match fs::read(file_path) {
                 Ok(data) => data,
                 Err(e) => {
-                    panic!(r#"The plugin file "{path}" error: {e}"#);
+                    panic!(
+                        r#"{} The plugin file "{path}" error: {e}"#,
+                        String::from('●').red()
+                    );
                 }
             };
 
@@ -476,13 +540,13 @@ pub async fn push_command(args: &PluginPushArgs) -> Result<()> {
 
             match http_client("plugin-builder", Some(&body), Method::POST).await {
                 Ok(_) => {
-                    eprintln!("Plugin updated: {}", file_path);
+                    eprintln!("{} Plugin updated: {file_path}", String::from('●').green());
                     cache.set(CacheItem {
                         key: file_path.to_string(),
                         value: sha256.to_string(),
                     })?;
                 }
-                Err(err) => eprintln!("{}", err),
+                Err(e) => eprintln!("{} {}", String::from('●').red(), e),
             };
         }
     };

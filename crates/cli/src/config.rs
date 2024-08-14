@@ -6,6 +6,7 @@ use std::{
     process::exit,
 };
 
+use colored::Colorize;
 #[allow(unused_imports)]
 use lazy_static::lazy_static;
 #[allow(unused_imports)]
@@ -13,7 +14,6 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use serde_derive::Deserialize;
 use toml;
-use tracing::{error, info};
 
 use crate::utils::read_file_content;
 
@@ -138,7 +138,7 @@ pub fn config() -> Config {
     let contents = match fs::read_to_string(&config_file_path) {
         Ok(contents) => contents,
         Err(_) => {
-            info!("No config file found");
+            eprintln!("{} No config file found", String::from('●').red());
             exit(1);
         }
     };
@@ -146,7 +146,7 @@ pub fn config() -> Config {
     let inner_config: InnerConfig = match toml::from_str(&contents) {
         Ok(data) => data,
         Err(e) => {
-            error!("{}", e);
+            eprintln!("{} {}", String::from('●').red(), e);
             exit(1);
         }
     };
