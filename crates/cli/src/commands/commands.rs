@@ -29,6 +29,8 @@ pub enum Commands {
     /// - The type should be up or down
     #[clap(verbatim_doc_comment)]
     Migration(MigrationArgs),
+    /// Manage plugins
+    Plugin(PluginArgs),
     /// Deletes all the cached functions
     Purge,
     /// Sets the initial configuration
@@ -64,11 +66,6 @@ pub struct BranchArgs {
     pub command: BranchCommands,
 }
 
-#[derive(Args)]
-pub struct CreateArgs {
-    pub repo_url: Option<String>,
-}
-
 #[derive(Subcommand)]
 pub enum BranchCommands {
     /// Create a branch
@@ -77,6 +74,11 @@ pub enum BranchCommands {
     Delete,
     /// List all the branches
     List,
+}
+
+#[derive(Args)]
+pub struct CreateArgs {
+    pub repo_url: Option<String>,
 }
 
 #[derive(Args)]
@@ -111,6 +113,37 @@ pub struct MigrationArgs {
     pub db_name: String,
     /// Path to the migration file
     pub path: String,
+}
+
+#[derive(Args)]
+pub struct PluginArgs {
+    #[command(subcommand)]
+    pub command: PluginCommands,
+}
+
+#[derive(Subcommand)]
+pub enum PluginCommands {
+    /// Install a plugin from an GitHub repository URL
+    Install(PluginInstallArgs),
+    /// Update plugins
+    Update,
+    /// Push a plugin or all of them to the server
+    Push(PluginPushArgs),
+}
+
+#[derive(Args)]
+pub struct PluginInstallArgs {
+    /// GitHub repository URL e.g. https://github.com/gc-victor/query-plugin-argon2
+    pub github_repo_url: String,
+    /// Exclude *.wasm files from the installation
+    #[arg(short, long)]
+    pub exclude: Option<Vec<String>>,
+}
+
+#[derive(Args)]
+pub struct PluginPushArgs {
+    /// Path to the wasm file
+    pub path: Option<String>,
 }
 
 #[derive(Args)]

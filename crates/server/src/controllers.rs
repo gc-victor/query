@@ -3,6 +3,7 @@ pub mod asset_builder;
 pub mod branch;
 pub mod functions;
 pub mod migration;
+pub mod plugin_builder;
 pub mod proxy;
 pub mod query;
 pub mod token;

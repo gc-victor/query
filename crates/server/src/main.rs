@@ -18,8 +18,10 @@ use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{layer::SubscriberExt, Registry};
 
-use crate::sqlite::create_asset_db::create_asset_db;
-use crate::sqlite::create_cache_function_db::create_cache_function_db;
+use crate::sqlite::{
+    create_asset_db::create_asset_db, create_cache_function_db::create_cache_function_db,
+    create_plugin_db::create_plugin_db,
+};
 use crate::{
     controllers::{
         asset::asset,
@@ -27,6 +29,7 @@ use crate::{
         branch::branch,
         functions::{function::function, function_builder::function_builder},
         migration::migration,
+        plugin_builder::plugin_builder,
         proxy::proxy,
         query::query,
         token::token,
@@ -67,6 +70,8 @@ async fn main() -> Result<(), std::io::Error> {
     create_config_db();
     // NOTE: Create the function database
     create_function_db();
+    // NOTE: Create the plugin database
+    create_plugin_db();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], Env::port()));
     // We create a TcpListener and bind it to 127.0.0.1:3000
@@ -155,6 +160,7 @@ async fn router(
             "function-builder" => function_builder(&mut req, segments).await,
             "healthcheck" => Ok(Response::new(Body::from("OK"))),
             "migration" => migration(&mut req, segments).await,
+            "plugin-builder" => plugin_builder(&mut req, segments).await,
             "query" => query(&mut req, segments).await,
             "token" => token(&mut req, segments).await,
             "user" => {
