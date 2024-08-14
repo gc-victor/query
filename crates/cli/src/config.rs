@@ -45,6 +45,7 @@ pub struct CLI {
     pub cache_file_path: String,
     pub config_file_path: String,
     pub history_file_path: String,
+    pub plugin_file_path: String,
     pub token_file_path: String,
     pub token: String,
 }
@@ -55,6 +56,7 @@ impl Default for CLI {
             cache_file_path: ".query/.cache".to_string(),
             config_file_path: ".query/Query.toml".to_string(),
             history_file_path: ".query/.history".to_string(),
+            plugin_file_path: ".query/plugins.toml".to_string(),
             token_file_path: ".query/.token".to_string(),
             token: String::new(),
         }
@@ -79,6 +81,7 @@ pub struct Structure {
     pub functions_folder: String,
     pub migrations_folder: String,
     pub templates_folder: String,
+    pub plugins_folder: String,
 }
 
 impl Default for Structure {
@@ -87,6 +90,7 @@ impl Default for Structure {
             functions_folder: "src/functions".to_string(),
             migrations_folder: "src/migrations".to_string(),
             templates_folder: "templates".to_string(),
+            plugins_folder: "plugins".to_string(),
         }
     }
 }
@@ -103,6 +107,7 @@ struct InnerConfig {
 struct InnerCLI {
     pub cache_file_path: Option<String>,
     pub history_file_path: Option<String>,
+    pub plugin_file_path: Option<String>,
     pub token_file_path: Option<String>,
 }
 
@@ -124,6 +129,7 @@ pub struct InnerStructure {
     pub functions_folder: Option<String>,
     pub migrations_folder: Option<String>,
     pub templates_folder: Option<String>,
+    pub plugins_folder: Option<String>,
 }
 
 pub fn config() -> Config {
@@ -158,6 +164,9 @@ pub fn config() -> Config {
         history_file_path: inner_config_cli
             .history_file_path
             .unwrap_or(CLI::default().history_file_path),
+        plugin_file_path: inner_config_cli
+            .plugin_file_path
+            .unwrap_or(CLI::default().plugin_file_path),
         token_file_path: token_file_path.to_owned(),
         token: if !token.is_empty() {
             token
@@ -195,6 +204,9 @@ pub fn config() -> Config {
         templates_folder: inner_config_structure
             .templates_folder
             .unwrap_or(Structure::default().templates_folder),
+        plugins_folder: inner_config_structure
+            .plugins_folder
+            .unwrap_or(Structure::default().plugins_folder),
     };
 
     let esbuild = inner_config.esbuild.unwrap_or_default();

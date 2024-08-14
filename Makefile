@@ -216,6 +216,9 @@ hurl-function:
 		echo "Error: hurl/function/$$name.js not found"; \
 	fi
 
+hurl-bytes:
+	node hurl/file_to_bytes.mjs $(call GET_ARGUMENT,1) $(call GET_ARGUMENT,2)
+
 # Lint
 
 lint:
