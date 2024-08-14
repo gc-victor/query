@@ -14,18 +14,18 @@ use std::{
 use anyhow::anyhow;
 
 use anyhow::Result;
+use colored::Colorize;
 use regex::Regex;
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::{error, info};
 use walkdir::WalkDir;
 
 #[allow(unused_imports)]
 use crate::{
     cache::{Cache, CacheItem},
     config::CONFIG,
-    utils::{detect_package_manager, has_node_modules_binary, http_client, line_break, which},
+    utils::{detect_package_manager, has_node_modules_binary, http_client, which},
 };
 
 use super::commands::FunctionArgs;
@@ -56,11 +56,12 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
 
             match http_client("function-builder", Some(&body), Method::DELETE).await {
                 Ok(_) => {
-                    line_break();
-                    info!("Successfully function deleted!!!!");
-                    line_break();
+                    eprintln!(
+                        "{} Successfully function deleted!!!!",
+                        String::from('●').green()
+                    );
                 }
-                Err(err) => error!("{}", err),
+                Err(e) => eprintln!("{} {}", String::from('●').red(), e),
             };
 
             return Ok(());
@@ -76,11 +77,12 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
 
         match http_client("function-builder", Some(&body), Method::POST).await {
             Ok(_) => {
-                line_break();
-                info!("Successfully function updated!!!!");
-                line_break();
+                eprintln!(
+                    "{} Successfully function updated!!!!",
+                    String::from('●').green()
+                );
             }
-            Err(err) => error!("{}", err),
+            Err(e) => eprintln!("{} {}", String::from('●').red(), e),
         };
     } else {
         let functions_folder = env::current_dir()?.join(path).to_str().unwrap().to_string();
@@ -150,18 +152,26 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
                             })
                             .to_string();
 
+                            let functions_folder = match env::current_dir()?.join("src").to_str() {
+                                Some(v) => v.to_string(),
+                                None => "".to_string(),
+                            };
+                            let file_path = file_path.replace(&(functions_folder + "/"), "");
                             match http_client("function-builder", Some(&body), Method::POST).await {
                                 Ok(_) => {
-                                    info!("Function updated: {}", file_path);
+                                    eprintln!(
+                                        "{} Function updated: {file_path}",
+                                        String::from('●').green()
+                                    );
                                     cache.set(CacheItem {
                                         key: file_path,
                                         value,
                                     })?;
                                 }
-                                Err(err) => error!("{}", err),
+                                Err(e) => eprintln!("{} {}", String::from('●').red(), e),
                             };
                         } else {
-                            info!("Function cached: {file_path}");
+                            eprintln!("{} Function cached: {file_path}", String::from('●').green());
                         }
                     }
                 } else {
@@ -276,7 +286,8 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
     let pm = detect_package_manager();
     if !hash_esbuild {
         eprintln!(
-            "The esbuild binary does not exist. Please, run `{} install esbuild` first.",
+            "{} The esbuild binary does not exist. Please, run `{} install esbuild` first",
+            String::from('●').red(),
             pm.npm
         );
         exit(1);
@@ -291,7 +302,7 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
                 let output = std::str::from_utf8(&output.stderr)?;
 
                 if output.contains("[ERROR]") {
-                    eprintln!("{:?}", output);
+                    eprintln!("{} {:?}", String::from('●').red(), output);
                     exit(1);
                 }
             }
@@ -306,12 +317,12 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
                 let output = std::str::from_utf8(&output.stderr)?;
 
                 if output.contains("[ERROR]") {
-                    eprintln!("{:?}", output);
+                    eprintln!("{} {:?}", String::from('●').red(), output);
                     exit(1);
                 }
             }
             Err(e) => {
-                eprintln!("{:?}", e);
+                eprintln!("{} {}", String::from('●').red(), e);
                 exit(1);
             }
         };
@@ -324,7 +335,10 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
     let function = fs::read_to_string(&bundle_path)?;
 
     if function.is_empty() {
-        tracing::error!("The function {function_path} is empty.");
+        eprintln!(
+            "{} The function {function_path} is empty",
+            String::from('●').red()
+        );
         exit(1)
     }
 

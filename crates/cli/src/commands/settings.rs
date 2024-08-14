@@ -8,7 +8,6 @@ use reqwest::Method;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::json;
 use toml_edit::{value, DocumentMut};
-use tracing::error;
 
 use crate::{
     config::CLI,
@@ -33,12 +32,12 @@ pub async fn command_settings() -> Result<()> {
     intro("Query - Set Server Settings".to_string().cyan().reversed())?;
 
     server_url_prompt().unwrap_or_else(|err| {
-        error!("{}", err);
+        eprintln!("{} {}", String::from('●').red(), err);
         exit(1);
     });
 
     get_user_token_value().await.unwrap_or_else(|err| {
-        error!("{}", err);
+        eprintln!("{} {}", String::from('●').red(), err);
         exit(1);
     });
 

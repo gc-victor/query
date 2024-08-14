@@ -97,7 +97,7 @@ pub fn command_task(command: &TaskArgs) -> Result<()> {
         if command.list {
             for (task, command) in commands {
                 let command = command.as_str().unwrap();
-                eprintln!(r#"{} [{task}]: `{command}`"#, String::from('●').green(),);
+                eprintln!(r#"{} [{task}]: `{command}`"#, String::from('●').green());
             }
 
             return Ok(());
@@ -150,7 +150,7 @@ fn execute_command(
     let mut child = match cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).spawn() {
         Ok(child) => child,
         Err(e) => {
-            eprintln!("{}", e);
+            eprintln!("{} {}", String::from('●').red(), e);
             exit(1);
         }
     };
@@ -207,7 +207,7 @@ fn execute_command(
                         continue;
                     }
 
-                    eprintln!("{}", message.red());
+                    eprintln!("{} {}", String::from('●').red(), message);
                 }
                 Err(e) => {
                     eprintln!("{}", format!("{} {}", String::from('●'), e).red());
@@ -250,7 +250,8 @@ fn get_command(
                     tasks_group
                 )
             };
-            eprintln!("{}", error_message.red());
+
+            eprintln!("{} {}", String::from('●').red(), error_message);
             exit(1);
         }
     }
