@@ -70,6 +70,9 @@ help:
 	@echo "  npm-publish             - Publish npm packages"
 	@echo "  npm-prerelease          - Publish prerelease npm packages"
 	@echo "  npm-un-prerelease       - Unpublish prerelease npm packages"
+	@echo "Release:"
+	@echo "  release                 - Create a new release version"
+	@echo "  release-rollback        - Rollback a release version"
 	@echo
 	@echo "Run:"
 	@echo "  install-watch           - Install cargo-watch"
@@ -93,9 +96,7 @@ help:
 	@echo "  test-watch              - Watch and run tests"
 	@echo
 	@echo "Tagging:"
-	@echo "  tag                     - Create a new version tag"
 	@echo "  tag-delete              - Delete a version tag"
-	@echo "  tag-rollback            - Rollback a version tag"
 	@echo
 	@echo "For more details on each command, check the Makefile"
 
@@ -112,18 +113,17 @@ build-cli:
 
 # Changelog
 
-update-changelog:
-	@commits=$$(git log --grep="release: version" --format="%H" -n 2); \
-	if [ $$(echo "$$commits" | wc -l) -lt 2 ]; then \
-		echo "Error: Less than two 'release' commits found."; \
+changelog:
+	@release_commit=$$(git log --grep="release: version" --format="%H" -n 1); \
+	if [ -z "$$release_commit" ]; then \
+		echo "Error: No 'release' commit found."; \
 		exit 1; \
 	fi; \
-	last=$$(echo "$$commits" | head -n 1); \
-	prev=$$(echo "$$commits" | tail -n 1); \
-	git cliff $$prev..$$last --prepend CHANGELOG.md; \
+	last_commit=$$(git log --format="%H" -n 1); \
+	git cliff $$release_commit..$$last_commit --tag $(ARGUMENTS) --prepend CHANGELOG.md; \
 	echo "CHANGELOG.md has been updated with changes between commits:"; \
-	echo "Previous: $$prev"; \
-	echo "Latest: $$last"
+	echo "Last Commit: $$last_commit"
+	echo "Previous Release Commit: $$release_commit"; \
 
 # Clean
 
@@ -242,6 +242,40 @@ npm-un-prerelease:
 		npm unpublish @qery/query-server@$(ARGUMENTS) --force ;\
 	fi
 
+# Release
+
+release:
+	perl -pi -e 's/version = "$(call GET_ARGUMENT,1)"/version = "$(call GET_ARGUMENT,2)"/g' ./Cargo.toml
+	@if [ "$(findstring prerelease,$(call GET_ARGUMENT,2))" = "prerelease" ]; then \
+		perl -pi -e 's/targets = \["aarch64\-apple\-darwin", "x86_64\-apple\-darwin", "x86_64\-unknown\-linux\-gnu", "x86_64\-pc\-windows\-msvc"\]/targets = \["x86_64\-unknown\-linux\-gnu"\]/g' ./Cargo.toml; \
+    fi
+	cargo check --workspace
+	git add Cargo.lock
+	git add Cargo.toml
+	make changelog $(call GET_ARGUMENT,2)
+	git add CHANGELOG.md
+	git commit -m "release: version $(call GET_ARGUMENT,2)"
+	git push --force-with-lease
+	git tag v$(call GET_ARGUMENT,2)
+	git push --tags
+
+release-rollback:
+	@read -p "Are you sure you want to rollback the tag version $(ARGUMENTS)? [Y/n] " REPLY; \
+    if [ "$$REPLY" = "Y" ] || [ "$$REPLY" = "y" ] || [ "$$REPLY" = "" ]; then \
+        git reset --soft HEAD~1; \
+		git reset HEAD Cargo.lock; \
+		git reset HEAD Cargo.toml; \
+		git reset HEAD CHANGELOG.md; \
+		git checkout -- Cargo.lock; \
+		git checkout -- Cargo.toml; \
+		git checkout -- CHANGELOG.md; \
+		git tag -d v$(ARGUMENTS); \
+		git push origin --delete v$(ARGUMENTS); \
+		git push --force-with-lease; \
+    else \
+        echo "Aborted."; \
+    fi
+
 # Run
 
 install-watch:
@@ -301,19 +335,6 @@ test-watch:
 
 # Tag
 
-tag:
-	perl -pi -e 's/version = "$(call GET_ARGUMENT,1)"/version = "$(call GET_ARGUMENT,2)"/g' ./Cargo.toml
-	@if [ "$(findstring prerelease,$(call GET_ARGUMENT,2))" = "prerelease" ]; then \
-		perl -pi -e 's/targets = \["aarch64\-apple\-darwin", "x86_64\-apple\-darwin", "x86_64\-unknown\-linux\-gnu", "x86_64\-pc\-windows\-msvc"\]/targets = \["x86_64\-unknown\-linux\-gnu"\]/g' ./Cargo.toml; \
-    fi
-	cargo check --workspace
-	git add Cargo.lock
-	git add Cargo.toml
-	git commit -m "release: version $(call GET_ARGUMENT,2)"
-	git push --force-with-lease
-	git tag v$(call GET_ARGUMENT,2)
-	git push --tags
-
 tag-delete:
 	@read -p "Are you sure you want to delete the tag version $(ARGUMENTS)? [Y/n] " REPLY; \
 	if [ "$$REPLY" = "Y" ] || [ "$$REPLY" = "y" ] || [ "$$REPLY" = "" ]; then \
@@ -322,21 +343,6 @@ tag-delete:
 	else \
 		echo "Aborted."; \
 	fi
-
-tag-rollback:
-	@read -p "Are you sure you want to rollback the tag version $(ARGUMENTS)? [Y/n] " REPLY; \
-    if [ "$$REPLY" = "Y" ] || [ "$$REPLY" = "y" ] || [ "$$REPLY" = "" ]; then \
-        git reset --soft HEAD~1; \
-		git reset HEAD Cargo.lock; \
-		git reset HEAD Cargo.toml; \
-		git checkout -- Cargo.lock; \
-		git checkout -- Cargo.toml; \
-		git tag -d v$(ARGUMENTS); \
-		git push origin --delete v$(ARGUMENTS); \
-		git push --force-with-lease; \
-    else \
-        echo "Aborted."; \
-    fi
 
 # catch anything and do nothing
 %:
