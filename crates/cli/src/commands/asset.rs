@@ -96,8 +96,9 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
                     mime_type,
                 } = asset_builder(&file_path)?;
 
+                let cache_key = file_path.clone();
                 let mut cache = Cache::new();
-                let is_cached = match cache.get(&file_path) {
+                let is_cached = match cache.get(&cache_key) {
                     Some(cache_item) => cache_item.value == file_hash,
                     None => false,
                 };
@@ -114,16 +115,16 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
 
                     match http_client("asset-builder", Some(&body), Method::POST).await {
                         Ok(_) => {
-                            eprintln!("{} Asset updated: {file_path}", String::from('●').green());
+                            println!("{} Asset updated: {cache_key}", String::from('●').green());
                             cache.set(CacheItem {
-                                key: file_path,
+                                key: cache_key,
                                 value: file_hash,
                             })?;
                         }
                         Err(e) => eprintln!("{} {}", String::from('●').red(), e),
                     };
                 } else {
-                    eprintln!("{} Asset cached: {file_path}", String::from('●').green());
+                    println!("{} Asset cached: {cache_key}", String::from('●').green());
                 }
             }
         }

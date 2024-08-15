@@ -124,8 +124,13 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
                         Hash::hash_slice(&function, &mut hasher);
                         let value = hasher.finish().to_string();
 
+                        let functions_folder = match env::current_dir()?.join("src").to_str() {
+                            Some(v) => v.to_string(),
+                            None => "".to_string(),
+                        };
+                        let cache_key = file_path.replace(&(functions_folder + "/"), "");
                         let mut cache = Cache::new();
-                        let is_cached = match cache.get(&file_path) {
+                        let is_cached = match cache.get(&cache_key) {
                             Some(cache_item) => cache_item.value == value,
                             None => false,
                         };
@@ -152,26 +157,21 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
                             })
                             .to_string();
 
-                            let functions_folder = match env::current_dir()?.join("src").to_str() {
-                                Some(v) => v.to_string(),
-                                None => "".to_string(),
-                            };
-                            let file_path = file_path.replace(&(functions_folder + "/"), "");
                             match http_client("function-builder", Some(&body), Method::POST).await {
                                 Ok(_) => {
-                                    eprintln!(
-                                        "{} Function updated: {file_path}",
+                                    println!(
+                                        "{} Function updated: {cache_key}",
                                         String::from('●').green()
                                     );
                                     cache.set(CacheItem {
-                                        key: file_path,
+                                        key: cache_key,
                                         value,
                                     })?;
                                 }
                                 Err(e) => eprintln!("{} {}", String::from('●').red(), e),
                             };
                         } else {
-                            eprintln!("{} Function cached: {file_path}", String::from('●').green());
+                            println!("{} Function cached: {cache_key}", String::from('●').green());
                         }
                     }
                 } else {
