@@ -77,7 +77,7 @@ pub async fn command_branch(command: &BranchArgs) -> Result<()> {
                     if is_empty {
                         eprintln!("{} No data returned", String::from('●').red());
                     } else {
-                        eprintln!("{}", json_to_table(&v["data"])?);
+                        println!("{}", json_to_table(&v["data"])?);
                     }
                 }
                 Err(e) => eprintln!("{} {}", String::from('●').red(), e),

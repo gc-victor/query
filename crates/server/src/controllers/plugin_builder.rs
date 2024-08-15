@@ -72,7 +72,7 @@ pub async fn plugin_builder(
     }
 }
 
-#[instrument(skip(options), fields(name = options.name, sha256 = options.sha256))]
+#[instrument(skip(options), fields(plugin_name = options.name, sha256 = options.sha256))]
 fn add_plugin(options: AddPluginOptions) -> Result<(), HttpError> {
     let AddPluginOptions { data, name, sha256 } = options;
 

@@ -66,6 +66,7 @@ pub async fn migration(
     }
 }
 
+#[instrument(skip(query))]
 fn migration_controller(db_name: &str, query: &str) -> Result<(), HttpError> {
     let conn = connect_db(db_name)?;
 
