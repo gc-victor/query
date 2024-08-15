@@ -314,7 +314,7 @@ impl LogFormat for LogAdd {
                 "{} [{}] {}::{}",
                 String::from('●').green(),
                 "PUSH - ASSET",
-                asset_name,
+                asset_name.trim_start_matches('/'),
                 mime_type,
             );
         }
@@ -329,8 +329,19 @@ impl LogFormat for LogAdd {
                 "{} [{}] {}::{}",
                 String::from('●').green(),
                 "PUSH - FUNCTION",
-                path,
+                path.trim_start_matches('/'),
                 method,
+            );
+        }
+
+        if message == "[ADD_PLUGIN - END]" {
+            let plugin_name = self.extras.get("plugin_name").unwrap();
+
+            return format!(
+                "{} [{}] {}",
+                String::from('●').green(),
+                "PUSH - PLUGIN",
+                plugin_name.as_str().unwrap().trim_start_matches('/'),
             );
         }
 
@@ -341,7 +352,7 @@ impl LogFormat for LogAdd {
                 "{} [{}] {}",
                 String::from('●').green(),
                 "PUSH - MIGRATION",
-                db_name.as_str().unwrap(),
+                db_name.as_str().unwrap().trim_start_matches('/'),
             );
         }
 

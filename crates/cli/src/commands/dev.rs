@@ -226,8 +226,8 @@ fn execute_dev_commands() {
                         }
 
                         if !message.contains("updated")
-                            && !message.starts_with("cached")
-                            && !message.starts_with("executed")
+                            && !message.contains("cached")
+                            && !message.contains("executed")
                         {
                             println!("{} {}", String::from('●').green(), message);
                         }

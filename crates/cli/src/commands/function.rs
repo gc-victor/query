@@ -87,7 +87,7 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
     } else {
         let functions_folder = env::current_dir()?.join(path).to_str().unwrap().to_string();
 
-        for entry in WalkDir::new(functions_folder) {
+        for entry in WalkDir::new(&functions_folder) {
             let entry = entry?;
 
             if entry.file_type().is_file() {
@@ -124,11 +124,7 @@ pub async fn command_function(command: &FunctionArgs) -> Result<()> {
                         Hash::hash_slice(&function, &mut hasher);
                         let value = hasher.finish().to_string();
 
-                        let functions_folder = match env::current_dir()?.join("src").to_str() {
-                            Some(v) => v.to_string(),
-                            None => "".to_string(),
-                        };
-                        let cache_key = file_path.replace(&(functions_folder + "/"), "");
+                        let cache_key = file_path.replace(&(functions_folder.clone() + "/"), "");
                         let mut cache = Cache::new();
                         let is_cached = match cache.get(&cache_key) {
                             Some(cache_item) => cache_item.value == value,

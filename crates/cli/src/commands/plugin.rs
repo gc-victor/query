@@ -509,14 +509,16 @@ pub async fn push_command(args: &PluginPushArgs) -> Result<()> {
                 }
             };
 
+            let plugins_folder = PLUGINS_FOLDER.clone().to_string_lossy().to_string();
+            let cache_key = file_path.replace(&(plugins_folder + "/"), "");
             let mut cache = Cache::new();
-            let is_cached = match cache.get(file_path) {
+            let is_cached = match cache.get(&cache_key) {
                 Some(cache_item) => cache_item.value == sha256,
                 None => false,
             };
 
             if is_cached {
-                eprintln!("{} Plugin cached: {file_path}", String::from('●').green());
+                eprintln!("{} Plugin cached: {cache_key}", String::from('●').green());
 
                 continue;
             }
@@ -540,9 +542,9 @@ pub async fn push_command(args: &PluginPushArgs) -> Result<()> {
 
             match http_client("plugin-builder", Some(&body), Method::POST).await {
                 Ok(_) => {
-                    eprintln!("{} Plugin updated: {file_path}", String::from('●').green());
+                    eprintln!("{} Plugin updated: {cache_key}", String::from('●').green());
                     cache.set(CacheItem {
-                        key: file_path.to_string(),
+                        key: cache_key.to_string(),
                         value: sha256.to_string(),
                     })?;
                 }
