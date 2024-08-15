@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.21] - 2024-08-15
+
+### 🚀 Features
+
+- *(cli)* Add env query_cli_dev
+
+### 🐛 Bug Fixes
+
+- *(ci)* Print release commit
+- *(cli)* Enhance logs
+
 ## [0.12.20] - 2024-08-15
 
 ### 🚀 Features
