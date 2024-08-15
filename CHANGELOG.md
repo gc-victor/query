@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.20] - 2024-08-15
+
+### 🚀 Features
+
+- *(cli)* Allow no task
+- *(example)* Use pnpm lock
+- Add plugin system
+- *(ci)* Add release
+
+### 🐛 Bug Fixes
+
+- *(server)* Execute timers
+- *(cli)* Enhance logs
+
+### 📚 Documentation
+
+- Changelog version 0.12.19
+
+### ⚙️ Miscellaneous Tasks
+
+- Add hurl function
+
+### Build
+
+- *(deps)* Bump serde_json from 1.0.121 to 1.0.122
+- *(deps)* Bump toml from 0.8.16 to 0.8.19
+- *(deps)* Bump clap from 4.5.11 to 4.5.13
+- *(deps)* Bump bytes from 1.6.1 to 1.7.1
+- *(deps)* Bump regex from 1.10.5 to 1.10.6
+- *(deps-dev)* Bump @qery/query in /examples/application
+- *(deps)* Bump valibot from 0.36.0 to 0.37.0 in /examples/application
+- *(deps-dev)* Bump @qery/query-server in /examples/counter
+- *(deps-dev)* Bump @qery/query in /examples/counter
+- *(deps-dev)* Bump @qery/query in /examples/minimal
+- *(deps-dev)* Bump @qery/query-server in /examples/application
+- *(deps-dev)* Bump @qery/query-server in /examples/minimal
+- *(deps)* Bump cliclack from 0.3.2 to 0.3.3
+- *(deps-dev)* Bump tailwindcss in /examples/application
+- *(deps)* Bump serde_json from 1.0.122 to 1.0.124
+- *(deps)* Bump hyper-util from 0.1.6 to 0.1.7
+- *(deps)* Bump serde from 1.0.204 to 1.0.206
+- *(deps)* Bump clap from 4.5.13 to 4.5.15
+- *(deps)* Bump @preact/signals in /examples/counter
+- *(deps)* Bump preact-render-to-string in /examples/application
+- *(deps)* Bump preact from 10.22.0 to 10.23.2 in /examples/counter
+- *(deps)* Bump serde from 1.0.206 to 1.0.207
+- *(deps-dev)* Bump tailwindcss in /examples/counter
+- *(deps)* Bump preact-render-to-string in /examples/counter
+
 ## [0.12.19] - 2024-08-02
 
 ### 🐛 Bug Fixes
