@@ -4,7 +4,7 @@ use colored::Colorize;
 use reqwest::Method;
 use serde_json::json;
 
-use crate::utils::http_client;
+use crate::{config::CONFIG, utils::http_client};
 
 use super::commands::MigrationArgs;
 
@@ -27,7 +27,9 @@ pub async fn command_migration(command: &MigrationArgs) {
 
     match http_client("migration", Some(&body), Method::POST).await {
         Ok(_) => {
-            eprintln!("{} Migrated {path}!!!", String::from('●').green());
+            let path = path.replace(&CONFIG.structure.migrations_folder.clone(), "");
+
+            println!("{} Migration executed: {path}", String::from('●').green());
         }
         Err(e) => eprintln!("{} {}", String::from('●').red(), e),
     };
