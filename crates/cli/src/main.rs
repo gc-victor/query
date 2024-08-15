@@ -8,6 +8,7 @@ pub mod utils;
 use std::env;
 
 use clap::{command, Parser};
+use colored::Colorize;
 use dotenv::dotenv;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -45,6 +46,11 @@ async fn main() {
 
     let args = Cli::parse();
     let command = args.command;
+
+    // Ex. `export QUERY_CLI_DEV=true && ../../query/target/debug/query dev`
+    if env::var("QUERY_CLI_DEV").is_ok() {
+        println!("{}", "[WARNING] A QUERY_CLI_DEV is being used".yellow())
+    };
 
     match &command {
         Commands::Asset(command) => command_asset(command).await.unwrap(),

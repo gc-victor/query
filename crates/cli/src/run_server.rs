@@ -67,7 +67,27 @@ pub fn run_query_server(verbose: bool, silent: bool) {
             .join("node_modules")
             .join(".bin")
             .join(QUERY_SERVER_BINARY);
-        let package = package.to_str().unwrap().to_string();
+
+        let package = if env::var("QUERY_CLI_DEV").is_ok() {
+            let exe_path = env::current_exe().unwrap();
+            let exe_dir = exe_path.parent().unwrap();
+
+            match env::var("QUERY_CLI_DEV") {
+                Ok(_) => &format!("{}/query-server", exe_dir.display()),
+                Err(_) => {
+                    eprintln!("Failed get the query-server path");
+                    exit(1);
+                }
+            }
+        } else {
+            match package.to_str() {
+                Some(package) => package,
+                None => {
+                    eprintln!("Failed to convert path to string");
+                    exit(1);
+                }
+            }
+        };
 
         let stdout = if silent {
             Stdio::null()
@@ -108,6 +128,15 @@ pub fn run_query_server(verbose: bool, silent: bool) {
             Stdio::null()
         } else {
             Stdio::piped()
+        };
+
+        let query_server_global = if env::var("QUERY_CLI_DEV").is_ok() {
+            match env::var("QUERY_CLI_DEV") {
+                Ok(dev_path) => &format!("{dev_path}/query-server"),
+                Err(_) => &query_server_global,
+            }
+        } else {
+            &query_server_global
         };
 
         match Command::new(query_server_global)
@@ -302,6 +331,17 @@ impl LogFormat for LogAdd {
                 "PUSH - FUNCTION",
                 path,
                 method,
+            );
+        }
+
+        if message == "[MIGRATION_CONTROLLER - END]" {
+            let db_name = self.extras.get("db_name").unwrap();
+
+            return format!(
+                "{} [{}] {}",
+                String::from('●').green(),
+                "PUSH - MIGRATION",
+                db_name.as_str().unwrap(),
             );
         }
 

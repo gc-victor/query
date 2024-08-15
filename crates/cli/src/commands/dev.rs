@@ -225,7 +225,12 @@ fn execute_dev_commands() {
                             continue;
                         }
 
-                        println!("{} {}", String::from('●').green(), message);
+                        if !message.contains("updated")
+                            && !message.starts_with("cached")
+                            && !message.starts_with("executed")
+                        {
+                            println!("{} {}", String::from('●').green(), message);
+                        }
                     }
                     Err(e) => {
                         eprintln!("{}", format!("{} {}", String::from('●'), e).red());
@@ -299,8 +304,25 @@ fn query_command(args: Vec<&str>) {
         let npx = npx.split(' ').collect::<Vec<&str>>();
         let npx = npx[0];
 
-        let current_dir = env::current_dir().unwrap();
-        let package = current_dir.join("node_modules").join(".bin").join(binary);
+        let package = if env::var("QUERY_CLI_DEV").is_ok() {
+            let exe_path = env::current_exe().unwrap();
+            let exe_dir = exe_path.parent().unwrap();
+
+            match env::var("QUERY_CLI_DEV") {
+                Ok(_) => &format!("{}/query", exe_dir.display()),
+                Err(_) => {
+                    eprintln!("Failed get the query path");
+                    exit(1);
+                }
+            }
+        } else {
+            let path = env::current_dir()
+                .unwrap()
+                .join("node_modules")
+                .join(".bin")
+                .join(binary);
+            &path.to_string_lossy().to_string()
+        };
 
         match Command::new(package)
             .args(args)
