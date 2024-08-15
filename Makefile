@@ -122,8 +122,8 @@ changelog:
 	last_commit=$$(git log --format="%H" -n 1); \
 	git cliff $$release_commit..$$last_commit --tag $(ARGUMENTS) --prepend CHANGELOG.md; \
 	echo "CHANGELOG.md has been updated with changes between commits:"; \
-	echo "Last Commit: $$last_commit"
-	echo "Previous Release Commit: $$release_commit"; \
+	echo "Last Commit: $$last_commit"; \
+	echo "Previous Release Commit: $$release_commit"
 
 # Clean
 
