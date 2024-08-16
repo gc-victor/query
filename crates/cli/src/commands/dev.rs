@@ -178,6 +178,7 @@ fn check_config_file_exist() {
 fn run_tasks() {
     execute_dev_commands();
     query_command(vec!["asset", "dist"]);
+    query_command(vec!["asset", "public"]);
     // NOTE: the function should be executed after the assets
     query_command(vec!["function"]);
 }
