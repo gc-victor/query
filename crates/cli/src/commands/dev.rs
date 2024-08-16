@@ -226,12 +226,7 @@ fn execute_dev_commands() {
                             continue;
                         }
 
-                        if !message.contains("updated")
-                            && !message.contains("cached")
-                            && !message.contains("executed")
-                        {
-                            println!("{} {}", String::from('●').green(), message);
-                        }
+                        println!("{} {}", String::from('●').green(), message);
                     }
                     Err(e) => {
                         eprintln!("{}", format!("{} {}", String::from('●'), e).red());
@@ -258,14 +253,11 @@ fn execute_dev_commands() {
                         let message = message.trim_end_matches('"');
                         let message = message.trim();
 
-                        if message.is_empty()
-                            || message.starts_with("Rebuilding...")
-                            || message.starts_with("Done in")
-                        {
+                        if message.is_empty() {
                             continue;
                         }
 
-                        eprintln!("{}", message.red());
+                        eprintln!("{}", message);
                     }
                     Err(e) => {
                         eprintln!("{}", format!("{} {}", String::from('●'), e).red());
