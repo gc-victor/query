@@ -135,15 +135,15 @@ fn execute_command(
     tasks_group: &String,
     task: &String,
 ) -> Result<()> {
-    let commands = get_command(extra_command, tasks_group, task)?;
+    let command = get_command(extra_command, tasks_group, task)?;
 
     let mut cmd = if cfg!(target_os = "windows") {
         let mut cmd = Command::new("cmd");
-        cmd.arg("/C").arg(&commands);
+        cmd.arg("/C").arg(&command);
         cmd
     } else {
         let mut cmd = Command::new("sh");
-        cmd.arg("-c").arg(&commands);
+        cmd.arg("-c").arg(&command);
         cmd
     };
 
