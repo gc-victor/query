@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.22] - 2024-08-16
+
+### 🐛 Bug Fixes
+
+- *(cli)* Typo command/s
+- *(cli)* Add toml feature preserve order
+- *(cli)* Add run task asset public
+- *(cli)* Remove output conditions
+
 ## [0.12.21] - 2024-08-15
 
 ### 🚀 Features
