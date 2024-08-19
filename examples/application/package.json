@@ -2,7 +2,7 @@
     "name": "query-app",
     "type": "module",
     "dependencies": {
-        "preact": "~10.23.1",
+        "preact": "~10.23.2",
         "preact-render-to-string": "~6.5.8",
         "valibot": "~0.37.0"
     },
