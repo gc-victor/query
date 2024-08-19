@@ -16,7 +16,7 @@ importers:
         version: 0.12.22
       '@qery/query-server':
         specifier: ~0.12
-        version: 0.12.19
+        version: 0.12.22
       esbuild:
         specifier: ^0.21
         version: 0.21.2
@@ -229,8 +229,8 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@qery/query-server@0.12.19':
-    resolution: {integrity: sha512-giVHUBDNpMoJUzXP6rXzonMWutqeR24fYGa8UzpXvY22molv6kW8Mf/NHxqjP2EtcDYfx2G1io/sWeUrxgKdYA==}
+  '@qery/query-server@0.12.22':
+    resolution: {integrity: sha512-LHo51vmSluQDoHYYhDW/PzMVBJTprEAilOZbEWEUcfbfSgJTyhgaPwbsZNcL1XhGmSJobY/wQGuipYwUnT05MA==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
@@ -589,7 +589,7 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@qery/query-server@0.12.19':
+  '@qery/query-server@0.12.22':
     dependencies:
       axios: 1.7.3
       axios-proxy-builder: 0.1.2
@@ -729,7 +729,7 @@ snapshots:
       foreground-child: 3.1.1
       jackspeak: 2.3.6
       minimatch: 9.0.4
-      minipass: 7.1.1
+      minipass: 7.1.2
       path-scurry: 1.11.1
 
   is-fullwidth-code-point@3.0.0: {}
