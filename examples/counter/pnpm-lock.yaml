@@ -26,7 +26,7 @@ importers:
         version: 0.12.19
       '@qery/query-server':
         specifier: ~0.12
-        version: 0.12.19
+        version: 0.12.22
       esbuild:
         specifier: ^0.23
         version: 0.23.0
@@ -305,8 +305,8 @@ packages:
     peerDependencies:
       preact: 10.x
 
-  '@qery/query-server@0.12.19':
-    resolution: {integrity: sha512-giVHUBDNpMoJUzXP6rXzonMWutqeR24fYGa8UzpXvY22molv6kW8Mf/NHxqjP2EtcDYfx2G1io/sWeUrxgKdYA==}
+  '@qery/query-server@0.12.22':
+    resolution: {integrity: sha512-LHo51vmSluQDoHYYhDW/PzMVBJTprEAilOZbEWEUcfbfSgJTyhgaPwbsZNcL1XhGmSJobY/wQGuipYwUnT05MA==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
@@ -1301,7 +1301,7 @@ snapshots:
       '@preact/signals-core': 1.8.0
       preact: 10.23.2
 
-  '@qery/query-server@0.12.19':
+  '@qery/query-server@0.12.22':
     dependencies:
       axios: 1.7.3
       axios-proxy-builder: 0.1.2
