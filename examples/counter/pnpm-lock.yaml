@@ -15,8 +15,8 @@ importers:
         specifier: ^10.23.2
         version: 10.23.2
       preact-render-to-string:
-        specifier: ^6.5.8
-        version: 6.5.8(preact@10.23.2)
+        specifier: ^6.5.10
+        version: 6.5.10(preact@10.23.2)
     devDependencies:
       '@biomejs/biome':
         specifier: ~1.8
@@ -914,8 +914,8 @@ packages:
     resolution: {integrity: sha512-Wglpdk03BSfXkHoQa3b/oulrotAkwrlLDRSOb9D0bN86FdRyE9lppSp33aHNPgBa0JKCoB+drFLZkQoRRYae5A==}
     engines: {node: ^10 || ^12 || >=14}
 
-  preact-render-to-string@6.5.8:
-    resolution: {integrity: sha512-VwldmyF+5G6eqTH26uyXY2+a9fh7ry8roYnIEwarB6OnT1bVN7lnlFvh0ldeKJ7/JtvMoWO5jz9tyykRlAIDyA==}
+  preact-render-to-string@6.5.10:
+    resolution: {integrity: sha512-BJdypTQaBA5UbTF9NKZS3zP93Sw33tZOxNXIfuHofqOZFoMdsquNkVebs/HkEw0in/Qbi6Ep/Anngnj+VsHeBQ==}
     peerDependencies:
       preact: '>=10'
 
@@ -1880,7 +1880,7 @@ snapshots:
       picocolors: 1.0.1
       source-map-js: 1.2.0
 
-  preact-render-to-string@6.5.8(preact@10.23.2):
+  preact-render-to-string@6.5.10(preact@10.23.2):
     dependencies:
       preact: 10.23.2
 
