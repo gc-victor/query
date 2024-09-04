@@ -1,0 +1,19 @@
+[book]
+authors = ["Víctor García"]
+language = "en"
+multilingual = false
+
+[build]
+build-dir = "book"
+
+[output.html]
+additional-css = ["./theme/docs.css"]
+edit-url-template = "https://github.com/gc-victor/query/edit/main/docs/{path}"
+git-repository-url = "https://github.com/gc-victor/query"
+git-repository-icon = "fa-github"
+default-theme = "dark"
+no-section-label = true
+preferred-dark-theme = "dark"
+
+[theme]
+favicon_svg = "./images/favicon.svg"
