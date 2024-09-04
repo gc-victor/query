@@ -1,0 +1,87 @@
+name: Docs
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "**[0-9]+.[0-9]+.[0-9]+*"
+    paths:
+      - docs/**
+  pull_request:
+    paths:
+      - docs/**
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  web-docs:
+    name: Web Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      # selecting a toolchain either by action or manual `rustup` calls should happen
+      # before the plugin, as the cache uses the current rustc version as its cache key
+      - run: rustup toolchain install stable --profile minimal
+
+      - name: Rust Cache Action
+        uses: Swatinem/rust-cache@v2
+      
+      - name: Install mdbook
+        env:
+          RUST_BACKTRACE: full
+          RUST_LOG: info
+        run: |
+          rustup update stable && rustup default stable
+          cargo install mdbook
+      
+      - name: Create book
+        env:
+          RUST_BACKTRACE: full
+          RUST_LOG: info
+        run: |
+          sed -i "s|{{ path_to_root }}{{link}}|{{link}}|" docs/theme/index.hbs
+          sed -i "s|{{ path_to_root }}|/_/asset/book/|" docs/theme/index.hbs
+          sed -i "s|{{ ../path_to_root }}|/_/asset/book/|" docs/theme/index.hbs
+          sed -i "s|{{link}}|{{ path_to_root }}{{link}}|" docs/theme/index.hbs
+          mdbook build docs
+
+      - name: Make .query directory
+        run: |
+          mkdir -p .query
+
+      - name: Assets Cache
+        id: query-cache
+        uses: actions/cache@v4
+        with:
+          path: .query/.cache
+          key: query-cache-${{ github.run_id }}
+          restore-keys: query-cache
+      
+      - name: Set token
+        env:
+          QUERY_WEB_PRIVATE_TOKEN: ${{ secrets.QUERY_WEB_PRIVATE_TOKEN }}
+        run: |
+          echo "[default] $QUERY_WEB_PRIVATE_TOKEN" > .query/.token
+
+      - name: Set server url
+        run: |
+            cat <<EOF > .query/Query.toml
+            [server]
+            url = "https://qery.io"
+            EOF
+
+      - name: Install Query CLI
+        run: |
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/gc-victor/query/releases/latest/download/query-installer.sh | sh
+      
+      - name: Deploy to qery.io
+        run: |
+          mv docs/book book
+          rm -rf docs
+          mv book/docs docs
+          query asset docs
+          query asset book
+          query purge

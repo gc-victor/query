@@ -1,10 +1,10 @@
-# Runtime Compatibility
+# JavaScript Runtime
+
+Query's runtime is a JavaScript runtime that allows you to run your JavaScript code in a serverless like environment in Rust. It is based on [QuickJS](https://bellard.org/quickjs/) JavaScript engine and uses [rquickjs](https://github.com/DelSkayn/rquickjs) for bindings between Rust and the Quickjs JavaScript engine. It supports the ES2023 specification, including modules, asynchronous generators, proxies, and BigInt. It optionally supports mathematical extensions such as big decimal floating point numbers (BigDecimal), big binary floating point numbers (BigFloat), and operator overloading.
+
+## Runtime Compatibility
 
 This package provides a compatibility layer for the runtime. It is based on the [unjs/runtime-compat](https://github.com/unjs/runtime-compat) package.
-
-## Query Runtime
-
-It is based on [QuickJS](https://bellard.org/quickjs/) JavaScript engine and uses [rquickjs](https://github.com/DelSkayn/rquickjs) for bindings between Rust and the quickjs javascript engine. It supports the ES2020 specification, including modules, asynchronous generators, proxies, and BigInt. It optionally supports mathematical extensions such as big decimal floating point numbers (BigDecimal), big binary floating point numbers (BigFloat), and operator overloading.
 
 ### WinterCG APIs
 

@@ -1,4 +1,4 @@
-# ![Query](/docs/query-logo.svg)
+# ![Query](/docs/images/query-logo.svg)
 
 Query is a Rust server for your remote SQLite databases with a CLI and API to manage them.
 
@@ -85,13 +85,19 @@ Or
 npx @qery/query create
 ```
 
+You will have three options:
+
+- **application**: A project with a basic structure to create a web application.
+- **counter**: A basic project with a counter function.
+- **minimal**: A minimal project with a single server function.
+
 ## Run A Query Server on Fly.io
 
 We recommend use Query with Fly (<https://fly.io>). It will help you to deploy your server in a few minutes and replicate your databases across the world.
 
 You can use Query as an isolated service or you can use it as a service with a proxy to your App. We will see both options.
 
-### Query As An Isolated Service
+### Query as an isolated service
 
 Query allows you to set a service with authentication to access remote SQLite databases and possibility to use [Query CLI](https://github.com/gc-victor/query/blob/main/README.md#cli), [Query API](https://github.com/gc-victor/query/blob/main/README.md#apis) and  [Query Studio](https://github.com/gc-victor/query-studio).
 
@@ -707,7 +713,7 @@ The migration command allows to manage the migrations of your Query Server, if y
 
 Migration file:
 
-- The migration file should be in the format of &lt;version&gt;_&lt;name&gt;_&lt;type&gt;.sql
+- The migration file should be in the format of &lt;version&gt;*&lt;name&gt;*&lt;type&gt;.sql
 - The version should be in the format of YYYYMMDD
 - The name should be in the format of &lt;name&gt;_&lt;description&gt;
 - The type should be up or down
