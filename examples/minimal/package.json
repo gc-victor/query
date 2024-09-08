@@ -6,6 +6,6 @@
         "@qery/query": "~0.12",
         "@qery/query-server": "~0.12",
         "esbuild": "^0.23",
-        "typescript": "~5.4"
+        "typescript": "~5.5"
     }
 }
