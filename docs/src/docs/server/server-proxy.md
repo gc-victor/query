@@ -48,7 +48,7 @@ EXPOSE 3000
 CMD ["litefs", "mount"]
 ```
 
-For multi-process applications, you can use the "Just use Bash", as we do in this example, to start the Query Server and your App. [Fly proposes](https://fly.io/app-guides/multiple-processes/) different ways to manage multiple processes, so please use the one you feel more comfortable with.
+For multi-process applications, you can use the "Just use Bash", as we do in this example, to start the Query Server and your App. [Fly proposes](https://fly.io/docs/app-guides/multiple-processes/) different ways to manage multiple processes, so please use the one you feel more comfortable with.
 
 process.sh:
 
