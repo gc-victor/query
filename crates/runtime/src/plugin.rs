@@ -28,7 +28,7 @@ struct PluginConfig {
     // An optional set of mappings between the host's filesystem and the paths a plugin can access.
     // This only has an effect if the plugin is provided with WASI capabilities.
     // Note: if left empty or `null`, then no file access is granted.
-    allowed_paths: Option<HashMap<PathBuf, PathBuf>>,
+    allowed_paths: Option<HashMap<String, PathBuf>>,
     //  The "config" key is a free-form map that can be passed to the plugin.
     //  A plugin author must know the arbitrary data this map may contain, so your own documentation should include some information about the "config" passed in.
     config: Option<HashMap<String, String>>,

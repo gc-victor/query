@@ -1080,9 +1080,9 @@ dependencies = [
 
 [[package]]
 name = "extism-manifest"
-version = "1.5.0"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23f529ac444f67ea8e6f81c36fa01c9864c30ca62cb356114fd0a071fb3bf3a4"
+checksum = "6be4814f095a74d0547175bd9d8747106a03b21cfbe675f73457c0677a97042b"
 dependencies = [
  "base64 0.22.1",
  "serde",
