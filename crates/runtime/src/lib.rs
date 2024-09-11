@@ -65,9 +65,9 @@ impl std::fmt::Debug for Runtime {
 }
 
 // JS modules
+const DATABASE_SCRIPT_MODULE: &str = include_str!("js/database.js");
 const HANDLE_RESPONSE_SCRIPT_MODULE: &str = include_str!("js/handle-response.js");
 const PLUGIN_SCRIPT_MODULE: &str = include_str!("js/plugin.js");
-const SQLITE_SCRIPT_MODULE: &str = include_str!("js/sqlite.js");
 // Polyfill modules
 const BLOB_SCRIPT_MODULE: &str = include_str!("js/polyfills/blob.js");
 const CONSOLE_SCRIPT_MODULE: &str = include_str!("js/polyfills/console.js");
@@ -95,8 +95,8 @@ impl Runtime {
             .await;
 
         let resolver = BuiltinResolver::default()
+            .with_module("js/database")
             .with_module("js/handle-response")
-            .with_module("js/sqlite")
             .with_module("polyfill/blob")
             .with_module("polyfill/console")
             .with_module("polyfill/fetch")
@@ -105,11 +105,12 @@ impl Runtime {
             .with_module("polyfill/request")
             .with_module("polyfill/response")
             .with_module("polyfill/web-streams")
-            .with_module("query:plugin");
+            .with_module("query:plugin")
+            .with_module("query:database");
         let loader = (
             BuiltinLoader::default()
+                .with_module("js/database", DATABASE_SCRIPT_MODULE)
                 .with_module("js/handle-response", HANDLE_RESPONSE_SCRIPT_MODULE)
-                .with_module("js/sqlite", SQLITE_SCRIPT_MODULE)
                 .with_module("polyfill/blob", BLOB_SCRIPT_MODULE)
                 .with_module("polyfill/console", CONSOLE_SCRIPT_MODULE)
                 .with_module("polyfill/fetch", FETCH_SCRIPT_MODULE)
@@ -118,6 +119,7 @@ impl Runtime {
                 .with_module("polyfill/request", REQUEST_SCRIPT_MODULE)
                 .with_module("polyfill/response", RESPONSE_SCRIPT_MODULE)
                 .with_module("polyfill/web-streams", WEB_STREAMS_SCRIPT_MODULE)
+                .with_module("query:database", DATABASE_SCRIPT_MODULE)
                 .with_module("query:plugin", PLUGIN_SCRIPT_MODULE),
             ModuleLoader::default()
                 .with_module("module", ModuleModule)

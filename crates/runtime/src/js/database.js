@@ -1,4 +1,4 @@
-class Database {
+export class Database {
     #dbName;
 
     constructor(dbName) {
@@ -11,3 +11,5 @@ class Database {
 }
 
 globalThis.Database = Database;
+
+export default Database;

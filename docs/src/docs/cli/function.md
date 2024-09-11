@@ -23,12 +23,13 @@ To use a database you have to create a connection to the database:
 const db = new Database("example.sql");
 ```
 
-The `Database` constructor receives the name of the database. If the database is found, it will create a connection to the database. It will provide the following methods:
+You can use it as a global variable or `import` it.
 
-- `query` - To read data from the database.
-- `execute` - To write data in the database.
+```js
+import { Database } from "query:database";
+```
 
-A `query` and an `execute` can have params. The params are bound to the parameters based on the order of the array or an object with the format of `:AAA`, `$AAA`, or `@AAA` that serve as placeholders for values that are bound to the parameters at a later time. The params are optional.
+The `Database` constructor receives the name of the database. If the database is found, it will create a connection to the database; if not, it will create it first. It exposes the method `query` to read data from the database and write data in the database. The method `query` can have params, and those params are bound to the parameters based on the order of the array or an object with the format of `:AAA`, `$AAA`, or `@AAA` that serve as placeholders for values that are bound to the parameters at a later time.
 
 As Query uses [LiteFS proxy](https://fly.io/litefs/config/#http-proxy-server), you have to remember to use `GET` to read data and `DELETE|POST|PUT|PATCH` to write data.
 

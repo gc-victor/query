@@ -233,7 +233,7 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         import 'polyfill/response';
         import 'polyfill/web-streams';
 
-        import 'js/sqlite';
+        import 'js/database';
         import 'js/handle-response';
 
         {function}
