@@ -39,10 +39,9 @@ jobs:
           RUST_BACKTRACE: full
           RUST_LOG: info
         run: |
-          sed -i "s|{{ path_to_root }}{{link}}|{{link}}|" docs/theme/index.hbs
           sed -i "s|{{ path_to_root }}|/_/asset/book/|" docs/theme/index.hbs
           sed -i "s|{{ ../path_to_root }}|/_/asset/book/|" docs/theme/index.hbs
-          sed -i "s|{{link}}|{{ path_to_root }}{{link}}|" docs/theme/index.hbs
+          sed -i "s|{{ __path_to_root__ }}|{{ path_to_root }}|" docs/theme/index.hbs
           mdbook build docs
 
       - name: Make .query directory
@@ -80,5 +79,6 @@ jobs:
           rm -rf docs
           mv book/docs docs
           query asset docs
+          sed -i "s|<a href=\"' + path_to_root|<a href=\"' + original_path_to_root|" book/searcher.js
           query asset book
           query purge
