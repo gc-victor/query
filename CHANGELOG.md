@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.23] - 2024-09-13
+
+### 🚀 Features
+
+- *(doc)* Enhance docs for the web
+- *(runtime)* Import database
+- *(ci)* Remove pull-request
+- *(docs)* New readme.md version
+
+### 🐛 Bug Fixes
+
+- *(example)* Add task to minimal
+- *(docs)* Update broken link server-proxy.md
+- *(ci)* Docs search
+
+### Build
+
+- *(deps)* Bump clap from 4.5.15 to 4.5.16
+- *(deps)* Bump serde from 1.0.207 to 1.0.208
+- *(deps)* Bump serde_json from 1.0.124 to 1.0.125
+- *(deps)* Bump tabled from 0.15.0 to 0.16.0
+- *(deps)* Bump tokio from 1.39.2 to 1.39.3
+- *(deps)* Bump preact in /examples/application
+- *(deps-dev)* Bump esbuild in /examples/application
+- *(deps-dev)* Bump @qery/query in /examples/application
+- *(deps-dev)* Bump @qery/query in /examples/minimal
+- *(deps-dev)* Bump @qery/query-server in /examples/minimal
+- *(deps-dev)* Bump @qery/query-server in /examples/application
+- *(deps-dev)* Bump tailwindcss in /examples/application
+- *(deps-dev)* Bump tailwindcss in /examples/counter
+- *(deps-dev)* Bump @qery/query-server in /examples/counter
+- *(deps-dev)* Bump esbuild from 0.23.0 to 0.23.1 in /examples/counter
+- *(deps-dev)* Bump @qery/query in /examples/counter
+- *(deps-dev)* Bump esbuild from 0.21.2 to 0.23.1 in /examples/minimal
+- *(deps)* Bump quinn-proto from 0.11.6 to 0.11.8
+- *(deps)* Bump tokio from 1.39.3 to 1.40.0
+- *(deps)* Bump serde from 1.0.208 to 1.0.209
+- *(deps)* Bump serde_json from 1.0.125 to 1.0.127
+- *(deps)* Bump reqwest from 0.12.5 to 0.12.7
+- *(deps)* Bump cliclack from 0.3.3 to 0.3.4
+- *(deps)* Bump preact-render-to-string in /examples/counter
+- *(deps)* Bump preact-render-to-string in /examples/application
+- *(deps)* Bump webpki-roots from 0.26.3 to 0.26.5
+- *(deps)* Bump serde from 1.0.209 to 1.0.210
+- *(deps)* Bump clap from 4.5.16 to 4.5.17
+- *(deps)* Bump hyper-util from 0.1.7 to 0.1.8
+- *(deps)* Bump extism-manifest from 1.5.0 to 1.6.0
+- *(deps-dev)* Bump typescript in /examples/minimal
+- *(deps-dev)* Bump @biomejs/biome in /examples/minimal
+- *(deps)* Bump valibot from 0.37.0 to 0.41.0 in /examples/application
+
 ## [0.12.22] - 2024-08-16
 
 ### 🐛 Bug Fixes
