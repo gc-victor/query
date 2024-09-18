@@ -16,15 +16,6 @@
 - [JavaScript Runtime](./docs/server/runtime.md)
 - [Plugin System](./docs/server/plugin-system.md)
 
-# API
-
-- [Query](./docs/api/query.md)
-- [User](./docs/api/user.md)
-- [User Token](./docs/api/user-token.md)
-- [Token](./docs/api/token.md)
-- [Migration](./docs/api/migration.md)
-- [Branch](./docs/api/branch.md)
-
 # Command Line
 
 - [Asset](./docs/cli/asset.md)
@@ -42,3 +33,12 @@
 - [Token](./docs/cli/token.md)
 - [User](./docs/cli/user.md)
   - [User Token](./docs/cli/user-token.md)
+
+# API
+
+- [Query](./docs/api/query.md)
+- [User](./docs/api/user.md)
+- [User Token](./docs/api/user-token.md)
+- [Token](./docs/api/token.md)
+- [Migration](./docs/api/migration.md)
+- [Branch](./docs/api/branch.md)
