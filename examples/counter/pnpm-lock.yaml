@@ -26,7 +26,7 @@ importers:
         version: 0.12.23
       '@qery/query-server':
         specifier: ~0.12
-        version: 0.12.22
+        version: 0.12.23
       esbuild:
         specifier: ^0.23
         version: 0.23.1
@@ -305,8 +305,8 @@ packages:
     peerDependencies:
       preact: 10.x
 
-  '@qery/query-server@0.12.22':
-    resolution: {integrity: sha512-LHo51vmSluQDoHYYhDW/PzMVBJTprEAilOZbEWEUcfbfSgJTyhgaPwbsZNcL1XhGmSJobY/wQGuipYwUnT05MA==}
+  '@qery/query-server@0.12.23':
+    resolution: {integrity: sha512-R/IH/FBDgEkZQgFknuOC3M1o9W73V0qr4r+rR6Mw4Cq6zIqLcZwlRbnnYXMBzAHPP8f2TPj4z5UlYtnSQ/8wkQ==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
@@ -747,10 +747,6 @@ packages:
 
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
-
-  minipass@7.1.1:
-    resolution: {integrity: sha512-UZ7eQ+h8ywIRAW1hIEl2AqdwzJucU/Kp59+8kkZeSvafXhZjul247BvIJjEVFVeON6d7lM46XX1HXCduKAS8VA==}
-    engines: {node: '>=16 || 14 >=14.17'}
 
   minipass@7.1.2:
     resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
@@ -1260,7 +1256,7 @@ snapshots:
 
   '@isaacs/fs-minipass@4.0.1':
     dependencies:
-      minipass: 7.1.1
+      minipass: 7.1.2
 
   '@jridgewell/gen-mapping@0.3.5':
     dependencies:
@@ -1301,7 +1297,7 @@ snapshots:
       '@preact/signals-core': 1.8.0
       preact: 10.24.0
 
-  '@qery/query-server@0.12.22':
+  '@qery/query-server@0.12.23':
     dependencies:
       axios: 1.7.3
       axios-proxy-builder: 0.1.2
@@ -1751,13 +1747,11 @@ snapshots:
 
   minimist@1.2.8: {}
 
-  minipass@7.1.1: {}
-
   minipass@7.1.2: {}
 
   minizlib@3.0.1:
     dependencies:
-      minipass: 7.1.1
+      minipass: 7.1.2
       rimraf: 5.0.10
 
   mkdirp@3.0.1: {}
