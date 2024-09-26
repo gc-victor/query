@@ -7,7 +7,7 @@
         "valibot": "~0.42.1"
     },
     "devDependencies": {
-        "@biomejs/biome": "~1.8.3",
+        "@biomejs/biome": "~1.9.2",
         "@qery/query": "~0.12.23",
         "@qery/query-server": "~0.12.23",
         "esbuild": "^0.23.1",
