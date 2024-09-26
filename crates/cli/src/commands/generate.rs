@@ -620,26 +620,14 @@ fn evaluate(expression: &str, variables: &HashMap<String, Data>) -> Result<bool,
         let parts = expression.split("&&");
 
         let values: Vec<bool> = parts
-            .map(|part| {
-                if let Ok(bool_value) = evaluate(part, variables) {
-                    bool_value
-                } else {
-                    false
-                }
-            })
+            .map(|part| evaluate(part, variables).unwrap_or_default())
             .collect();
 
         return Ok(values.iter().all(|&x| x));
     } else if expression.contains("||") {
         let parts = expression.split("||");
         let values: Vec<bool> = parts
-            .map(|part| {
-                if let Ok(bool_value) = evaluate(part, variables) {
-                    bool_value
-                } else {
-                    false
-                }
-            })
+            .map(|part| evaluate(part, variables).unwrap_or_default())
             .collect();
 
         return Ok(values.iter().any(|&x| x));
