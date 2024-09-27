@@ -377,7 +377,7 @@ function toFormData(headers, body) {
     if (/multipart\/form-data/.test(contentType)) {
         const boundary = getBoundary(contentType);
 
-        return boundary ? parseMultipart(body, boundary) : formData;
+        return boundary ? processMultipart(body, boundary) : formData;
     }
 
     if (/application\/x-www-form-urlencoded/.test(contentType)) {
@@ -397,57 +397,44 @@ function toFormData(headers, body) {
 }
 
 // NOTE: same in request.js
-function parseMultipart(body, boundary) {
+function processMultipart(body, boundary) {
     const formData = new FormData();
     const chunks = body.split(boundary);
 
-    for (let i = 0, len = chunks.length; i < len; i++) {
-        const chunk = chunks[i];
-        const lines = chunk.split(/\r?\n/);
+    for (const chunk of chunks) {
         let name = "";
         let filename = "";
         let type = "";
+        let content = [];
+        let isContentStarted = false;
 
-        for (let l = 1, lenL = lines.length; l < lenL; l++) {
-            const line = lines[l];
+        const lines = chunk.split(/\r?\n/);
 
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i];
             if (/content-disposition/i.test(line)) {
-                name = line.match(/\sname\=\"(.*?)\"/)?.[1]?.replace("[]", "") || "";
-                filename = line.match(/\sfilename\=\"(.*?)\"/)?.[1] || "";
+                const nameMatch = line.match(/\sname\=\"(.*?)\"/);
+                const filenameMatch = line.match(/\sfilename\=\"(.*?)\"/);
+                name = nameMatch ? nameMatch[1].replace("[]", "") : "";
+                filename = filenameMatch ? filenameMatch[1] : "";
+            } else if (/content-type/i.test(line)) {
+                type = line.match(/content-type:\s*(.*)/i)?.[1] || "";
+            } else if (isContentStarted) {
+                if (line === "--") continue;
+                content.push(line);
+            } else if (!line.trim()) {
+                isContentStarted = true;
+            }
+        }
 
-                let content = [];
-                let isContentFirstLine = true;
-
-                while (l + 1 < lenL && !/content-disposition/i.test(lines[l + 1])) {
-                    l++;
-
-                    if (lines[l] === "--") continue;
-                    if (/content-type/i.test(lines[l])) {
-                        type = lines[l].match(/content-type:\s*(.*)/i)[1] || "";
-                        continue;
-                    }
-                    if (isContentFirstLine) {
-                        isContentFirstLine = false;
-                        continue;
-                    }
-                    if (!lines[l]) {
-                        content.push("");
-                        continue;
-                    }
-
-                    content.push(lines[l]);
-                }
-
-                // NOTE: Ensure we don't lose an initial empty line in the content
-                if (content[0] === "") content.unshift("");
-                content = content.join("\n");
-
-                if (filename && type) {
-                    formData.append(name, new Blob([new TextEncoder().encode(content)], { type: type }), filename);
-                    type = "";
-                } else if (content.trim()) {
-                    formData.append(name, content);
-                }
+        if (name) {
+            content = content.join("\n");
+            if (filename && type) {
+                const encode = new Uint8Array(Buffer.from(content, "base64"));
+                const blob = new Blob([encode], { type });
+                formData.append(name, blob, filename);
+            } else if (content.trim()) {
+                formData.append(name, content);
             }
         }
     }
