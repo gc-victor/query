@@ -1,12 +1,17 @@
 use std::{
     collections::HashMap,
+    fmt::Write,
     thread,
     time::{SystemTime, UNIX_EPOCH},
 };
 
 use anyhow::Result;
-use hyper::{body::Incoming, http::HeaderName, Request, Response};
+use futures_util::StreamExt;
+use http_body_util::BodyStream;
+use hyper::{body::Incoming, header::CONTENT_TYPE, http::HeaderName, Request, Response};
+use multer::Multipart;
 use query_runtime::{timers::TimerPoller, Runtime};
+use rbase64::encode;
 use regex::Regex;
 use rquickjs::{async_with, Function, Module, Object, Promise, Value};
 use rusqlite::{named_params, Row};
@@ -202,8 +207,31 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         );
     }
 
-    let body = Body::to_bytes(req.body_mut()).await?;
-    let body = body.to_vec();
+    let req_headers = req.headers().clone();
+    let is_multipart = match req_headers.get(CONTENT_TYPE) {
+        Some(ct) => match ct.to_str() {
+            Ok(ct_str) => ct_str.starts_with("multipart/form-data"),
+            Err(_) => false,
+        },
+        None => false,
+    };
+
+    let body_mount = req.body_mut();
+    let body = if is_multipart {
+        let boundary = req_headers
+            .get(CONTENT_TYPE)
+            .and_then(|ct| ct.to_str().ok())
+            .and_then(|ct| multer::parse_boundary(ct).ok());
+        let multipart = if let Some(boundary) = boundary {
+            process_multipart(body_mount, boundary).await?
+        } else {
+            return Err(internal_server_error("Boundary not found".to_string()));
+        };
+        multipart.as_bytes().to_vec()
+    } else {
+        let bytes = Body::to_bytes(body_mount).await?;
+        bytes.to_vec()
+    };
 
     let host = req.headers().get("host").unwrap();
     let host = host.to_str().unwrap();
@@ -468,4 +496,61 @@ fn handle_fatal_error() -> HandleResponse {
         headers: None,
         status: 500,
     }
+}
+
+// NOTE: This function is a workaround to fix an issue when converting the body of a multipart to formData in the Request object.
+async fn process_multipart(body: &mut Incoming, boundary: String) -> anyhow::Result<String> {
+    let body_stream = BodyStream::new(body)
+        .filter_map(|result| async move { result.map(|frame| frame.into_data().ok()).transpose() });
+
+    let mut multipart = Multipart::new(body_stream, boundary.clone());
+
+    let mut reconstructed = String::new();
+    writeln!(reconstructed, "--{}", boundary)?;
+
+    while let Some(mut field) = multipart.next_field().await? {
+        let name = field.name().unwrap_or_default().to_string();
+        let file_name = field.file_name().map(|s| s.to_string());
+        let content_type = field.content_type().map(|s| s.to_string());
+        let is_file = file_name.is_some();
+
+        write!(
+            reconstructed,
+            "Content-Disposition: form-data; name=\"{}\"",
+            name
+        )?;
+        if let Some(filename) = &file_name {
+            write!(reconstructed, "; filename=\"{}\"", filename)?;
+        }
+        writeln!(reconstructed)?;
+
+        if let Some(ct) = &content_type {
+            writeln!(reconstructed, "Content-Type: {}", ct)?;
+        }
+        writeln!(reconstructed)?;
+
+        let mut data = Vec::new();
+        while let Some(chunk) = field.next().await {
+            let chunk = chunk?;
+            if is_file {
+                let chunk = chunk.iter().copied().collect::<Vec<u8>>();
+                data.extend_from_slice(&chunk);
+            } else {
+                data.extend_from_slice(&chunk);
+            }
+        }
+
+        if is_file {
+            reconstructed.push_str(&encode(&data));
+        } else {
+            reconstructed.push_str(&String::from_utf8_lossy(&data));
+        }
+
+        writeln!(reconstructed)?;
+        writeln!(reconstructed, "--{}", boundary)?;
+    }
+
+    write!(reconstructed, "--")?;
+
+    Ok(reconstructed)
 }

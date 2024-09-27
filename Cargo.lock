@@ -2412,6 +2412,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "multer"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "83e87776546dc87511aa5ee218730c92b666d7264ab6ed41f9d215af9cd5224b"
+dependencies = [
+ "bytes",
+ "encoding_rs",
+ "futures-util",
+ "http",
+ "httparse",
+ "memchr",
+ "mime",
+ "spin",
+ "version_check",
+]
+
+[[package]]
 name = "native-tls"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3025,10 +3042,12 @@ dependencies = [
  "argon2",
  "chacha20poly1305",
  "dotenv",
+ "futures-util",
  "http-body-util",
  "hyper",
  "hyper-util",
  "jsonwebtoken",
+ "multer",
  "openssl",
  "query-runtime",
  "rbase64",
