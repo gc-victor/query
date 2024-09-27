@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.24] - 2024-09-27
+
+### 🐛 Bug Fixes
+
+- *(docs)* Add generate
+- *(runtime)* Request to form data
+- *(cli)* Clippy updates
+
+### Build
+
+- *(deps)* Bump preact-render-to-string in /examples/application
+- *(deps-dev)* Bump @qery/query in /examples/application
+- *(deps-dev)* Bump @qery/query in /examples/minimal
+- *(deps-dev)* Bump typescript in /examples/minimal
+- *(deps)* Bump preact from 10.23.2 to 10.24.0 in /examples/counter
+- *(deps-dev)* Bump typescript in /examples/counter
+- *(deps)* Bump anyhow from 1.0.86 to 1.0.89
+- *(deps)* Bump once_cell from 1.19.0 to 1.20.0
+- *(deps)* Bump rustls from 0.23.12 to 0.23.13
+- *(deps)* Bump serde_json from 1.0.127 to 1.0.128
+- *(deps)* Bump cliclack from 0.3.4 to 0.3.5
+- *(deps)* Bump valibot from 0.41.0 to 0.42.0 in /examples/application
+- *(deps)* Bump preact in /examples/application
+- *(deps-dev)* Bump @qery/query in /examples/counter
+- *(deps)* Bump preact-render-to-string in /examples/counter
+- *(deps-dev)* Bump typescript in /examples/application
+- *(deps)* Bump webpki-roots from 0.26.5 to 0.26.6
+- *(deps)* Bump hyper-rustls from 0.27.2 to 0.27.3
+- *(deps)* Bump clap from 4.5.17 to 4.5.18
+- *(deps)* Bump bytes from 1.7.1 to 1.7.2
+- *(deps-dev)* Bump esbuild from 0.23.1 to 0.24.0 in /examples/minimal
+- *(deps-dev)* Bump @qery/query-server in /examples/minimal
+- *(deps-dev)* Bump @biomejs/biome in /examples/minimal
+- *(deps-dev)* Bump @qery/query-server in /examples/counter
+- *(deps-dev)* Bump tailwindcss in /examples/counter
+- *(deps)* Bump valibot from 0.42.0 to 0.42.1 in /examples/application
+- *(deps)* Bump extism from 1.5.0 to 1.6.0
+- *(deps-dev)* Bump esbuild from 0.23.1 to 0.24.0 in /examples/counter
+- *(deps-dev)* Bump @biomejs/biome in /examples/counter
+- *(deps-dev)* Bump @qery/query-server in /examples/application
+- *(deps-dev)* Bump tailwindcss in /examples/application
+- *(deps-dev)* Bump @biomejs/biome in /examples/application
+- *(deps-dev)* Bump esbuild in /examples/application
+
 ## [0.12.23] - 2024-09-13
 
 ### 🚀 Features
