@@ -16,7 +16,7 @@ importers:
         version: 0.12.23
       '@qery/query-server':
         specifier: ~0.12
-        version: 0.12.23
+        version: 0.12.24
       esbuild:
         specifier: ^0.24
         version: 0.24.0
@@ -235,8 +235,8 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@qery/query-server@0.12.23':
-    resolution: {integrity: sha512-R/IH/FBDgEkZQgFknuOC3M1o9W73V0qr4r+rR6Mw4Cq6zIqLcZwlRbnnYXMBzAHPP8f2TPj4z5UlYtnSQ/8wkQ==}
+  '@qery/query-server@0.12.24':
+    resolution: {integrity: sha512-r7xEsfIe5Y5WFZfv633lHIepHpFydtKyhoojGviXBitFbPK79n3iOvLZmr/u9jxO6mO3pvHiYuT9LhlqrO4SFw==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
@@ -594,7 +594,7 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@qery/query-server@0.12.23':
+  '@qery/query-server@0.12.24':
     dependencies:
       axios: 1.7.3
       axios-proxy-builder: 0.1.2
