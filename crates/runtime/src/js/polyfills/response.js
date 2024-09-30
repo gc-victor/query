@@ -433,7 +433,7 @@ function processMultipart(body, boundary) {
                 const encode = new Uint8Array(Buffer.from(content, "base64"));
                 const blob = new Blob([encode], { type });
                 formData.append(name, blob, filename);
-            } else if (content.trim()) {
+            } else {
                 formData.append(name, content);
             }
         }
