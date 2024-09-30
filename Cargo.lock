@@ -1026,9 +1026,9 @@ dependencies = [
 
 [[package]]
 name = "extism"
-version = "1.6.0"
+version = "1.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74614574b03f716c9d1439d46dbd993dc9ed778ebd149bec40a2d32142297b78"
+checksum = "c352d53d63c58d66868b65246ec491dab9c78b7425d2d221f0219d97765a3548"
 dependencies = [
  "anyhow",
  "cbindgen",
@@ -1081,9 +1081,9 @@ dependencies = [
 
 [[package]]
 name = "extism-manifest"
-version = "1.6.0"
+version = "1.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6be4814f095a74d0547175bd9d8747106a03b21cfbe675f73457c0677a97042b"
+checksum = "675c0d7e15bb5e6e2a520ea26c4309c047c30b16de852f26373de1906677a58d"
 dependencies = [
  "base64 0.22.1",
  "serde",
