@@ -392,7 +392,7 @@ function processMultipart(body, boundary) {
             if (/content-disposition/i.test(line)) {
                 const nameMatch = line.match(/\sname\=\"(.*?)\"/);
                 const filenameMatch = line.match(/\sfilename\=\"(.*?)\"/);
-                name = nameMatch ? nameMatch[1].replace("[]", "") : "";
+                name = nameMatch ? nameMatch[1] : "";
                 filename = filenameMatch ? filenameMatch[1] : "";
             } else if (/content-type/i.test(line)) {
                 type = line.match(/content-type:\s*(.*)/i)?.[1] || "";
