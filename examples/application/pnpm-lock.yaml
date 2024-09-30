@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       preact:
-        specifier: ~10.24.0
-        version: 10.24.0
+        specifier: ~10.24.1
+        version: 10.24.1
       preact-render-to-string:
         specifier: ~6.5.11
-        version: 6.5.11(preact@10.24.0)
+        version: 6.5.11(preact@10.24.1)
       valibot:
         specifier: ~0.42.1
         version: 0.42.1(typescript@5.6.2)
@@ -911,8 +911,8 @@ packages:
     peerDependencies:
       preact: '>=10'
 
-  preact@10.24.0:
-    resolution: {integrity: sha512-aK8Cf+jkfyuZ0ZZRG9FbYqwmEiGQ4y/PUO4SuTWoyWL244nZZh7bd5h2APd4rSNDYTBNghg1L+5iJN3Skxtbsw==}
+  preact@10.24.1:
+    resolution: {integrity: sha512-PnBAwFI3Yjxxcxw75n6VId/5TFxNW/81zexzWD9jn1+eSrOP84NdsS38H5IkF/UH3frqRPT+MvuCoVHjTDTnDw==}
 
   pretty-hrtime@1.0.3:
     resolution: {integrity: sha512-66hKPCr+72mlfiSjlEB1+45IjXSqvVAIy6mocupoww4tBFE9R9IhwwUGoI4G++Tc9Aq+2rxOt0RFU6gPcrte0A==}
@@ -1875,11 +1875,11 @@ snapshots:
       picocolors: 1.0.1
       source-map-js: 1.2.0
 
-  preact-render-to-string@6.5.11(preact@10.24.0):
+  preact-render-to-string@6.5.11(preact@10.24.1):
     dependencies:
-      preact: 10.24.0
+      preact: 10.24.1
 
-  preact@10.24.0: {}
+  preact@10.24.1: {}
 
   pretty-hrtime@1.0.3: {}
 
