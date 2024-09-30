@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.25] - 2024-09-30
+
+### 🐛 Bug Fixes
+
+- *(runtime)* Get form data empty fields
+- *(runtime)* Get form data empty fields
+
+### Build
+
+- *(deps)* Bump extism from 1.6.0 to 1.7.0
+- *(deps)* Bump simd-json from 0.13.10 to 0.14.0
+- *(deps)* Bump toml_edit from 0.22.20 to 0.22.22
+- *(deps)* Bump hyper-util from 0.1.8 to 0.1.9
+- *(deps)* Bump once_cell from 1.20.0 to 1.20.1
+- Update cargo dist 0.19.1 to 0.22.1
+
 ## [0.12.24] - 2024-09-27
 
 ### 🐛 Bug Fixes
