@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### 🐛 Bug Fixes
 
 - *(runtime)* Get form data empty fields
-- *(runtime)* Get form data empty fields
+- *(runtime)* Form data names with brackets
 
 ### Build
 
