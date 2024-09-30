@@ -23,7 +23,7 @@ importers:
         version: 1.9.2
       '@qery/query':
         specifier: ~0.12
-        version: 0.12.23
+        version: 0.12.25
       '@qery/query-server':
         specifier: ~0.12
         version: 0.12.23
@@ -310,8 +310,8 @@ packages:
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
-  '@qery/query@0.12.23':
-    resolution: {integrity: sha512-fJIlrHvXSxh5PtIlsx0T/TEdSR7+JUN/A4uG0vqmel064iuRMaZ4cTxTLTqP6FCGECutX/KhICxUTi2UZNdD/Q==}
+  '@qery/query@0.12.25':
+    resolution: {integrity: sha512-j6C5VXJ3dSE6tT/kdxcziHnTiwfkHMKxZUMzT3r2lJegy5S0DeTXfRCrbbxXjvgrEDNKwJS4eCtmrUGmpLncTg==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
@@ -375,6 +375,9 @@ packages:
 
   axios@1.7.3:
     resolution: {integrity: sha512-Ar7ND9pU99eJ9GpoGQKhKf58GpUOgnzuaB7ueNQ5BMi0p+LZ5oaEnfF999fAArcTIBwXTCHAmGcHOZJaWPq9Nw==}
+
+  axios@1.7.7:
+    resolution: {integrity: sha512-S4kL7XrjgBmvdGut0sN3yJxqYzrDOnivkBiN0OFs6hLiUam3UPvswUo0kqGyhqUZGEOytHyumEdXsAkgCOUf3Q==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -1308,9 +1311,9 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@qery/query@0.12.23':
+  '@qery/query@0.12.25':
     dependencies:
-      axios: 1.7.3
+      axios: 1.7.7
       axios-proxy-builder: 0.1.2
       console.table: 0.10.0
       detect-libc: 2.0.3
@@ -1371,6 +1374,14 @@ snapshots:
       tunnel: 0.0.6
 
   axios@1.7.3:
+    dependencies:
+      follow-redirects: 1.15.6
+      form-data: 4.0.0
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
+  axios@1.7.7:
     dependencies:
       follow-redirects: 1.15.6
       form-data: 4.0.0
