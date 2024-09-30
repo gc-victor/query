@@ -4,7 +4,7 @@ const multipartFunction = `globalThis.___handleRequest = async (req) => {
         const email = formData.get("email");
         const password = formData.get("password");
         const field = formData.get("field");
-        const duplicated = formData.getAll("duplicated");
+        const duplicated = formData.getAll("duplicated[]");
         const arr = formData.getAll("arr");
         const json = formData.getAll("json");
         const list = formData.getAll("list");
