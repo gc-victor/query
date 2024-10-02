@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.26] - 2024-10-02
+
+### 🐛 Bug Fixes
+
+- *(cli)* Watch on macos
+
+### 📚 Documentation
+
+- Fix edited commit
+
+### Build
+
+- *(deps)* Bump preact in /examples/application
+- *(deps)* Bump preact from 10.24.0 to 10.24.1 in /examples/counter
+- *(deps-dev)* Bump update-browserslist-db in /examples/application
+- *(deps-dev)* Bump @qery/query-server in /examples/counter
+- *(deps-dev)* Bump @qery/query-server in /examples/application
+- *(deps-dev)* Bump @qery/query-server in /examples/minimal
+- *(deps-dev)* Bump @qery/query in /examples/counter
+- *(deps-dev)* Bump @qery/query in /examples/minimal
+- *(deps-dev)* Bump @qery/query in /examples/application
+
 ## [0.12.25] - 2024-09-30
 
 ### 🐛 Bug Fixes
