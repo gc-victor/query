@@ -93,20 +93,10 @@ pub async fn command_dev(command: &DevArgs) -> Result<()> {
 
         let wx = Watchexec::new_async(move |mut action| {
             Box::new(async move {
-                for event in action.events.iter() {
-                    let tags = &event.tags;
-                    let has_close_write = match tags.get(1) {
-                        Some(tag) => format!("{:?}", tag) == "FileEventKind(Access(Close(Write)))",
-                        None => false,
-                    };
-
-                    if has_close_write {
-                        run_tasks();
-                    }
-                }
-
                 if action.signals().next().is_some() {
                     action.quit();
+                } else {
+                    run_tasks();
                 }
 
                 action
