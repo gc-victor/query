@@ -270,7 +270,12 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
     let config_esbuild = &CONFIG.esbuild;
 
     for (key, value) in config_esbuild {
-        let flag = format!("--{}={}", key, value);
+        let flag = if value.is_empty() {
+            format!("--{}", key)
+        } else {
+            format!("--{}={}", key, value)
+        };
+
         args.push(flag);
     }
 
