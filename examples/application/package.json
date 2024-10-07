@@ -9,7 +9,7 @@
     "devDependencies": {
         "@biomejs/biome": "~1.9.2",
         "@qery/query": "~0.12.25",
-        "@qery/query-server": "~0.12.25",
+        "@qery/query-server": "~0.12.26",
         "esbuild": "^0.24.0",
         "tailwindcss": "~3.4.13",
         "tailwindcss-cli": "~0.1.2",
