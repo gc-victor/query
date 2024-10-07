@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.27] - 2024-10-07
+
+### 🚀 Features
+
+- *(example)* Minimal example enhanced
+
+### 🐛 Bug Fixes
+
+- *(cli)* Esbuild flags without value
+
 ## [0.12.26] - 2024-10-02
 
 ### 🐛 Bug Fixes
