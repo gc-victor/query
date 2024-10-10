@@ -18,6 +18,9 @@ use tabled::{builder::Builder, settings::Style};
 
 use crate::config::CONFIG;
 
+const QUERY_DEPLOY_URL: &str = "QUERY_DEPLOY_URL";
+const QUERY_DEPLOY_TOKEN: &str = "QUERY_DEPLOY_TOKEN";
+
 pub fn read_file_content(file_path: &str) -> Result<Vec<u8>> {
     let file = File::open(file_path)?;
 
@@ -71,7 +74,12 @@ pub fn json_to_table(value: &Value) -> Result<String> {
 }
 
 pub async fn http_client(path: &str, body: Option<&String>, method: Method) -> Result<Value> {
-    let config_url = &CONFIG.server.url;
+    let env_deploy_url = env::var(QUERY_DEPLOY_URL).unwrap_or("".to_string());
+    let config_url = if !env_deploy_url.is_empty() {
+        &env_deploy_url
+    } else {
+        &CONFIG.server.url
+    };
     let config_url = if !config_url.ends_with('/') {
         format!("{}/", config_url)
     } else {
@@ -80,7 +88,12 @@ pub async fn http_client(path: &str, body: Option<&String>, method: Method) -> R
     let url = &format!("{}_/{}", config_url, path);
     let url = Url::parse(url)?;
 
-    let token: &str = CONFIG.cli.token.as_str();
+    let env_deploy_token = env::var(QUERY_DEPLOY_TOKEN).unwrap_or("".to_string());
+    let token = if !env_deploy_token.is_empty() {
+        &env_deploy_token
+    } else {
+        &CONFIG.cli.token
+    };
 
     let mut headers = HeaderMap::new();
 
