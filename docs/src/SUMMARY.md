@@ -21,6 +21,7 @@
 - [Asset](./docs/cli/asset.md)
 - [Branch](./docs/cli/branch.md)
 - [Create](./docs/cli/create.md)
+- [Deploy](./docs/cli/deploy.md)
 - [Dev](./docs/cli/dev.md)
 - [Function](./docs/cli/function.md)
   - [Plugin](./docs/cli/plugin.md)

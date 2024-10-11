@@ -15,10 +15,10 @@ use tracing_subscriber::FmtSubscriber;
 
 use commands::{
     asset::command_asset, branch::command_branch, commands::Commands, create::command_create,
-    dev::command_dev, function::command_function, generate::command_generate,
-    migration::command_migration, plugin::command_plugin, purge::command_purge,
-    settings::command_settings, shell::command_shell, task::command_task, token::command_token,
-    user::command_user, user_token::command_user_token,
+    deploy::command_deploy, dev::command_dev, function::command_function,
+    generate::command_generate, migration::command_migration, plugin::command_plugin,
+    purge::command_purge, settings::command_settings, shell::command_shell, task::command_task,
+    token::command_token, user::command_user, user_token::command_user_token,
 };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -56,6 +56,7 @@ async fn main() {
         Commands::Asset(command) => command_asset(command).await.unwrap(),
         Commands::Branch(command) => command_branch(command).await.unwrap(),
         Commands::Create(command) => command_create(command).await.unwrap(),
+        Commands::Deploy(command) => command_deploy(command).await.unwrap(),
         Commands::Dev(command) => command_dev(command).await.unwrap(),
         Commands::Function(command) => command_function(command).await.unwrap(),
         Commands::Generate(command) => command_generate(command).await.unwrap(),
