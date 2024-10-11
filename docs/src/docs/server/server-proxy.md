@@ -10,7 +10,7 @@ Query allows you to set a proxy to an App in the same VM. It provides you access
 
 In your Dockerfile, you must include the Query Server and your Application together. The Dockerfile could be a multistage one, where the last stage should be an `x86_64-unknown-linux-gnu` compatible image. We recommend using a `debian:<suite>-slim` image.
 
-Please refer to the [LiteFS documentation](https://fly.io/litefs/speedrun/) for more information, as it is a crucial system component.
+Please refer to the [LiteFS documentation](https://fly.io/docs/litefs/speedrun/) for more information, as it is a crucial system component.
 
 Dockerfile:
 

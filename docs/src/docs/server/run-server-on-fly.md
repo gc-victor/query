@@ -8,7 +8,7 @@ You can use the Query Server as an isolated service, as it provides authenticati
 
 Your Dockerfile must include the Query Server. The Dockerfile could be a multistage one, where the last stage should be an `x86_64-unknown-linux-gnu` compatible image. We recommend using a `debian:<suite>-slim` image.
 
-Please refer to the [LiteFS documentation](https://fly.io/litefs/speedrun/) for more information, as it is a crucial system component.
+Please refer to the [LiteFS documentation](https://fly.io/docs/litefs/speedrun/) for more information, as it is a crucial system component.
 
 Dockerfile:
 
@@ -59,7 +59,7 @@ exec:
 
 ## Fly configuration
 
-If this is your first time using Fly, you can follow the [Hands-on with Fly.io](https://fly.io/hands-on/) guide to install the CLI, sign up, and sign in.
+If this is your first time using Fly, you can follow the [Quick Start](https://fly.io/docs/getting-started/launch/) guide to install the CLI, sign up, and sign in.
 
 Once you have the Fly CLI installed, you have to rename the `fly.toml.dist` to `fly.toml` and update it with your app name and the primary region running the following command:
 

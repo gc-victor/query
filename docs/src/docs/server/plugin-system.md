@@ -2,7 +2,7 @@
 
 Query plugins can be written in WebAssembly (WASM), allowing the use of languages like Rust, C, C++, Go, TypeScript, and more thanks to [Extism](https://extism.org), a cross-language framework for building with WASM used by Query to build plugins.
 
-Extism's provides [Plug-in Development Kits (PDKs)](https://extism.org/concepts/pdk) and [Host Software Development Kits (SDKs)](https://extism.org/concepts/host-sdk). The PDKs are used to build plugins, while the Host SDKs are used to run plugins. Query implements the Host SDKs to run the plugins, so you don't have to worry about it. You only have to build the plugins using the PDKs. Some of the PDKs are available in the following languages:
+Extism's provides [Plug-in Development Kits (PDKs)](https://extism.org/docs/concepts/pdk) and [Host Software Development Kits (SDKs)](https://extism.org/docs/concepts/host-sdk). The PDKs are used to build plugins, while the Host SDKs are used to run plugins. Query implements the Host SDKs to run the plugins, so you don't have to worry about it. You only have to build the plugins using the PDKs. Some of the PDKs are available in the following languages:
 
 - [Rust](https://github.com/extism/rust-pdk)
 - [JavaScript/TypeScript](https://github.com/extism/js-pdk)
