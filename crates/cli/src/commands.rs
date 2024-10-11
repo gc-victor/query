@@ -3,6 +3,7 @@ pub mod asset;
 pub mod branch;
 pub mod commands;
 pub mod create;
+pub mod deploy;
 pub mod dev;
 pub mod function;
 pub mod generate;

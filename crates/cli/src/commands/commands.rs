@@ -13,6 +13,8 @@ pub enum Commands {
     /// - If you provide a repository URL as an argument, the project will be created using it
     #[clap(verbatim_doc_comment)]
     Create(CreateArgs),
+    /// Deploy the project to the server
+    Deploy(DeployArgs),
     /// Development experience
     Dev(DevArgs),
     /// Push all the functions without setting a path
@@ -79,6 +81,16 @@ pub enum BranchCommands {
 #[derive(Args)]
 pub struct CreateArgs {
     pub repo_url: Option<String>,
+}
+
+#[derive(Args)]
+pub struct DeployArgs {
+    /// Force the use of environment variables
+    #[arg(short, long, default_value_t = false)]
+    pub env: bool,
+    /// Clear the deployment cache
+    #[arg(short, long = "no-cache", default_value_t = false)]
+    pub no_cache: bool,
 }
 
 #[derive(Args)]
