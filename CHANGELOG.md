@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.28] - 2024-10-11
+
+### 🚀 Features
+
+- Add deploy command
+
+### Build
+
+- *(deps)* Bump once_cell from 1.20.1 to 1.20.2
+- *(deps)* Bump clap from 4.5.18 to 4.5.19
+- *(deps)* Bump reqwest from 0.12.7 to 0.12.8
+- *(deps)* Bump rustls from 0.23.13 to 0.23.14
+
 ## [0.12.27] - 2024-10-07
 
 ### 🚀 Features
