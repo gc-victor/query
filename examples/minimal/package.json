@@ -3,10 +3,10 @@
     "type": "module",
     "devDependencies": {
         "@biomejs/biome": "~1.9.3",
-        "@qery/query": "~0.12.26",
-        "@qery/query-server": "~0.12.26",
+        "@qery/query": "~0.12.28",
+        "@qery/query-server": "~0.12.28",
         "esbuild": "^0.24.0",
-        "typescript": "~5.6.2"
+        "typescript": "~5.6.3"
     },
     "scripts": {
         "dev": "query dev"

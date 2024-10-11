@@ -12,17 +12,17 @@ importers:
         specifier: ~1.9.3
         version: 1.9.3
       '@qery/query':
-        specifier: ~0.12.26
-        version: 0.12.26
+        specifier: ~0.12.28
+        version: 0.12.28
       '@qery/query-server':
-        specifier: ~0.12.26
-        version: 0.12.26
+        specifier: ~0.12.28
+        version: 0.12.28
       esbuild:
         specifier: ^0.24.0
         version: 0.24.0
       typescript:
-        specifier: ~5.6.2
-        version: 5.6.2
+        specifier: ~5.6.3
+        version: 5.6.3
 
 packages:
 
@@ -235,13 +235,13 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@qery/query-server@0.12.26':
-    resolution: {integrity: sha512-LyjLaqhHUbZYIVqNfOaPALUXVFtFe7lCmLqWPbDAQXFD8V2OSydy6w723h8rIBo6cloJTugUY/IJPnHI3gj49A==}
+  '@qery/query-server@0.12.28':
+    resolution: {integrity: sha512-KqsTnPjEsUPAJ9dq6MMDcfpeV5nFn+owb50rmOddm/rEmXLWX9xxUP5oPUbWO/iPCilSI6Pisas8WZeGIDBaQw==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
-  '@qery/query@0.12.26':
-    resolution: {integrity: sha512-NVZOgaT0PKbC3kSdgCDk8jqpheIPz91WE7/TVQw5wfIHgxSZKX3UFcmBfh/FwxURaRxFmopBGNDekGiSXB4chg==}
+  '@qery/query@0.12.28':
+    resolution: {integrity: sha512-AxrATiTi6sHJPTSfvbCom8tneCiOQrBb4N5qiqoQ4bG6KisHxlQhuP7C0PAHFY28n++W87rVs77k8bZDWe/Uew==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
@@ -344,8 +344,8 @@ packages:
     resolution: {integrity: sha512-Ld2g8rrAyMYFXBhEqMz8ZAHBi4J4uS1i/CxGMDnjyFWddMXLVcDp051DZfu+t7+ab7Wv6SMqpWmyFIj5UbfFvg==}
     engines: {node: '>=14'}
 
-  form-data@4.0.0:
-    resolution: {integrity: sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==}
+  form-data@4.0.1:
+    resolution: {integrity: sha512-tzN8e4TX8+kkxGPK8D5u0FNmjPUjw3lwC9lSLxxoB/+GtsJG91CO8bSWy73APlgAZzZbXEYZJuxjkHH2w+Ezhw==}
     engines: {node: '>= 6'}
 
   glob@10.4.5:
@@ -444,8 +444,8 @@ packages:
     resolution: {integrity: sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==}
     engines: {node: '>=0.6.11 <=0.7.0 || >=0.7.3'}
 
-  typescript@5.6.2:
-    resolution: {integrity: sha512-NW8ByodCSNCwZeghjN3o+JX5OFH0Ojg6sadjEKY4huZ52TqbJTJnDo5+Tw98lSy63NZvi4n+ez5m2u5d4PkZyw==}
+  typescript@5.6.3:
+    resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -594,7 +594,7 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@qery/query-server@0.12.26':
+  '@qery/query-server@0.12.28':
     dependencies:
       axios: 1.7.7
       axios-proxy-builder: 0.1.2
@@ -605,7 +605,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@qery/query@0.12.26':
+  '@qery/query@0.12.28':
     dependencies:
       axios: 1.7.7
       axios-proxy-builder: 0.1.2
@@ -635,7 +635,7 @@ snapshots:
   axios@1.7.7:
     dependencies:
       follow-redirects: 1.15.9
-      form-data: 4.0.0
+      form-data: 4.0.1
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
@@ -724,7 +724,7 @@ snapshots:
       cross-spawn: 7.0.3
       signal-exit: 4.1.0
 
-  form-data@4.0.0:
+  form-data@4.0.1:
     dependencies:
       asynckit: 0.4.0
       combined-stream: 1.0.8
@@ -824,7 +824,7 @@ snapshots:
 
   tunnel@0.0.6: {}
 
-  typescript@5.6.2: {}
+  typescript@5.6.3: {}
 
   wcwidth@1.0.1:
     dependencies:
