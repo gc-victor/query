@@ -1,9 +1,6 @@
 /// <reference lib="dom" />
 
-
 declare global {
-    // NOTE: To avoid editor ts error
-
     const process: {
         env: {
             [key: string]: string | undefined;
@@ -12,8 +9,20 @@ declare global {
 
     class Database {
         constructor(path: string);
-        query(sql: string, params?: unknown[] | Record<string, unknown>): Promise<Record<string, unknown>[]>;
+        query<T>(sql: string, params?: unknown[]): T[];
+    }
+
+    declare module "*.html" {
+        const content: string;
+        export default content;
+    }
+
+    declare module "*query:database" {
+        export class Database {
+            constructor(path: string);
+            query<T>(sql: string, params?: unknown[]): T[];
+        }
     }
 }
 
-export type { };
+export type {};

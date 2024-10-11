@@ -4,4 +4,8 @@ url = "http://localhost:3000"
 [structure]
 functions_folder = "src"
 
+[esbuild]
+"loader:.html" = "text"
+"external:query:database" = ""
+
 [task]
