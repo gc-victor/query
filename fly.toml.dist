@@ -7,34 +7,40 @@ kill_timeout = "5s"
   auto_rollback = true
   enable_consul = true
 
-[env]
-  PRIMARY_REGION = ""
+[build]
 
-[[mounts]]
-  source = "query_machine"
-  destination = "/mnt"
-  processes = ["app"]
+[mounts]
+source = 'query_machine'
+destination = '/mnt/'
+initial_size = 1
 
-[[services]]
-  protocol = "tcp"
-  internal_port = 8080
-  processes = ["app"]
+[http_service]
+internal_port = 8080
+force_https = true
+auto_stop_machines = "suspend"
+auto_start_machines = true
+min_machines_running = 2
 
-  [[services.ports]]
-    port = 80
-    handlers = ["http"]
-    force_https = true
+[http_service.concurrency]
+soft_limit = 100
+type = "requests"
 
-  [[services.ports]]
-    port = 443
-    handlers = ["tls", "http"]
-  [services.concurrency]
-    type = "connections"
-    hard_limit = 25
-    soft_limit = 20
+[[http_service.checks]]
+grace_period = "5s"
+interval = "10s"
+method = "GET"
+path = "/healthcheck"
+protocol = "http"
+timeout = "2s"
+tls_skip_verify = false
 
-  [[services.tcp_checks]]
-    interval = "15s"
-    timeout = "2s"
-    grace_period = "1s"
-    restart_limit = 0
+[[http_service.checks]]
+grace_period = "10s"
+interval = "30s"
+method = "GET"
+path = "/litefs/health"
+timeout = "5s"
+
+[[vm]]
+size = 'shared-cpu-1x'
+
