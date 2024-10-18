@@ -25,6 +25,7 @@ use crate::timers::poll_timers;
 mod buffer;
 mod console;
 mod crypto;
+pub mod email;
 mod encoding;
 mod environment;
 mod events;
