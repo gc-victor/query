@@ -33,7 +33,7 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-bunyan-formatter = "0.3"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 url = "2.5"
-uuid = { version = "1.10", features = ["v4"] }
+uuid = { version = "1.11", features = ["v4"] }
 openssl = { version = "0.10", features = ["vendored"] }
 time = "0.3.36"
 multer = "3.1.0"
