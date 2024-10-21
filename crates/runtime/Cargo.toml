@@ -14,7 +14,7 @@ extism-manifest = "1.6.0"
 fxhash = "0.2"
 hex-simd = "0.8"
 http-body-util = "0.1"
-hyper = { version = "1.4", features = ["client", "http1", "http2"] }
+hyper = { version = "1.5", features = ["client", "http1", "http2"] }
 hyper-rustls = { version = "0.27", default-features = false, features = ["http1", "http2", "ring", "webpki-tokio"] }
 hyper-util = "0.1"
 itoa = "1.0"
