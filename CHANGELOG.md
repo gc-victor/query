@@ -2,6 +2,51 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.29] - 2024-10-22
+
+### 🚀 Features
+
+- *(example)* Update config
+- *(ci)* Update dist fly config
+- *(runtime)* Add email send
+- *(ci)* Update esbuild version
+- *(ci)* Update hurl to version 5.0.1
+- *(dist)* Remove powershell
+
+### 🐛 Bug Fixes
+
+- *(docs)* Replace broken link
+
+### Build
+
+- *(deps-dev)* Bump @qery/query in /examples/application
+- *(deps-dev)* Bump @qery/query-server in /examples/counter
+- *(deps-dev)* Bump @qery/query in /examples/counter
+- *(deps)* Bump preact from 10.24.1 to 10.24.2 in /examples/counter
+- *(deps-dev)* Bump @biomejs/biome in /examples/counter
+- *(deps)* Bump futures-util from 0.3.30 to 0.3.31
+- *(deps-dev)* Bump @qery/query-server in /examples/application
+- *(deps)* Bump preact in /examples/application
+- *(deps-dev)* Bump @biomejs/biome in /examples/application
+- *(deps)* Bump watchexec from 4.1.0 to 5.0.0
+- *(deps)* Bump clap from 4.5.19 to 4.5.20
+- *(deps)* Bump simd-json from 0.14.0 to 0.14.1
+- *(deps)* Bump regex from 1.10.6 to 1.11.0
+- *(deps)* Bump hyper from 1.4.1 to 1.5.0
+- *(deps)* Bump rustls from 0.23.14 to 0.23.15
+- *(deps)* Bump uuid from 1.10.0 to 1.11.0
+- *(deps)* Bump anyhow from 1.0.89 to 1.0.90
+- *(deps)* Bump serde_json from 1.0.128 to 1.0.132
+- *(deps)* Bump braces from 3.0.2 to 3.0.3 in /examples/counter
+- *(deps)* Bump preact from 10.24.2 to 10.24.3 in /examples/counter
+- *(deps-dev)* Bump typescript in /examples/counter
+- *(deps)* Bump preact in /examples/application
+- *(deps-dev)* Bump typescript in /examples/application
+
+### Dev
+
+- *(deps)* Update minimal example dependencies
+
 ## [0.12.28] - 2024-10-11
 
 ### 🚀 Features
