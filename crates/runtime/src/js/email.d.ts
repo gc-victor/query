@@ -1,5 +1,23 @@
 type EmailAddress = string;
 
+interface Attachment {
+    /** Attachment file name */
+    filename: string;
+    /** Attachment content */
+    content: Buffer;
+    /** Attachment content type */
+    contentType: string;
+}
+
+interface FileInline {
+    /** File inline content */
+    content: Buffer;
+    /** File inline content type */
+    contentType: string;
+    /** File inline content id */
+    contentId: string;
+}
+
 /**
  * Options for sending an email.
  */
@@ -18,6 +36,10 @@ interface EmailOptions {
     cc?: EmailAddress | EmailAddress[];
     /** Blind carbon copy recipient(s) */
     bcc?: EmailAddress | EmailAddress[];
+    /** Attachment */
+    attachment?: Attachment[];
+    /** File inline */
+    fileInline?: FileInline[];
     /** SMTP server address */
     smtpServer?: string;
     /** SMTP username */

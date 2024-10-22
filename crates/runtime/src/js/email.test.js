@@ -357,4 +357,55 @@ describe("email.send", () => {
         assert.strictEqual(sentData.smtp_password, undefined);
         assert.deepStrictEqual(result, "Email sent successfully");
     });
+
+    it("should handle attachment field and return success", async () => {
+        capturedJsonString = null; // Reset before test
+
+        const options = {
+            from: "sender@example.com",
+            to: "recipient@example.com",
+            subject: "Test Subject",
+            body: "Test Body",
+            replyTo: "reply@example.com",
+            cc: "cc@example.com",
+            bcc: "bcc@example.com",
+            attachment: [{
+                filename: "file.txt",
+                content: "file content",
+                contentType: "text/plain",
+            }],
+        };
+
+        await email.send(options);
+
+        const sentData = JSON.parse(capturedJsonString);
+
+        assert.deepStrictEqual(sentData.attachment, options.attachment);
+    });
+
+    it("should handle fileInline field and return success", async () => {
+        capturedJsonString = null; // Reset before test
+
+        const options = {
+            from: "sender@example.com",
+            to: "recipient@example.com",
+            subject: "Test Subject",
+            body: "Test Body",
+            replyTo: "reply@example.com",
+            cc: "cc@example.com",
+            bcc: "bcc@example.com",
+            fileInline: [{
+                content: "file content",
+                contentType: "text/plain",
+                contentId: "123",
+            }],
+        };
+
+        await email.send(options);
+
+        const sentData = JSON.parse(capturedJsonString);
+
+        assert.deepStrictEqual(sentData.file_inline, options.fileInline);
+
+    });
 });

@@ -21,6 +21,9 @@ export const email = {
             reply_to: options.replyTo,
             cc: typeof options.cc === "string" ? [options.cc] : options.cc,
             bcc: typeof options.bcc === "string" ? [options.bcc] : options.bcc,
+            attachment: options.attachment,
+            // The image `attachment` will display inline into the email. E.g. <img src="cid:123">
+            file_inline: options.fileInline,
             smtp_server: options.smtpServer,
             smtp_username: options.smtpUsername,
             smtp_password: options.smtpPassword,

@@ -29,13 +29,13 @@ struct SMTPConfig {
 #[derive(serde::Deserialize, Default, Debug)]
 struct FileAttachment {
     filename: String,
-    filebody: Vec<u8>,
+    content: Vec<u8>,
     content_type: String,
 }
 
 #[derive(serde::Deserialize, Default, Debug)]
 struct FileInline {
-    filebody: Vec<u8>,
+    content: Vec<u8>,
     content_type: String,
     content_id: String,
 }
@@ -212,7 +212,7 @@ fn message(options: &Options) -> Result<Message, String> {
     if let Some(inline_attachments) = &options.file_inline {
         for inline in inline_attachments {
             let inline_attachment = Attachment::new_inline(inline.content_id.clone()).body(
-                inline.filebody.clone(),
+                inline.content.clone(),
                 inline
                     .content_type
                     .parse()
@@ -228,7 +228,7 @@ fn message(options: &Options) -> Result<Message, String> {
     if let Some(attachments) = &options.attachment {
         for attachment in attachments {
             let regular_attachment = Attachment::new(attachment.filename.clone()).body(
-                attachment.filebody.clone(),
+                attachment.content.clone(),
                 attachment
                     .content_type
                     .parse()
@@ -410,11 +410,11 @@ mod tests {
             body: "Hello, world!".to_string(),
             attachment: Some(vec![FileAttachment {
                 filename: "test.txt".to_string(),
-                filebody: b"Test file".to_vec(),
+                content: b"Test file".to_vec(),
                 content_type: "text/plain".to_string(),
             }]),
             file_inline: Some(vec![FileInline {
-                filebody: b"Inline image".to_vec(),
+                content: b"Inline image".to_vec(),
                 content_type: "image/png".to_string(),
                 content_id: "123".to_string(),
             }]),
@@ -445,7 +445,7 @@ mod tests {
             body: "Hello, world!".to_string(),
             attachment: Some(vec![FileAttachment {
                 filename: "test.txt".to_string(),
-                filebody: b"Test file".to_vec(),
+                content: b"Test file".to_vec(),
                 content_type: "text/plain".to_string(),
             }]),
             file_inline: None,
@@ -475,7 +475,7 @@ mod tests {
             body: "Hello, world!".to_string(),
             attachment: None,
             file_inline: Some(vec![FileInline {
-                filebody: b"Inline image".to_vec(),
+                content: b"Inline image".to_vec(),
                 content_type: "image/png".to_string(),
                 content_id: "123".to_string(),
             }]),
