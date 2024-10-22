@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.30] - 2024-10-22
+
+### 🐛 Bug Fixes
+
+- *(runtime)* Add attachment and file inline
+
+### 📚 Documentation
+
+- Create modules
+
 ## [0.12.29] - 2024-10-22
 
 ### 🚀 Features
