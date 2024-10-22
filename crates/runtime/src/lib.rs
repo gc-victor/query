@@ -25,6 +25,7 @@ use crate::timers::poll_timers;
 mod buffer;
 mod console;
 mod crypto;
+mod email;
 mod encoding;
 mod environment;
 mod events;
@@ -66,6 +67,7 @@ impl std::fmt::Debug for Runtime {
 
 // JS modules
 const DATABASE_SCRIPT_MODULE: &str = include_str!("js/database.js");
+const EMAIL_SCRIPT_MODULE: &str = include_str!("js/email.js");
 const HANDLE_RESPONSE_SCRIPT_MODULE: &str = include_str!("js/handle-response.js");
 const PLUGIN_SCRIPT_MODULE: &str = include_str!("js/plugin.js");
 // Polyfill modules
@@ -105,6 +107,7 @@ impl Runtime {
             .with_module("polyfill/request")
             .with_module("polyfill/response")
             .with_module("polyfill/web-streams")
+            .with_module("query:email")
             .with_module("query:plugin")
             .with_module("query:database");
         let loader = (
@@ -120,6 +123,7 @@ impl Runtime {
                 .with_module("polyfill/response", RESPONSE_SCRIPT_MODULE)
                 .with_module("polyfill/web-streams", WEB_STREAMS_SCRIPT_MODULE)
                 .with_module("query:database", DATABASE_SCRIPT_MODULE)
+                .with_module("query:email", EMAIL_SCRIPT_MODULE)
                 .with_module("query:plugin", PLUGIN_SCRIPT_MODULE),
             ModuleLoader::default()
                 .with_module("module", ModuleModule)
@@ -133,6 +137,7 @@ impl Runtime {
                 crate::buffer::init(&ctx)?;
                 crate::console::init(&ctx)?;
                 crate::crypto::init(&ctx)?;
+                crate::email::init(&ctx)?;
                 crate::encoding::init(&ctx)?;
                 crate::events::init(&ctx)?;
                 crate::exceptions::init(&ctx)?;
