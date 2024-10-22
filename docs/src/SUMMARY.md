@@ -16,6 +16,12 @@
 - [JavaScript Runtime](./docs/server/runtime.md)
 - [Plugin System](./docs/server/plugin-system.md)
 
+# Modules
+
+- [Database](./docs/modules/database.md)
+- [Email](./docs/modules/email.md)
+- [Plugin](./docs/modules/plugin.md)
+
 # Command Line
 
 - [Asset](./docs/cli/asset.md)
