@@ -206,7 +206,7 @@ hurl-test-all: clean-hurl-dbs
 	hurl --test --continue-on-error --variables-file .env --file-root hurl hurl/**/*.hurl hurl/**/**/*.hurl
 
 hurl-integration: clean-hurl-dbs
-	hurl --test --continue-on-error --file-root ./hurl hurl/**/*.hurl hurl/**/**/*.hurl
+	hurl --test --continue-on-error --jobs=1 --file-root ./hurl hurl/**/*.hurl hurl/**/**/*.hurl
 
 hurl-function:
 	@name="$(ARGUMENTS)"; \
