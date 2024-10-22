@@ -197,13 +197,16 @@ install-hurl:
 	cargo install hurl
 
 hurl: clean-hurl-dbs
-	hurl --verbose --continue-on-error --file-root hurl $(ARGUMENTS)
+	hurl --verbose --continue-on-error --variables-file .env --file-root hurl $(ARGUMENTS)
 
 hurl-test: clean-hurl-dbs
-	hurl --test --continue-on-error --file-root hurl $(ARGUMENTS)
+	hurl --test --continue-on-error --variables-file .env --file-root hurl $(ARGUMENTS)
 
 hurl-test-all: clean-hurl-dbs
-	hurl --test --continue-on-error --file-root hurl hurl/**/*.hurl hurl/**/**/*.hurl
+	hurl --test --continue-on-error --variables-file .env --file-root hurl hurl/**/*.hurl hurl/**/**/*.hurl
+
+hurl-integration: clean-hurl-dbs
+	hurl --test --continue-on-error --file-root ./hurl hurl/**/*.hurl hurl/**/**/*.hurl
 
 hurl-function:
 	@name="$(ARGUMENTS)"; \
@@ -332,6 +335,9 @@ nextest-match:
 
 test-watch:
 	cargo watch -c -s "make test"
+
+test-js:
+	find crates/runtime/src/js -name '*.test.js' -exec node {} \;
 
 # Tag
 

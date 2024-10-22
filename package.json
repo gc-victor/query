@@ -1,6 +1,23 @@
 {
+	"name": "@qery/query",
+	"type": "module",
+	"types": "./index.d.ts",
 	"devDependencies": {
 		"@biomejs/biome": "^1.8.3",
 		"esbuild": "^0.23.0"
-	}
+	},
+	"files": [
+		"index.d.ts"
+	],
+	"keywords": [
+		"sqlite",
+		"javascript",
+		"rust",
+		"database",
+		"all-in-one",
+		"query",
+		"qery",
+		"qery.io",
+		"q|ery"
+	]
 }

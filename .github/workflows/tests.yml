@@ -68,6 +68,11 @@ jobs:
           QUERY_SERVER_TOKEN_SECRET: secret
           QUERY_SERVER_ADMIN_EMAIL: admin
           QUERY_SERVER_ADMIN_PASSWORD: admin
+          QUERY_SMTP_SERVER: ${{ secrets.QUERY_SMTP_SERVER }}
+          QUERY_SMTP_USERNAME: ${{ secrets.QUERY_SMTP_USERNAME }}
+          QUERY_SMTP_PASSWORD: ${{ secrets.QUERY_SMTP_PASSWORD }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: |
           mkdir -p $QUERY_SERVER_DBS_PATH
           chmod +x $QUERY_SERVER_DBS_PATH
@@ -75,4 +80,18 @@ jobs:
           target/release/query-server &
       - name: Run integration tests
         run: |
-          make hurl-test-all
+          make test-integration
+
+  js-test:
+    name: JS tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run JS tests
+        run: |
+          make test-js
