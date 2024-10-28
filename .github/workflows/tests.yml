@@ -6,6 +6,10 @@ on:
       - main
     tags:
       - "**[0-9]+.[0-9]+.[0-9]+*"
+    paths-ignore:
+      - "docs/**"
+      - "examples/**"
+
   pull_request:
 
 env:
