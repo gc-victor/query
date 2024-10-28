@@ -2,7 +2,7 @@
     "name": "query-minimal",
     "type": "module",
     "devDependencies": {
-        "@biomejs/biome": "~1.9.3",
+        "@biomejs/biome": "~1.9.4",
         "@qery/query": "~0.12.30",
         "@qery/query-server": "~0.12.30",
         "esbuild": "^0.24.0",
