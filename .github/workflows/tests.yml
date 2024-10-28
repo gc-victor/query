@@ -11,6 +11,9 @@ on:
       - "examples/**"
 
   pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "examples/**"
 
 env:
   CARGO_TERM_COLOR: always
