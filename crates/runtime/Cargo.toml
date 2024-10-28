@@ -8,7 +8,7 @@ license.workspace = true
 [dependencies]
 anyhow = "1.0"
 base64-simd = "0.8"
-bytes = "1.7.2"
+bytes = "1.8.0"
 extism = "1.7.0"
 extism-manifest = "1.8.0"
 fxhash = "0.2"
