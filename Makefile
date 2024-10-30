@@ -250,11 +250,12 @@ npm-un-prerelease:
 release:
 	perl -pi -e 's/version = "$(call GET_ARGUMENT,1)"/version = "$(call GET_ARGUMENT,2)"/g' ./Cargo.toml
 	@if [ "$(findstring prerelease,$(call GET_ARGUMENT,2))" = "prerelease" ]; then \
-		perl -pi -e 's/targets = \["aarch64\-apple\-darwin", "x86_64\-apple\-darwin", "x86_64\-unknown\-linux\-gnu", "x86_64\-pc\-windows\-msvc"\]/targets = \["x86_64\-unknown\-linux\-gnu"\]/g' ./Cargo.toml; \
+		perl -pi -e 's/targets = \["aarch64\-apple\-darwin", "x86_64\-apple\-darwin", "x86_64\-unknown\-linux\-gnu", "x86_64\-pc\-windows\-msvc"\]/targets = \["x86_64\-unknown\-linux\-gnu"\]/g' ./dist-workspace.toml; \
     fi
 	cargo check --workspace
 	git add Cargo.lock
 	git add Cargo.toml
+	git add dist-workspace.toml
 	make changelog $(call GET_ARGUMENT,2)
 	git add CHANGELOG.md
 	git commit -m "release: version $(call GET_ARGUMENT,2)"
@@ -269,9 +270,11 @@ release-rollback:
 		git reset HEAD Cargo.lock; \
 		git reset HEAD Cargo.toml; \
 		git reset HEAD CHANGELOG.md; \
+		git reset HEAD dist-workspace.toml; \
 		git checkout -- Cargo.lock; \
 		git checkout -- Cargo.toml; \
 		git checkout -- CHANGELOG.md; \
+		git checkout -- dist-workspace.toml; \
 		git tag -d v$(ARGUMENTS); \
 		git push origin --delete v$(ARGUMENTS); \
 		git push --force-with-lease; \
