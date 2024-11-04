@@ -1069,9 +1069,9 @@ dependencies = [
 
 [[package]]
 name = "extism"
-version = "1.7.0"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c352d53d63c58d66868b65246ec491dab9c78b7425d2d221f0219d97765a3548"
+checksum = "c3da59fba4da905210ef7c4c2a9f784717de54afbfb3f07414de5b0b15d5ecc8"
 dependencies = [
  "anyhow",
  "cbindgen",
@@ -1095,9 +1095,9 @@ dependencies = [
 
 [[package]]
 name = "extism-convert"
-version = "1.7.0"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b2042dab1fdb408d7504446cfb10079815da8b45e192a8954bf568c8a43e65d"
+checksum = "96b6253fe1e378abdd0fd9fd01b53aa8757c6827cd3c48794b417e542d088d0e"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -1111,9 +1111,9 @@ dependencies = [
 
 [[package]]
 name = "extism-convert-macros"
-version = "1.7.0"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8bb2f0038f2c3b14daa95b132f4fc1bad786a92946c7c9c06e120985a1fc4028"
+checksum = "7022773c485da2122413c2edbf50b7dee135b6577cc5ac42dccc307e347ac5d6"
 dependencies = [
  "manyhow",
  "proc-macro-crate 3.1.0",
