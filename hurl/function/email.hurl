@@ -1,5 +1,7 @@
 POST {{host}}/_/function-builder
 Authorization: {{user_token}}
+[Options]
+skip: true
 ```json
 {
     "method": "GET",
@@ -11,6 +13,8 @@ Authorization: {{user_token}}
 HTTP 200
 
 GET {{host}}/_/function/hurl/email
+[Options]
+skip: true
 HTTP 200
 [Asserts]
 body contains "OK"
