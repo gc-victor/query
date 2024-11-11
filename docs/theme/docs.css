@@ -359,7 +359,7 @@ li.chapter-item [aria-hidden] {
     --sidebar-width: 224px;
 }
 
-.dark {
+html:not(.js).dark, .dark {
     --bg: #020617;
     --fg: #fff;
     --icons-hover: #fff;
@@ -389,4 +389,6 @@ li.chapter-item [aria-hidden] {
     --theme-popup-bg: #414865;
     --theme-popup-border: #414865;
     --warning-border: #fab387;
+    --copy-button-filter: invert(100%);
+    --copy-button-filter-hover: invert(100%) brightness(0.6) saturate(50) hue-rotate(180deg);
 }

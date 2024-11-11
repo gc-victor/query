@@ -18,6 +18,7 @@
 
 # Modules
 
+- [Function](./docs/modules/function.md)
 - [Database](./docs/modules/database.md)
 - [Email](./docs/modules/email.md)
 - [Plugin](./docs/modules/plugin.md)
