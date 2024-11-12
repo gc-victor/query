@@ -72,7 +72,7 @@ async fn main() {
     }
 }
 
-fn tracing_error(panic_info: &std::panic::PanicInfo) {
+fn tracing_error(panic_info: &std::panic::PanicHookInfo) {
     let debug = env::var("DEBUG").unwrap_or("false".to_string());
 
     if debug != "true" {

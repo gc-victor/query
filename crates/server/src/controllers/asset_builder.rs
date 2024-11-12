@@ -7,14 +7,17 @@ use serde_bytes::ByteBuf;
 use tracing::instrument;
 
 use crate::{
-    controllers::utils::{
-        body::{Body, BoxBody},
-        get_token::get_token,
-        http_error::{bad_request, not_implemented, HttpError},
-        responses::ok,
-        validate_is_admin::validate_is_admin,
-        validate_token::validate_token,
-        validate_token_creation::validate_token_creation,
+    controllers::{
+        cache_manager::{clear_cache, CacheType},
+        utils::{
+            body::{Body, BoxBody},
+            get_token::get_token,
+            http_error::{bad_request, not_implemented, HttpError},
+            responses::ok,
+            validate_is_admin::validate_is_admin,
+            validate_token::validate_token,
+            validate_token_creation::validate_token_creation,
+        },
     },
     sqlite::connect_db::connect_asset_db,
 };
@@ -50,6 +53,8 @@ pub async fn asset_builder(
                 Err(e) => Err(bad_request(e.to_string())),
             }?;
 
+            clear_cache(CacheType::Asset);
+
             match delete_asset(options) {
                 Ok(_) => Ok(ok("")?),
                 Err(e) => Err(e),
@@ -65,6 +70,8 @@ pub async fn asset_builder(
                 Ok(v) => Ok(v),
                 Err(e) => Err(bad_request(e.to_string())),
             }?;
+
+            clear_cache(CacheType::Asset);
 
             match add_asset(options) {
                 Ok(_) => Ok(ok("")?),

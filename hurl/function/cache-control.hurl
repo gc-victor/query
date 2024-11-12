@@ -23,6 +23,17 @@ header "Query-Cache-Hit" not exists
 GET {{host}}/_/function/hurl/cache-control
 Authorization: {{user_token}}
 [Options]
+HTTP 200
+[Asserts]
+body contains "Hurl!"
+header "Query-Cache-Control" contains "max-age=500"
+header "Query-Cache-Hit" exists
+header "Query-Cache-Hit" contains "true"
+
+# The cache should be hit
+GET {{host}}/_/function/hurl/cache-control
+Authorization: {{user_token}}
+[Options]
 delay: 50
 HTTP 200
 [Asserts]
@@ -31,7 +42,6 @@ header "Query-Cache-Control" contains "max-age=500"
 header "Query-Cache-Hit" exists
 header "Query-Cache-Hit" contains "true"
 
-# Wait for 750ms
 # The cache should be expired
 GET {{host}}/_/function/hurl/cache-control
 Authorization: {{user_token}}

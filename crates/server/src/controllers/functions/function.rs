@@ -1,14 +1,13 @@
-use std::{
-    collections::HashMap,
-    fmt::Write,
-    thread,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::time::{SystemTime, UNIX_EPOCH};
+use std::{collections::HashMap, fmt::Write};
 
-use anyhow::Result;
 use futures_util::StreamExt;
 use http_body_util::BodyStream;
-use hyper::{body::Incoming, header::CONTENT_TYPE, http::HeaderName, Request, Response};
+use hyper::header::HOST;
+use hyper::HeaderMap;
+use hyper::{
+    body::Incoming, header::CONTENT_TYPE, http::HeaderName, Request, Response, StatusCode,
+};
 use multer::Multipart;
 use query_runtime::{timers::TimerPoller, Runtime};
 use rbase64::encode;
@@ -18,15 +17,21 @@ use rusqlite::{named_params, Row};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use crate::env::Env;
-use crate::sqlite::connect_db::connect_cache_function_db;
 use crate::{
-    controllers::utils::{
-        body::{Body, BoxBody},
-        http_error::{internal_server_error, not_found, HttpError},
+    controllers::{
+        cache_manager::{self, CacheType},
+        utils::{
+            body::{Body, BoxBody},
+            http_error::{internal_server_error, not_found, HttpError},
+        },
     },
+    env::Env,
     sqlite::connect_db::connect_function_db,
 };
+
+const HEADER_CACHE_CONTROL: &str = "query-cache-control";
+const HEADER_CACHE_EXPIRES_AT: &str = "query-cache-expires-at";
+const HEADER_CACHE_HIT: &str = "query-cache-hit";
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -36,18 +41,10 @@ struct HandleResponse {
     pub status: u16,
 }
 
-#[derive(Debug)]
-struct CacheFunction {
-    pub body: Vec<u8>,
-    pub expires_at: usize,
-    pub headers: String,
-    pub status: u16,
-}
-
 #[instrument(err(Debug))]
 pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, HttpError> {
     let method = req.method().as_str();
-    let cache_function_path = &req.uri().path().to_string();
+    let cache_path = &req.uri().path().to_string();
     let mut path = req.uri().path().to_string();
 
     if Env::app() == "true" && !path.starts_with("/api") && !path.starts_with("/_/") {
@@ -67,99 +64,11 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
             path = "/pages".to_string();
         }
 
-        let row_to_cache_function =
-            |row: &rusqlite::Row| -> Result<CacheFunction, rusqlite::Error> {
-                let body: String = row.get(0)?;
-                let expires_at: usize = row.get(1)?;
-                let headers: String = row.get(2)?;
-                let status: u16 = row.get(3)?;
+        let cache = cache_manager::cache(CacheType::Function);
 
-                Ok(CacheFunction {
-                    body: body.as_bytes().to_vec(),
-                    expires_at,
-                    headers,
-                    status,
-                })
-            };
-
-        let cache_function: CacheFunction = match connect_cache_function_db()?.query_row(
-            r#"
-                SELECT
-                    body,
-                    expires_at,
-                    headers,
-                    status
-                FROM
-                    cache_function
-                WHERE
-                    path = :path
-            "#,
-            named_params! {
-                ":path": cache_function_path,
-            },
-            row_to_cache_function,
-        ) {
-            Ok(v) => v,
-            Err(e) => {
-                tracing::info!("No Cached: {} - {:?}", cache_function_path, e);
-
-                CacheFunction {
-                    body: vec![],
-                    expires_at: 0,
-                    headers: "".to_string(),
-                    status: 0,
-                }
-            }
-        };
-
-        if cache_function.expires_at > 0 {
-            let now = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .map(|t| t.as_millis() as usize)
-                .unwrap_or(0);
-
-            if now < cache_function.expires_at {
-                let mut response = match Response::builder()
-                    .status(cache_function.status)
-                    .body(Body::from(cache_function.body))
-                {
-                    Ok(r) => Ok(r),
-                    Err(e) => Err(internal_server_error(e.to_string())),
-                }?;
-
-                let headers: HashMap<String, String> =
-                    serde_json::from_str(&cache_function.headers)
-                        .map_err(|e| internal_server_error(e.to_string()))?;
-
-                for (key, value) in headers {
-                    let key = key.to_uppercase();
-
-                    response.headers_mut().insert(
-                        HeaderName::from_bytes(key.as_bytes()).unwrap(),
-                        value.parse().unwrap(),
-                    );
-                }
-
-                response.headers_mut().insert(
-                    HeaderName::from_bytes("Query-Cache-Hit".as_bytes()).unwrap(),
-                    "true".parse().unwrap(),
-                );
-
-                return Ok(response);
-            } else if cache_function.status != 0 && is_primary() {
-                let cache_function_path_cloned = cache_function_path.clone();
-
-                thread::spawn(move || -> Result<()> {
-                    match connect_cache_function_db()?.execute(
-                        r#"DELETE FROM cache_function WHERE path = ?"#,
-                        [&cache_function_path_cloned],
-                    ) {
-                        Ok(_) => tracing::info!("Cache Deleted: {}", cache_function_path_cloned),
-                        Err(e) => tracing::error!("Error: {:?}", e),
-                    };
-
-                    Ok(())
-                });
+        if let Some(cached_response) = cache.get(cache_path) {
+            if let Some(valid_response) = check_cached_response(&cached_response) {
+                return Ok(valid_response);
             }
         }
     }
@@ -169,7 +78,6 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
     let row_to_function = |row: &Row| -> Result<String, rusqlite::Error> {
         let function: Vec<u8> = row.get(0)?;
         let function = String::from_utf8(function).unwrap();
-
         Ok(function)
     };
 
@@ -233,8 +141,11 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         bytes.to_vec()
     };
 
-    let host = req.headers().get("host").unwrap();
-    let host = host.to_str().unwrap();
+    let host = req
+        .headers()
+        .get(HOST)
+        .and_then(|h| h.to_str().ok())
+        .unwrap_or("");
     let uri = req.uri().to_string();
     let scheme = if host.starts_with("localhost") || host.starts_with("0.0.0.0") {
         "http"
@@ -246,6 +157,7 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         Ok(r) => Ok(r.ctx),
         Err(e) => Err(internal_server_error(e.to_string())),
     }?;
+
     let module_name = format!("{}::{}", path, method_lower_case);
     let method_str = req.method().as_str();
     let url = format!("{}://{}{}", scheme, host, uri);
@@ -349,77 +261,114 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         Err(e) => Err(internal_server_error(e.to_string())),
     }?;
 
+    let mut headers_map = HeaderMap::new();
     if let Some(headers) = res.headers {
         for (key, value) in headers {
             let key = key.to_uppercase();
+            let header_name = HeaderName::from_bytes(key.as_bytes())
+                .map_err(|e| internal_server_error(e.to_string()))?;
+            let header_value = value
+                .parse::<hyper::header::HeaderValue>()
+                .map_err(|e| internal_server_error(e.to_string()))?;
 
-            response.headers_mut().insert(
-                HeaderName::from_bytes(key.as_bytes()).unwrap(),
-                value.parse().unwrap(),
-            );
+            if HEADER_CACHE_CONTROL.to_uppercase() == key {
+                let max_age = {
+                    let re = match Regex::new(r"max-age=(\d+)") {
+                        Ok(r) => r,
+                        Err(_) => continue,
+                    };
+                    let captures = match re.captures(&value) {
+                        Some(c) => c,
+                        None => continue,
+                    };
+                    match captures.get(1).and_then(|m| m.as_str().parse::<u64>().ok()) {
+                        Some(age) => age,
+                        None => continue,
+                    }
+                };
+                let expires_at = match (now() + max_age)
+                    .to_string()
+                    .parse::<hyper::header::HeaderValue>()
+                {
+                    Ok(v) => Ok(v),
+                    Err(e) => Err(internal_server_error(e.to_string())),
+                }?;
+
+                headers_map.insert(HEADER_CACHE_EXPIRES_AT, expires_at);
+            };
+
+            headers_map.insert(&header_name, header_value.clone());
+            response.headers_mut().insert(header_name, header_value);
         }
     }
 
     let status = response.status().as_u16().to_string();
 
-    if response.headers().contains_key("query-cache-control")
-        && status.starts_with('2')
-        && is_primary()
-    {
-        let query_cache_control = response.headers().get("query-cache-control");
+    if response.headers().contains_key(HEADER_CACHE_CONTROL) && status.starts_with('2') {
+        let cache = cache_manager::cache(CacheType::Function);
 
-        if query_cache_control.is_some() {
-            let content: &str = query_cache_control.unwrap().to_str().unwrap();
-            let re = Regex::new(r"max-age=(\d+)").unwrap();
-            let max_age = re
-                .captures(content)
-                .and_then(|captures| captures.get(1))
-                .map_or(0, |max_age_value| {
-                    max_age_value.as_str().parse::<u32>().unwrap_or(0)
-                });
-
-            if max_age > 0 {
-                let expires_at = now() + (max_age as usize);
-                let headers = response
-                    .headers()
-                    .iter()
-                    .fold(String::new(), |acc, (key, value)| {
-                        format!(r#"{}"{}":"{}","#, acc, key, value.to_str().unwrap())
-                    });
-                let headers = headers.trim_end_matches(',');
-                let headers = format!("{{{}}}", headers);
-
-                let cache_function_path_cloned = cache_function_path.clone();
-
-                thread::spawn(move || -> Result<()> {
-                    match connect_cache_function_db()?.execute(
-                        r#"
-                            INSERT OR IGNORE INTO cache_function (path, body, expires_at, headers, status)
-                            VALUES (?, ?, ?, ?, ?)
-                            "#,
-                        [&cache_function_path_cloned, &cloned_body, &expires_at.to_string(), &headers, &status],
-                    ) {
-                        Ok(_) => tracing::info!("Cache Created: {}", cache_function_path_cloned),
-                        Err(e) => tracing::error!("Error: {:?}", e),
-                    };
-
-                    Ok(())
-                });
-            }
-        }
+        cache.insert(
+            cache_path.to_string(),
+            crate::controllers::cache_response::CacheResponseValue {
+                body: cloned_body.into_bytes(),
+                headers: headers_map,
+            },
+        );
     }
 
     Ok(response)
 }
 
-fn now() -> usize {
+fn check_cached_response(
+    cached_response: &crate::controllers::cache_response::CacheResponseValue,
+) -> Option<Response<BoxBody>> {
+    if !cached_response
+        .headers
+        .contains_key(HEADER_CACHE_EXPIRES_AT)
+    {
+        return None;
+    }
+
+    let expires_at = cached_response
+        .headers
+        .get(HEADER_CACHE_EXPIRES_AT)?
+        .to_str()
+        .ok()?
+        .parse::<u64>()
+        .ok()?;
+
+    if now() >= expires_at {
+        return None;
+    }
+
+    let mut response = Response::builder()
+        .status(StatusCode::OK)
+        .body(Body::from(cached_response.body.clone()))
+        .ok()?;
+
+    let headers = response.headers_mut();
+    for (key, value) in cached_response.headers.iter() {
+        if key != HEADER_CACHE_EXPIRES_AT {
+            headers.insert(key, value.clone());
+        }
+    }
+
+    headers.insert(
+        HeaderName::from_static(HEADER_CACHE_HIT),
+        "true".parse().unwrap(),
+    );
+
+    Some(response)
+}
+
+fn now() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .map(|t| t.as_millis() as usize)
+        .map(|t| t.as_millis() as u64)
         .unwrap_or(0)
 }
 
-fn path_match(path: &str, method: &str) -> Result<String> {
+fn path_match(path: &str, method: &str) -> Result<String, Box<dyn std::error::Error>> {
     let path = if path.ends_with('/') && path != "/" {
         path.trim_end_matches('/')
     } else {
@@ -478,16 +427,6 @@ fn path_match(path: &str, method: &str) -> Result<String> {
     }
 
     Ok(result)
-}
-
-fn is_primary() -> bool {
-    let path = format!("{}/.primary", Env::dbs_path());
-
-    if std::path::Path::new(&path).exists() {
-        return false;
-    }
-
-    true
 }
 
 fn handle_fatal_error() -> HandleResponse {
