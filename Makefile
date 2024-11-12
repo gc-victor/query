@@ -250,7 +250,7 @@ npm-un-prerelease:
 release:
 	perl -pi -e 's/version = "$(call GET_ARGUMENT,1)"/version = "$(call GET_ARGUMENT,2)"/g' ./Cargo.toml
 	@if [ "$(findstring prerelease,$(call GET_ARGUMENT,2))" = "prerelease" ]; then \
-		perl -pi -e 's/targets = \["aarch64\-apple\-darwin", "x86_64\-apple\-darwin", "x86_64\-unknown\-linux\-gnu", "x86_64\-pc\-windows\-msvc"\]/targets = \["x86_64\-unknown\-linux\-gnu"\]/g' ./dist-workspace.toml; \
+		perl -pi -e 's/targets = \["aarch64\-apple\-darwin", "x86_64\-apple\-darwin", "x86_64\-unknown\-linux\-gnu"]/targets = \["x86_64\-unknown\-linux\-gnu"\]/g' ./dist-workspace.toml; \
     fi
 	cargo check --workspace
 	git add Cargo.lock
