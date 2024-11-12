@@ -16,25 +16,39 @@ anyhow = { version = "1.0", default-features = false }
 argon2 = "0.5"
 chacha20poly1305 = "0.10"
 dotenv = "0.15"
+futures-util = "0.3.31"
 hyper = { version = "1.5", features = ["full"] }
 hyper-util = { version = "0.1", features = ["full"] }
 http-body-util = "0.1"
 jsonwebtoken = "9.3"
+mini-moka = "0.10"
+multer = "3.1.0"
+openssl = { version = "0.10", features = ["vendored"] }
 query-runtime = { path = "../runtime" }
 rbase64 = "2.0"
 regex = "1.11"
-rquickjs = { version = "0.6.2", features = ["full-async", "parallel", "rust-alloc"], default-features = false }
-rusqlite = { version = "0.32", features = ["backup", "blob", "bundled", "functions", "limits", "serde_json", "trace", "uuid"] }
+rquickjs = { version = "0.6.2", features = [
+    "full-async",
+    "parallel",
+    "rust-alloc",
+], default-features = false }
+rusqlite = { version = "0.32", features = [
+    "backup",
+    "blob",
+    "bundled",
+    "functions",
+    "limits",
+    "serde_json",
+    "trace",
+    "uuid",
+] }
 serde = { version = "1.0", features = ["derive"] }
 serde_bytes = "0.11"
 serde_json = "1.0"
+time = "0.3.36"
 tokio = { version = "1.40", features = ["full"] }
 tracing = { version = "0.1", features = ["log"] }
 tracing-bunyan-formatter = "0.3"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 url = "2.5"
 uuid = { version = "1.11", features = ["v4"] }
-openssl = { version = "0.10", features = ["vendored"] }
-time = "0.3.36"
-multer = "3.1.0"
-futures-util = "0.3.31"

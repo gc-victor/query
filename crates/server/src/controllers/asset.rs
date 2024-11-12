@@ -7,8 +7,7 @@ use anyhow::Result;
 use hyper::{
     body::Incoming,
     header::{
-        HeaderValue, CACHE_CONTROL, CONTENT_LENGTH, CONTENT_TYPE, ETAG, STRICT_TRANSPORT_SECURITY,
-        X_CONTENT_TYPE_OPTIONS,
+        HeaderName, HeaderValue, CACHE_CONTROL, CONTENT_LENGTH, CONTENT_TYPE, ETAG, STRICT_TRANSPORT_SECURITY, X_CONTENT_TYPE_OPTIONS
     },
     Method, Request, Response, StatusCode,
 };
@@ -17,12 +16,19 @@ use serde::Deserialize;
 use tracing::instrument;
 
 use crate::{
-    controllers::utils::{
-        body::{Body, BoxBody},
-        http_error::{not_found, HttpError},
+    controllers::{
+        cache_manager::{self, CacheType},
+        utils::{
+            body::{Body, BoxBody},
+            http_error::{internal_server_error, not_found, HttpError},
+        },
     },
     sqlite::connect_db::connect_asset_db,
 };
+
+use super::cache_response::CacheResponseValue;
+
+const HEADER_CACHE_HIT: &str = "query-cache-hit";
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
 pub struct Asset {
@@ -40,6 +46,30 @@ pub async fn asset(
     match req.method() {
         &Method::GET => {
             let asset_name = segments[1..].join("/");
+            let cache = cache_manager::cache(CacheType::Asset);
+
+            if let Some(cache) = cache.get(&asset_name) {
+                tracing::info!("Cache hit for asset: {}", asset_name);
+
+                let body = Body::from(cache.body.clone());
+                let mut res = Response::builder()
+                    .status(StatusCode::OK)
+                    .body(body)
+                    .unwrap();
+
+                let headers = res.headers_mut();
+                let cache_headers = &cache.headers;
+                for (key, value) in cache_headers.iter() {
+                    headers.insert(key, value.clone());
+                }
+
+                headers.insert(
+                    HeaderName::from_static(HEADER_CACHE_HIT),
+                    "true".parse().unwrap(),
+                );
+
+                return Ok(res);
+            }
 
             let row_to_asset = |row: &Row| -> Result<Asset, rusqlite::Error> {
                 let data: Vec<u8> = row.get(0)?;
@@ -82,70 +112,70 @@ pub async fn asset(
             };
 
             let data_owned = asset.data.to_owned();
-            let body = Body::from(data_owned.to_owned());
-
-            let mut res = Response::builder()
-                .status(StatusCode::OK)
-                .body(body)
-                .unwrap();
             let re = regex::Regex::new(r"-(\d+)\.[a-z0-9]{2,6}$").unwrap();
-            let asset_name = segments[0..].join("/");
             let hash = re.captures(&asset_name);
             let has_hash = hash.is_some();
 
-            let headers = res.headers_mut();
+            let (etag, cache_control, strict_transport_security) =
+                if has_hash || asset_name.contains("/cache/") {
+                    let etag = if has_hash {
+                        hash.unwrap().get(1).unwrap().as_str().to_string()
+                    } else {
+                        let data_bytes: &[u8] = &data_owned;
+                        let mut hasher = DefaultHasher::new();
+                        Hash::hash_slice(data_bytes, &mut hasher);
+                        hasher.finish().to_string()
+                    };
 
-            headers.insert(
-                CONTENT_TYPE,
-                HeaderValue::from_bytes(asset.mime_type.as_bytes()).unwrap(),
-            );
-
-            let length = data_owned.len().to_string();
-            headers.insert(
-                CONTENT_LENGTH,
-                HeaderValue::from_bytes(length.as_bytes()).unwrap(),
-            );
-
-            if has_hash || asset_name.contains("/cache/") {
-                let etag = if has_hash {
-                    hash.unwrap().get(1).unwrap().as_str().to_string()
+                    (
+                        etag,
+                        "public, max-age=31536000000, immutable".to_string(),
+                        "max-age=31536000000".to_string(),
+                    )
                 } else {
                     let data_bytes: &[u8] = &data_owned;
                     let mut hasher = DefaultHasher::new();
                     Hash::hash_slice(data_bytes, &mut hasher);
-                    let etag = hasher.finish();
-
-                    etag.to_string()
+                    (
+                        hasher.finish().to_string(),
+                        "public, max-age=300, must-revalidate".to_string(),
+                        "max-age=300".to_string(),
+                    )
                 };
 
-                headers.insert(ETAG, HeaderValue::from_str(&etag).unwrap());
-                headers.insert(
-                    CACHE_CONTROL,
-                    HeaderValue::from_static("public, max-age=31536000000, immutable"),
-                );
-                headers.insert(
-                    STRICT_TRANSPORT_SECURITY,
-                    HeaderValue::from_static("max-age=31536000000"),
-                );
-                headers.insert(X_CONTENT_TYPE_OPTIONS, HeaderValue::from_static("nosniff"));
-            } else {
-                let data_bytes: &[u8] = &data_owned;
-                let mut hasher = DefaultHasher::new();
-                Hash::hash_slice(data_bytes, &mut hasher);
-                let etag = hasher.finish();
-                let etag_str = etag.to_string();
+            let body = Body::from(data_owned.clone());
+            let mut res = Response::builder()
+                .status(StatusCode::OK)
+                .body(body)
+                .map_err(|e| internal_server_error(e.to_string()))?;
 
-                headers.insert(ETAG, HeaderValue::from_str(&etag_str).unwrap());
-                headers.insert(
-                    CACHE_CONTROL,
-                    HeaderValue::from_static("public, max-age=300, must-revalidate"),
-                );
-                headers.insert(
-                    STRICT_TRANSPORT_SECURITY,
-                    HeaderValue::from_static("max-age=300"),
-                );
-                headers.insert(X_CONTENT_TYPE_OPTIONS, HeaderValue::from_static("nosniff"));
-            }
+            let headers = res.headers_mut();
+            headers.insert(
+                CONTENT_TYPE,
+                HeaderValue::from_str(&asset.mime_type).unwrap(),
+            );
+            headers.insert(
+                CONTENT_LENGTH,
+                HeaderValue::from_str(&asset.data.len().to_string()).unwrap(),
+            );
+            headers.insert(ETAG, HeaderValue::from_str(&etag).unwrap());
+            headers.insert(
+                CACHE_CONTROL,
+                HeaderValue::from_str(&cache_control).unwrap(),
+            );
+            headers.insert(
+                STRICT_TRANSPORT_SECURITY,
+                HeaderValue::from_str(&strict_transport_security).unwrap(),
+            );
+            headers.insert(X_CONTENT_TYPE_OPTIONS, HeaderValue::from_static("nosniff"));
+
+            cache.insert(
+                asset_name,
+                CacheResponseValue {
+                    body: data_owned.clone(),
+                    headers: headers.clone(),
+                },
+            );
 
             Ok(res)
         }
