@@ -32,7 +32,7 @@ jobs:
           RUST_LOG: info
         run: |
           rustup update stable && rustup default stable
-          cargo install mdbook
+          cargo install mdbook@0.4.42
       
       - name: Create book
         env:
