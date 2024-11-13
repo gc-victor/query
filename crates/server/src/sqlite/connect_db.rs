@@ -5,8 +5,7 @@ use rusqlite::{limits::Limit, Connection};
 
 use crate::{
     constants::{
-        DB_ASSET_NAME, DB_CACHE_FUNCTION_NAME, DB_CACHE_INVALIDATION_NAME, DB_CONFIG_NAME,
-        DB_FUNCTION_NAME, DB_PLUGIN_NAME,
+        DB_ASSET_NAME, DB_CACHE_INVALIDATION_NAME, DB_CONFIG_NAME, DB_FUNCTION_NAME, DB_PLUGIN_NAME,
     },
     env::Env,
 };
@@ -18,14 +17,6 @@ use super::functions::{
 
 pub fn connect_config_db() -> Result<Connection> {
     let conn = connection(DB_CONFIG_NAME)?;
-
-    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0);
-
-    Ok(conn)
-}
-
-pub fn connect_cache_function_db() -> Result<Connection> {
-    let conn = connection(DB_CACHE_FUNCTION_NAME)?;
 
     conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0);
 
