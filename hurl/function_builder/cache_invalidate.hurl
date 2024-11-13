@@ -30,8 +30,20 @@ HTTP 200
 header "Query-Cache-Hit" not exists
 body contains "Hurl!"
 
+GET {{host}}/_/function/test2
+HTTP 200
+[Asserts]
+header "Query-Cache-Hit" not exists
+body contains "Hurl!"
+
 # 3. Second request - should be cached
 GET {{host}}/_/function/test1
+HTTP 200
+[Asserts]
+header "Query-Cache-Hit" == "true"
+body contains "Hurl!"
+
+GET {{host}}/_/function/test2
 HTTP 200
 [Asserts]
 header "Query-Cache-Hit" == "true"
@@ -76,15 +88,29 @@ Authorization: {{user_token}}
 
 HTTP 200
 
-# 8. First request to new function - should not be cached
+# 8. First request to new function (test1) - should not be cached
 GET {{host}}/_/function/test1
 HTTP 200
 [Asserts]
 header "Query-Cache-Hit" not exists
 body contains "Hurl!"
 
-# 9. Second request - should be cached
+# 9. Second request (test1) - should be cached
 GET {{host}}/_/function/test1
+HTTP 200
+[Asserts]
+header "Query-Cache-Hit" == "true"
+body contains "Hurl!"
+
+# 10. First request to new function (test2) - should not be cached
+GET {{host}}/_/function/test2
+HTTP 200
+[Asserts]
+header "Query-Cache-Hit" not exists
+body contains "Hurl!"
+
+# 11. Second request (test2) - should be cached
+GET {{host}}/_/function/test2
 HTTP 200
 [Asserts]
 header "Query-Cache-Hit" == "true"

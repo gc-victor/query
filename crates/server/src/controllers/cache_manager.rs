@@ -1,6 +1,20 @@
-use std::{env, str::FromStr, sync::OnceLock, time::Duration};
+use std::{
+    env,
+    str::FromStr,
+    sync::{
+        atomic::{AtomicI64, Ordering},
+        LazyLock, OnceLock,
+    },
+    time::Duration,
+};
+
+use tracing::instrument;
+
+use crate::sqlite::connect_db::connect_cache_invalidation_db;
 
 use super::cache_response::{CacheResponse, CacheResponseConfig};
+
+static LAST_KNOWN_INVALIDATION: LazyLock<AtomicI64> = LazyLock::new(|| AtomicI64::new(0));
 
 const DEFAULT_ASSET_CACHE_MAX_CAPACITY: u64 = 25 * 1024 * 1024; // 25 MB
 const DEFAULT_ASSET_CACHE_TIME_TO_IDLE: u64 = 86400; // 1 day
@@ -60,6 +74,10 @@ fn function_cache_config() -> CacheResponseConfig {
 }
 
 pub fn cache(cache_type: CacheType) -> &'static CacheResponse {
+    if let Err(e) = check_invalidations(cache_type) {
+        tracing::error!("Error checking cache invalidations: {}", e);
+    }
+
     match cache_type {
         CacheType::Asset => CACHES[0].get_or_init(|| CacheResponse::new(asset_cache_config())),
         CacheType::Function => {
@@ -68,7 +86,35 @@ pub fn cache(cache_type: CacheType) -> &'static CacheResponse {
     }
 }
 
-pub fn clear_cache(cache_type: CacheType) {
+#[instrument(err(Debug))]
+fn check_invalidations(cache_type: CacheType) -> Result<bool, anyhow::Error> {
+    let conn = connect_cache_invalidation_db()?;
+    let last_known = LAST_KNOWN_INVALIDATION.load(Ordering::Acquire);
+
+    let latest_invalidation: Option<i64> =
+        conn.query_row("SELECT version FROM cache_invalidation;", [], |row| {
+            row.get(0)
+        })?;
+
+    tracing::debug!("Last known invalidation: {}", last_known);
+    tracing::debug!("Latest invalidation: {:?}", latest_invalidation);
+
+    if let Some(latest) = latest_invalidation {
+        eprintln!("latest > last_known: {:?}", latest > last_known);
+
+        if latest > last_known {
+            LAST_KNOWN_INVALIDATION.store(latest, Ordering::Release);
+            clear_cache(cache_type);
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    } else {
+        Ok(false)
+    }
+}
+
+fn clear_cache(cache_type: CacheType) {
     match cache_type {
         CacheType::Asset => {
             if let Some(cache) = CACHES[0].get() {
@@ -85,13 +131,24 @@ pub fn clear_cache(cache_type: CacheType) {
 
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
+    use std::{fs, time::Duration};
 
     use hyper::HeaderMap;
 
     use crate::controllers::cache_response::CacheResponseValue;
+    use crate::sqlite::connect_db::connect_cache_invalidation_db;
+    use crate::sqlite::create_cache_invalidation_db::create_cache_invalidation_db;
 
     use super::*;
+
+    const TEST_DB_PATH: &str = "../../.tests/cache_invalidation_test";
+
+    struct Cleanup;
+    impl Drop for Cleanup {
+        fn drop(&mut self) {
+            fs::remove_dir_all(TEST_DB_PATH).unwrap();
+        }
+    }
 
     #[test]
     fn test_asset_cache() {
@@ -176,6 +233,24 @@ mod tests {
         clear_cache(CacheType::Function);
         cache.sync();
         assert!(cache.is_empty());
+    }
+
+    #[test]
+    fn test_cache_invalidation() {
+        env::set_var("QUERY_SERVER_DBS_PATH", TEST_DB_PATH);
+        fs::create_dir_all(TEST_DB_PATH).unwrap();
+
+        let _cleanup = Cleanup;
+
+        create_cache_invalidation_db();
+        let conn = connect_cache_invalidation_db().unwrap();
+
+        conn.execute("INSERT INTO cache_invalidation DEFAULT VALUES;", [])
+            .unwrap();
+
+        let cache_type = CacheType::Function;
+        assert!(check_invalidations(cache_type).unwrap());
+        assert!(!check_invalidations(cache_type).unwrap());
     }
 
     #[test]
