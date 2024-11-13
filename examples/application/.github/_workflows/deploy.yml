@@ -49,9 +49,6 @@ jobs:
         run: |
           sed -i "s|http://localhost:3000|__YOUR_URL__|" .query/Query.toml
 
-      - name: Purge cached functions
-        run: node_modules/.bin/query purge
-
       - name: Deploy
         run: .query/tasks/deploy.sh
 
