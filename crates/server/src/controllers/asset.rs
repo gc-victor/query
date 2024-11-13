@@ -7,7 +7,8 @@ use anyhow::Result;
 use hyper::{
     body::Incoming,
     header::{
-        HeaderName, HeaderValue, CACHE_CONTROL, CONTENT_LENGTH, CONTENT_TYPE, ETAG, STRICT_TRANSPORT_SECURITY, X_CONTENT_TYPE_OPTIONS
+        HeaderName, HeaderValue, CACHE_CONTROL, CONTENT_LENGTH, CONTENT_TYPE, ETAG,
+        STRICT_TRANSPORT_SECURITY, X_CONTENT_TYPE_OPTIONS,
     },
     Method, Request, Response, StatusCode,
 };

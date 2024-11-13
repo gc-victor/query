@@ -12,16 +12,13 @@ use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper::{body::Incoming as IncomingBody, Request, Response, StatusCode};
 use hyper_util::rt::TokioIo;
+use sqlite::create_cache_invalidation_db::create_cache_invalidation_db;
 use tokio::net::TcpListener;
 use tracing::{subscriber::set_global_default, Instrument};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::{layer::SubscriberExt, Registry};
 
-use crate::sqlite::{
-    create_asset_db::create_asset_db, create_cache_function_db::create_cache_function_db,
-    create_plugin_db::create_plugin_db,
-};
 use crate::{
     controllers::{
         asset::asset,
@@ -35,15 +32,21 @@ use crate::{
         token::token,
         user::user,
         user_token::user_token,
-        utils::body::{Body, BoxBody},
-        utils::http_error::HttpError,
-        utils::responses::{
-            bad_request, internal_server_error, method_not_allowed, not_found, not_implemented,
-            unauthorized,
+        utils::{
+            body::{Body, BoxBody},
+            http_error::HttpError,
+            responses::{
+                bad_request, internal_server_error, method_not_allowed, not_found, not_implemented,
+                unauthorized,
+            },
         },
     },
     env::Env,
-    sqlite::{create_config_db::create_config_db, create_function_db::create_function_db},
+    sqlite::{
+        create_asset_db::create_asset_db, create_cache_function_db::create_cache_function_db,
+        create_config_db::create_config_db, create_function_db::create_function_db,
+        create_plugin_db::create_plugin_db,
+    },
 };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -66,6 +69,8 @@ async fn main() -> Result<(), std::io::Error> {
     create_asset_db();
     // NOTE: Create the cache_function database
     create_cache_function_db();
+    // NOTE: Create the create_cache_invaildation_db database
+    create_cache_invalidation_db();
     // NOTE: Create the config database
     create_config_db();
     // NOTE: Create the function database
