@@ -32,7 +32,6 @@
 - [Dev](./docs/cli/dev.md)
 - [Function](./docs/cli/function.md)
   - [Plugin](./docs/cli/plugin.md)
-  - [Purge](./docs/cli/purge.md)
 - [Generate](./docs/cli/generate.md)
 - [Migration](./docs/cli/migration.md)
 - [Settings](./docs/cli/settings.md)
