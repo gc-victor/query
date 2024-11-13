@@ -6,11 +6,11 @@ The function should be in the format of:
 
 ```js
 export async function handleRequest(req) {
-    return new Response("This is the body!", {
-      status: 200,
-      headers: {
-          "content-type": "text/plain",
-      },
+  return new Response("This is the body!", {
+    status: 200,
+    headers: {
+      "content-type": "text/plain",
+    },
   });
 }
 ```
@@ -38,15 +38,15 @@ As Query uses [LiteFS proxy](https://fly.io/docs/litefs/config/#http-proxy-serve
 ```js
 // get.index.js
 export async function handleRequest(req) {
-    const db = new Database("example.sql");
+  const db = new Database("example.sql");
 
-    const result = await db.query("SELECT * FROM example WHERE id = ?", [1]);
+  const result = await db.query("SELECT * FROM example WHERE id = ?", [1]);
 
-    return new Response(JSON.stringify({data: result}), {
-      status: 200,
-      headers: {
-          "content-type": "application/json",
-      },
+  return new Response(JSON.stringify({ data: result }), {
+    status: 200,
+    headers: {
+      "content-type": "application/json",
+    },
   });
 }
 ```
@@ -75,30 +75,34 @@ To define the different segments of the route, you must use the folder structure
 
 ## Query Cache Control
 
-The Query Server has a feature that helps avoid compiling functions that have not been modified, which in turn speeds up each response. This feature is managed using the `Query-Cache-Control` header and specifying the `max-age`, in milliseconds, in the header response of the `handleRequest` function. The function response is stored in the `cache_function` table of the `query_cache_function.sql` database. If needed, the cache can be purged by either deleting the row related to a path or by deleting the entire cache from the `cache_function` table.
+The Query Server has a feature that helps avoid compiling functions that have not been modified, which in turn speeds up each response. This feature is managed using the `Query-Cache-Control` header and specifying the `max-age` in milliseconds in the header response of the `handleRequest` function. The function response is stored in memory. The cache is purged each time there is a deployment of an asset or a function.
 
 ```js
 // get.index.js
 export async function handleRequest(req) {
-    const db = new Database("example.sql");
+  const db = new Database("example.sql");
 
-    const result = await db.query("SELECT * FROM example WHERE id = ?", [1]);
+  const result = await db.query("SELECT * FROM example WHERE id = ?", [1]);
 
-    return new Response(JSON.stringify({data: result}), {
-      status: 200,
-      headers: {
-          "Content-Type": "application/json",
-          "Query-Cache-Control": "max-age=3600000", // 1 hour
-      },
+  return new Response(JSON.stringify({ data: result }), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      "Query-Cache-Control": "max-age=3600000", // 1 hour
+    },
   });
 }
 ```
 
-To purge the query cache control, you can use the following query command:
+The function cache store can be configured using environment variables, the default values are:
 
 ```sh
-query purge
+QUERY_FUNCTION_CACHE_MAX_CAPACITY = 25 * 1024 * 1024; // 25 MB
+QUERY_FUNCTION_CACHE_TIME_TO_IDLE = 3600;             // 1 hour
+QUERY_FUNCTION_CACHE_TIME_TO_LIVE = 86400;            // 1 day
 ```
+
+These environment variables must be defined before deploying the Query Server.
 
 ## Usage
 
