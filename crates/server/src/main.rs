@@ -43,9 +43,8 @@ use crate::{
     },
     env::Env,
     sqlite::{
-        create_asset_db::create_asset_db, create_cache_function_db::create_cache_function_db,
-        create_config_db::create_config_db, create_function_db::create_function_db,
-        create_plugin_db::create_plugin_db,
+        create_asset_db::create_asset_db, create_config_db::create_config_db,
+        create_function_db::create_function_db, create_plugin_db::create_plugin_db,
     },
 };
 
@@ -67,8 +66,6 @@ async fn main() -> Result<(), std::io::Error> {
 
     // NOTE: Create the asset database
     create_asset_db();
-    // NOTE: Create the cache_function database
-    create_cache_function_db();
     // NOTE: Create the create_cache_invaildation_db database
     create_cache_invalidation_db();
     // NOTE: Create the config database
