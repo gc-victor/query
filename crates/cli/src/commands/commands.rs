@@ -33,8 +33,6 @@ pub enum Commands {
     Migration(MigrationArgs),
     /// Manage plugins
     Plugin(PluginArgs),
-    /// Deletes all the cached functions
-    Purge,
     /// Sets the initial configuration
     Settings,
     /// SQLite shell to manage the databases locally

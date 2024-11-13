@@ -81,4 +81,3 @@ jobs:
           query asset docs
           sed -i "s|<a href=\"' + path_to_root|<a href=\"' + original_path_to_root|" book/searcher.js
           query asset book
-          query purge
