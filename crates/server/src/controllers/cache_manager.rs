@@ -42,15 +42,15 @@ fn env<T: FromStr>(key: &str, default: T) -> T {
 fn asset_cache_config() -> CacheResponseConfig {
     CacheResponseConfig {
         max_capacity: env(
-            "QUERY_ASSETS_CACHE_MAX_CAPACITY",
+            "QUERY_ASSET_CACHE_MAX_CAPACITY",
             DEFAULT_ASSET_CACHE_MAX_CAPACITY,
         ),
         time_to_idle: Duration::from_secs(env(
-            "QUERY_ASSETS_CACHE_TIME_TO_IDLE",
+            "QUERY_ASSET_CACHE_TIME_TO_IDLE",
             DEFAULT_ASSET_CACHE_TIME_TO_IDLE,
         )),
         time_to_live: Duration::from_secs(env(
-            "QUERY_ASSETS_CACHE_TIME_TO_LIVE",
+            "QUERY_ASSET_CACHE_TIME_TO_LIVE",
             DEFAULT_ASSET_CACHE_TIME_TO_LIVE,
         )),
     }
