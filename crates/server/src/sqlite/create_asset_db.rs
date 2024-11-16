@@ -29,7 +29,7 @@ fn asset() -> String {
             updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
         );
 
-        CREATE INDEX IF NOT EXISTS asset_idx_active ON asset(active);
+        CREATE INDEX IF NOT EXISTS asset_idx_name ON asset(name);
 
         CREATE TRIGGER IF NOT EXISTS trigger_asset_update 
             AFTER UPDATE ON asset

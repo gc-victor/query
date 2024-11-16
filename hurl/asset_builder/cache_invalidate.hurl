@@ -77,6 +77,8 @@ HTTP 200
 
 # 8. First request - should not be cached
 GET {{host}}/_/asset/cache-test.txt
+[Options]
+delay: 5100
 HTTP 200
 [Asserts]
 header "Query-Cache-Hit" not exists

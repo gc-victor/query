@@ -18,7 +18,7 @@ use tracing::instrument;
 
 use crate::{
     controllers::{
-        cache_manager::{self, CacheType},
+        cache_manager::{self, CacheResponseType},
         utils::{
             body::{Body, BoxBody},
             http_error::{internal_server_error, not_found, HttpError},
@@ -47,7 +47,7 @@ pub async fn asset(
     match req.method() {
         &Method::GET => {
             let asset_name = segments[1..].join("/");
-            let cache = cache_manager::cache(CacheType::Asset);
+            let cache = cache_manager::cache_response(CacheResponseType::Asset);
 
             if let Some(cache) = cache.get(&asset_name) {
                 tracing::info!("Cache hit for asset: {}", asset_name);

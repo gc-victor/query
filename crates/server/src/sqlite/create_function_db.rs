@@ -34,7 +34,7 @@ fn create_function_table() -> String {
             UNIQUE(method, path)
         );
 
-        CREATE INDEX IF NOT EXISTS function_idx_multi_column_function ON function(active, path, method);
+        CREATE INDEX IF NOT EXISTS function_idx_active_path_method ON function(method, active, path);
 
         CREATE TRIGGER IF NOT EXISTS trigger_function_update
             AFTER UPDATE ON function

@@ -7,6 +7,7 @@ pub mod sqlite;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 
+use controllers::cache_manager::start_invalidation_task;
 use dotenv::dotenv;
 use hyper::server::conn::http1;
 use hyper::service::service_fn;
@@ -74,6 +75,8 @@ async fn main() -> Result<(), std::io::Error> {
     create_function_db();
     // NOTE: Create the plugin database
     create_plugin_db();
+    // NOTE: Start the cache invalidation task
+    start_invalidation_task();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], Env::port()));
     // We create a TcpListener and bind it to 127.0.0.1:3000

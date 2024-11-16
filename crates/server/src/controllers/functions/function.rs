@@ -1,5 +1,8 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-use std::{collections::HashMap, fmt::Write};
+use std::{
+    collections::HashMap,
+    fmt::Write,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use futures_util::StreamExt;
 use http_body_util::BodyStream;
@@ -19,7 +22,8 @@ use tracing::instrument;
 
 use crate::{
     controllers::{
-        cache_manager::{self, CacheType},
+        cache_manager::{cache, cache_response, CacheResponseType, CacheType},
+        cache_response::CacheResponseValue,
         utils::{
             body::{Body, BoxBody},
             http_error::{internal_server_error, not_found, HttpError},
@@ -43,9 +47,10 @@ struct HandleResponse {
 
 #[instrument(err(Debug))]
 pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, HttpError> {
-    let method = req.method().as_str();
-    let cache_path = &req.uri().path().to_string();
+    let method = req.method().as_str().to_string();
     let mut path = req.uri().path().to_string();
+    let function_cache_key = format!("{}{}", method, path);
+    let function_response_cache_key = format!("res-{}{}", method, path);
 
     if Env::app() == "true" && !path.starts_with("/api") && !path.starts_with("/_/") {
         path.insert_str(0, "/pages");
@@ -64,16 +69,16 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
             path = "/pages".to_string();
         }
 
-        let cache = cache_manager::cache(CacheType::Function);
+        let function_response_cache = cache_response(CacheResponseType::Function);
 
-        if let Some(cached_response) = cache.get(cache_path) {
-            if let Some(valid_response) = check_cached_response(&cached_response) {
-                return Ok(valid_response);
+        if let Some(cached_response) = function_response_cache.get(&function_response_cache_key) {
+            if let Some(response) = check_cached_response(&cached_response) {
+                return Ok(response);
             }
         }
     }
 
-    let path = path_match(&path, method)?;
+    let path = path_match(&path, &method)?;
 
     let row_to_function = |row: &Row| -> Result<String, rusqlite::Error> {
         let function: Vec<u8> = row.get(0)?;
@@ -81,33 +86,45 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         Ok(function)
     };
 
-    let function: String = match connect_function_db()?.query_row(
-        r#"
+    let function_cache = cache(CacheType::Function);
+
+    let function = if let Some(function) = function_cache.get(&function_cache_key) {
+        function
+    } else {
+        static QUERY_SELECT_FUNCTION: &str = r#"
             SELECT
                 function
             FROM
                 function
             WHERE
-                path = :path
-            AND
                 method = :method
             AND
                 active = :active
-        "#,
-        named_params! {
-            ":active": 1,
-            ":method": method,
-            ":path": path,
-        },
-        row_to_function,
-    ) {
-        Ok(v) => Ok(v),
-        Err(_) => Err(not_found()),
-    }?;
+            AND
+                path = :path
+        "#;
+        let function: String = match connect_function_db()?
+            .prepare_cached(QUERY_SELECT_FUNCTION)?
+            .query_row(
+                named_params! {
+                    ":active": 1,
+                    ":method": method,
+                    ":path": path,
+                },
+                row_to_function,
+            ) {
+            Ok(v) => Ok(v),
+            Err(_) => Err(not_found()),
+        }?;
+
+        function_cache.insert(function_cache_key, function.clone());
+        function
+    };
 
     let mut headers: HashMap<String, String> = HashMap::new();
 
-    for (key, value) in req.headers() {
+    let req_headers = req.headers().clone();
+    for (key, value) in req_headers.iter() {
         // NOTE: workaround to fix an error in the js-engine caused by sec-ch-ua
         headers.insert(
             key.as_str().to_lowercase(),
@@ -115,7 +132,6 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         );
     }
 
-    let req_headers = req.headers().clone();
     let is_multipart = match req_headers.get(CONTENT_TYPE) {
         Some(ct) => match ct.to_str() {
             Ok(ct_str) => ct_str.starts_with("multipart/form-data"),
@@ -141,8 +157,7 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         bytes.to_vec()
     };
 
-    let host = req
-        .headers()
+    let host = req_headers
         .get(HOST)
         .and_then(|h| h.to_str().ok())
         .unwrap_or("");
@@ -159,7 +174,7 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
     }?;
 
     let module_name = format!("{}::{}", path, method_lower_case);
-    let method_str = req.method().as_str();
+    let method_str = method.as_str();
     let url = format!("{}://{}{}", scheme, host, uri);
 
     let handle_response = format!(
@@ -304,12 +319,15 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
 
     let status = response.status().as_u16().to_string();
 
-    if response.headers().contains_key(HEADER_CACHE_CONTROL) && status.starts_with('2') {
-        let cache = cache_manager::cache(CacheType::Function);
+    if method == "GET"
+        && response.headers().contains_key(HEADER_CACHE_CONTROL)
+        && status.starts_with('2')
+    {
+        let cache = cache_response(CacheResponseType::Function);
 
         cache.insert(
-            cache_path.to_string(),
-            crate::controllers::cache_response::CacheResponseValue {
+            function_response_cache_key,
+            CacheResponseValue {
                 body: cloned_body.into_bytes(),
                 headers: headers_map,
             },
@@ -319,9 +337,7 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
     Ok(response)
 }
 
-fn check_cached_response(
-    cached_response: &crate::controllers::cache_response::CacheResponseValue,
-) -> Option<Response<BoxBody>> {
+fn check_cached_response(cached_response: &CacheResponseValue) -> Option<Response<BoxBody>> {
     if !cached_response
         .headers
         .contains_key(HEADER_CACHE_EXPIRES_AT)
@@ -374,20 +390,26 @@ fn path_match(path: &str, method: &str) -> Result<String, Box<dyn std::error::Er
     } else {
         path
     };
+
+    let path_cache = cache(CacheType::Path);
+
+    if let Some(cached_path) = path_cache.get(&format!("{method}:{path}")) {
+        return Ok(cached_path);
+    }
+
+    static QUERY_PATH: &str = r#"
+        SELECT
+            path
+        FROM
+            function
+        WHERE
+            method = :method
+        AND
+            active = :active
+        ORDER BY path DESC
+    "#;
     let connect = connect_function_db()?;
-    let mut stmt = connect.prepare(
-        r#"
-            SELECT
-                path
-            FROM
-                function
-            WHERE
-                method = :method
-            AND
-                active = :active
-            ORDER BY path DESC
-        "#,
-    )?;
+    let mut stmt = connect.prepare_cached(QUERY_PATH)?;
     let rows = stmt.query_map(
         named_params! {
             ":active": 1,
@@ -424,6 +446,10 @@ fn path_match(path: &str, method: &str) -> Result<String, Box<dyn std::error::Er
                 break;
             }
         }
+    }
+
+    if !result.is_empty() {
+        path_cache.insert(format!("{method}:{path}"), result.clone());
     }
 
     Ok(result)

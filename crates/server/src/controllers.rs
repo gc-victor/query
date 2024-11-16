@@ -1,6 +1,7 @@
 pub mod asset;
 pub mod asset_builder;
 pub mod branch;
+pub mod cache;
 pub mod cache_manager;
 pub mod cache_response;
 pub mod functions;
