@@ -96,9 +96,14 @@ pub async fn command_deploy(command: &DeployArgs) -> Result<()> {
         eprintln!("{} Cache removed", String::from('●').cyan());
         execute_command("rm -rf .query/.cache")?;
     }
+
+    let current_exe = env::current_exe()?;
+
     execute_command(&format!(
-        "export QUERY_DEPLOY_TOKEN={} && export QUERY_DEPLOY_URL={} && $HOME/Projects/query/target/debug/query task deploy",
-        token, url
+        "export QUERY_DEPLOY_TOKEN={} && export QUERY_DEPLOY_URL={} && {} task deploy",
+        token,
+        url,
+        current_exe.display()
     ))?;
 
     if is_prompt_required {
