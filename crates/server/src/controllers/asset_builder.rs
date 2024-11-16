@@ -19,6 +19,8 @@ use crate::{
     sqlite::connect_db::{connect_asset_db, connect_cache_invalidation_db},
 };
 
+use super::cache_manager::{clear_response_cache, CacheResponseType};
+
 #[derive(Deserialize)]
 struct AddAssetOptions {
     pub active: bool,
@@ -50,6 +52,8 @@ pub async fn asset_builder(
                 Err(e) => Err(bad_request(e.to_string())),
             }?;
 
+            clear_response_cache(CacheResponseType::Asset);
+
             let conn = connect_cache_invalidation_db()?;
             conn.execute(
                 "INSERT OR IGNORE INTO cache_invalidation DEFAULT VALUES;",
@@ -71,6 +75,8 @@ pub async fn asset_builder(
                 Ok(v) => Ok(v),
                 Err(e) => Err(bad_request(e.to_string())),
             }?;
+
+            clear_response_cache(CacheResponseType::Asset);
 
             let conn = connect_cache_invalidation_db()?;
             conn.execute(

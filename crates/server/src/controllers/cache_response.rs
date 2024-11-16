@@ -12,12 +12,6 @@ const DEFAULT_CACHE_TIME_TO_IDLE: u64 = 300; // 5 minutes
 const DEFAULT_CACHE_TIME_TO_LIVE: u64 = 3600; // 1 hour
 const DEFAULT_CACHE_FILE_MAX_CAPACITY: u64 = 1024 * 1024; // 1 MB default max file size
 
-#[derive(Debug, Clone)]
-pub struct CacheStats {
-    pub entry_count: u64,
-    pub policy: String,
-}
-
 #[derive(Clone, Debug)]
 pub struct CacheResponseValue {
     pub body: Vec<u8>,
@@ -66,7 +60,7 @@ impl CacheResponse {
         Self { cache, config }
     }
 
-    #[instrument(skip(self, value))]
+    #[instrument(name = "cache_response_insert", skip(self, value))]
     pub fn insert(&self, key: String, value: CacheResponseValue) {
         let max_file_size = env::var(QUERY_CACHE_FILE_MAX_CAPACITY)
             .ok()
@@ -78,17 +72,16 @@ impl CacheResponse {
         }
     }
 
-    #[instrument(skip(self))]
+    #[instrument(name = "cache_response_get", skip(self))]
     pub fn get(&self, key: &String) -> Option<CacheResponseValue> {
         self.cache.get(key)
     }
 
-    #[instrument(skip(self))]
     pub fn contains(&self, key: &String) -> bool {
         self.cache.contains_key(key)
     }
 
-    #[instrument(skip(self))]
+    #[instrument(name = "cache_response_clear", skip(self))]
     pub fn clear(&self) {
         if !self.is_empty() {
             self.cache.invalidate_all();
@@ -101,21 +94,12 @@ impl CacheResponse {
         self.cache.iter()
     }
 
-    #[instrument(skip(self))]
     pub fn len(&self) -> usize {
         self.cache.entry_count() as usize
     }
 
-    #[instrument(skip(self))]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
-    }
-
-    pub fn stats(&self) -> CacheStats {
-        CacheStats {
-            entry_count: self.cache.entry_count(),
-            policy: format!("{:?}", self.cache.policy()),
-        }
     }
 
     pub fn sync(&self) {
@@ -234,16 +218,6 @@ mod tests {
     fn test_cache_is_empty() {
         let cache = CacheResponse::new(CacheResponseConfig::default());
         assert!(cache.is_empty());
-    }
-
-    #[test]
-    fn test_cache_stats() {
-        let cache = CacheResponse::new(CacheResponseConfig::default());
-        let stats = cache.stats();
-        assert_eq!(stats.entry_count, 0);
-        assert!(stats.policy.contains("max_capacity"));
-        assert!(stats.policy.contains("time_to_live"));
-        assert!(stats.policy.contains("time_to_idle"));
     }
 
     #[test]
@@ -384,6 +358,7 @@ mod tests {
                 headers: HeaderMap::new(),
             },
         );
+        cache.sync();
 
         assert_eq!(cache.len(), 1);
     }

@@ -63,6 +63,8 @@ HTTP 200
 
 # 5. Request second function after cache clear - should not be cached
 GET {{host}}/_/function/test2
+[Options]
+delay: 500
 HTTP 200
 [Asserts]
 header "Query-Cache-Hit" not exists
@@ -104,6 +106,8 @@ body contains "Hurl!"
 
 # 10. First request to new function (test2) - should not be cached
 GET {{host}}/_/function/test2
+[Options]
+delay: 500
 HTTP 200
 [Asserts]
 header "Query-Cache-Hit" not exists

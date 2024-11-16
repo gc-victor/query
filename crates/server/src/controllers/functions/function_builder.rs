@@ -6,14 +6,17 @@ use serde_bytes::ByteBuf;
 use tracing::instrument;
 
 use crate::{
-    controllers::utils::{
-        body::{Body, BoxBody},
-        get_token::get_token,
-        http_error::{bad_request, not_implemented, HttpError},
-        responses::ok,
-        validate_is_admin::validate_is_admin,
-        validate_token::validate_token,
-        validate_token_creation::validate_token_creation,
+    controllers::{
+        cache_manager::{clear_cache, clear_response_cache, CacheResponseType, CacheType},
+        utils::{
+            body::{Body, BoxBody},
+            get_token::get_token,
+            http_error::{bad_request, not_implemented, HttpError},
+            responses::ok,
+            validate_is_admin::validate_is_admin,
+            validate_token::validate_token,
+            validate_token_creation::validate_token_creation,
+        },
     },
     sqlite::connect_db::{connect_cache_invalidation_db, connect_function_db},
 };
@@ -48,6 +51,10 @@ pub async fn function_builder(
                 Err(e) => Err(bad_request(e.to_string())),
             }?;
 
+            clear_response_cache(CacheResponseType::Function);
+            clear_cache(CacheType::Path);
+            clear_cache(CacheType::Function);
+
             let conn = connect_cache_invalidation_db()?;
             conn.execute(
                 "INSERT OR IGNORE INTO cache_invalidation DEFAULT VALUES;",
@@ -69,6 +76,10 @@ pub async fn function_builder(
                 Ok(v) => Ok(v),
                 Err(e) => Err(bad_request(e.to_string())),
             }?;
+
+            clear_response_cache(CacheResponseType::Function);
+            clear_cache(CacheType::Path);
+            clear_cache(CacheType::Function);
 
             let conn = connect_cache_invalidation_db()?;
             conn.execute(
