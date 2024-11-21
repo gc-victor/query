@@ -53,7 +53,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info,query-runtime=info"));
     let formatting_layer = BunyanFormattingLayer::new("query-server".into(), std::io::stdout);
     let subscriber = Registry::default()
         .with(env_filter)

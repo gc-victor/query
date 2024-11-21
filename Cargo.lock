@@ -3259,6 +3259,7 @@ dependencies = [
  "itoa",
  "jsonwebtoken",
  "lettre",
+ "mini-moka",
  "once_cell",
  "rand",
  "rbase64",

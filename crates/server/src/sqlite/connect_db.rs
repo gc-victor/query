@@ -1,7 +1,8 @@
-use std::{fs, path::Path};
+use std::{env, fs, path::Path};
 
 use anyhow::Result;
 use rusqlite::{limits::Limit, Connection};
+use tracing::info;
 
 use crate::{
     constants::{
@@ -70,14 +71,25 @@ pub fn connection(db_name: &str) -> Result<Connection> {
         fs::create_dir_all(&path)?;
     }
 
-    let conn = Connection::open(format!("{}/{}", &path, db_name))?;
+    let mut conn = Connection::open(format!("{}/{}", &path, db_name))?;
 
+    let has_enable_query_tracing = env::var("QUERY_SERVER_ENABLE_QUERY_TRACING")
+        .map(|val| val == "true")
+        .unwrap_or(false);
+    if has_enable_query_tracing {
+        enable_query_tracing(&mut conn)?;
+    }
+
+    // Core pragmas
     conn.pragma_update(None, "journal_mode", "WAL")?;
-    conn.pragma_update(None, "synchronous", "normal")?;
-    conn.pragma_update(None, "temp_store", "memory")?;
+    conn.pragma_update(None, "synchronous", "NORMAL")?;
+    conn.pragma_update(None, "temp_store", "MEMORY")?;
+    conn.pragma_update(None, "foreign_keys", "ON")?;
+
+    // Performance pragmas
     conn.pragma_update(None, "mmap_size", "30000000000")?;
-    conn.pragma_update(None, "foreign_keys", "1")?;
-    conn.pragma_update(None, "busy_timeout", "50000")?;
+    conn.pragma_update(None, "cache_size", -32000)?;
+    conn.pragma_update(None, "busy_timeout", 5000)?;
 
     _base64_decode_function(&conn)?;
     _base64_encode_function(&conn)?;
@@ -88,6 +100,17 @@ pub fn connection(db_name: &str) -> Result<Connection> {
     _valid_json_function(&conn)?;
 
     Ok(conn)
+}
+
+pub fn enable_query_tracing(conn: &mut Connection) -> Result<()> {
+    conn.profile(Some(|statement, duration| {
+        if statement.starts_with("PRAGMA") || statement.starts_with("SELECT version FROM cache_invalidation") {
+            return;
+        }
+        info!("Query executed in {}μs: {}", duration.as_micros(), statement);
+    }));
+
+    Ok(())
 }
 
 #[cfg(test)]

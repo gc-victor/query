@@ -70,10 +70,14 @@ Authorization: Bearer {{token}}
 ```json
 {
   "db_name": "hurl-test-query.sql",
-  "query": "UPDATE query_token_update SET value = 'updated' WHERE key = 'test-1';"
+  "query": "UPDATE query_token_update SET value = 'updated';"
 }
 ```
 HTTP 200
+[Asserts]
+jsonpath "$.data" exists
+jsonpath "$.data[0].changes" == 2
+jsonpath "$.data[0].success" == true
 
 POST {{host}}/_/query
 Authorization: Bearer {{token}}
@@ -86,9 +90,9 @@ Authorization: Bearer {{token}}
 HTTP 200
 [Asserts]
 jsonpath "$.data[0].key" contains "test-1"
-jsonpath "$.data[0].value" contains "updated"
+jsonpath "$.data[0].value" == "updated"
 jsonpath "$.data[1].key" contains "test-2"
-jsonpath "$.data[1].value" contains "2"
+jsonpath "$.data[1].value" == "updated"
 
 POST {{host}}/_/query
 Authorization: Bearer {{token}}

@@ -22,6 +22,10 @@ Authorization: {{user_token}}
 }
 ```
 HTTP 200
+[Asserts]
+jsonpath "$.data" exists
+jsonpath "$.data[0].rowid" exists
+jsonpath "$.data[0].success" == true
 
 POST {{host}}/_/query
 Authorization: {{user_token}}

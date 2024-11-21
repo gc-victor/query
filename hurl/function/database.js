@@ -4,10 +4,10 @@ import Database from 'query:database';
 
 globalThis.___handleRequest = async () => {
     try {
-        const db1 = new Database("hurl_database_1.db");
+        const db1 = new Database("hurl_database_1.sql");
         console.log("Database", Database.toString());
         
-        const db2 = new Db("hurl_database_2.db");
+        const db2 = new Db("hurl_database_2.sql");
         console.log("Db", Db.toString());
 
         return new Response("OK", { status: 200 });
