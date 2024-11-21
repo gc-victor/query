@@ -14,6 +14,16 @@ export default class Database {
      * @returns {T} The result of the query.
      */
     query<T>(query: string, params?: Array<string | number | boolean | null>): T;
+
+    /**
+     * Executes a database query.
+     * @template T - The expected return type of the query.
+     * @param {string} query - The SQL query string to execute.
+     * @param {Array<string | number | boolean | null>} [params] - Optional parameters for the query.
+     * @param {number} ttl - The time-to-live for the query result in milliseconds.
+     * @returns {T} The result of the query.
+     */
+    query_cache<T>(query: string, params: Array<string | number | boolean | null>, ttl: number): T;
 }
 
 declare global {

@@ -6,7 +6,11 @@ export class Database {
     }
 
     query(query, params) {
-        return JSON.parse(___sqlite_query(this.#dbName, query, JSON.stringify(params || [])));
+        return JSON.parse(___sqlite_query(this.#dbName, query, JSON.stringify(params || []), 0));
+    }
+
+    query_cache(query, params, ttl) {
+        return JSON.parse(___sqlite_query(this.#dbName, query, JSON.stringify(params || []), ttl));
     }
 }
 

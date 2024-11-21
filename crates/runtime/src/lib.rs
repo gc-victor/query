@@ -36,7 +36,7 @@ mod module;
 mod number;
 mod plugin;
 mod process;
-mod sqlite;
+pub mod sqlite;
 mod test_utils;
 pub mod timers;
 mod url;

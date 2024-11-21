@@ -30,8 +30,9 @@ fn asset() -> String {
         );
 
         CREATE INDEX IF NOT EXISTS asset_idx_name ON asset(name);
+        CREATE INDEX IF NOT EXISTS asset_idx_active_name_name_hashed ON asset(active, name, name_hashed);
 
-        CREATE TRIGGER IF NOT EXISTS trigger_asset_update 
+        CREATE TRIGGER IF NOT EXISTS trigger_asset_update
             AFTER UPDATE ON asset
         BEGIN
             UPDATE

@@ -19,12 +19,16 @@ pub fn connection(db_name: &str) -> Result<Connection> {
 
     conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0);
 
+    // Core pragmas
     conn.pragma_update(None, "journal_mode", "WAL")?;
-    conn.pragma_update(None, "synchronous", "normal")?;
-    conn.pragma_update(None, "temp_store", "memory")?;
+    conn.pragma_update(None, "synchronous", "NORMAL")?;
+    conn.pragma_update(None, "temp_store", "MEMORY")?;
+    conn.pragma_update(None, "foreign_keys", "ON")?;
+
+    // Performance pragmas
     conn.pragma_update(None, "mmap_size", "30000000000")?;
-    conn.pragma_update(None, "foreign_keys", "1")?;
-    conn.pragma_update(None, "busy_timeout", "50000")?;
+    conn.pragma_update(None, "cache_size", -32000)?;
+    conn.pragma_update(None, "busy_timeout", 5000)?;
 
     _base64_decode_function(&conn)?;
     _base64_encode_function(&conn)?;

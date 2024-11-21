@@ -8,6 +8,7 @@ use std::{
     time::Duration,
 };
 
+use query_runtime::sqlite::query_cache_invalidate;
 use tokio::{task::JoinHandle, time};
 
 use crate::sqlite::connect_db::connect_cache_invalidation_db;
@@ -156,6 +157,7 @@ pub fn start_invalidation_task() -> JoinHandle<()> {
                     clear_response_cache(CacheResponseType::Function);
                     clear_cache(CacheType::Path);
                     clear_cache(CacheType::Function);
+                    query_cache_invalidate();
                     tracing::info!("Cache invalidated due to database update");
                 }
                 Err(e) => {
