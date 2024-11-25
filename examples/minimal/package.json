@@ -6,7 +6,7 @@
         "@qery/query": "~0.12.30",
         "@qery/query-server": "~0.12.30",
         "esbuild": "^0.24.0",
-        "typescript": "~5.6.3"
+        "typescript": "~5.7.2"
     },
     "scripts": {
         "dev": "query dev"
