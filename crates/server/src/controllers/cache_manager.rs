@@ -203,14 +203,16 @@ fn check_database_invalidation() -> Result<bool, anyhow::Error> {
 pub fn clear_response_cache(cache_type: CacheResponseType) {
     match cache_type {
         CacheResponseType::Asset => {
-            if let Some(cache) = RESPONSE_CACHE[0].get() {
-                cache.clear();
-            }
+            let cache =
+                RESPONSE_CACHE[0].get_or_init(|| CacheResponse::new(asset_response_cache_config()));
+            cache.clear();
+            tracing::info!("Response asset cache invalidated due to database update");
         }
         CacheResponseType::Function => {
-            if let Some(cache) = RESPONSE_CACHE[1].get() {
-                cache.clear();
-            }
+            let cache = RESPONSE_CACHE[1]
+                .get_or_init(|| CacheResponse::new(function_response_cache_config()));
+            cache.clear();
+            tracing::info!("Response function cache invalidated due to database update");
         }
     }
 }
@@ -218,14 +220,14 @@ pub fn clear_response_cache(cache_type: CacheResponseType) {
 pub fn clear_cache(cache_type: CacheType) {
     match cache_type {
         CacheType::Path => {
-            if let Some(cache) = CACHE[0].get() {
-                cache.clear();
-            }
+            let cache = CACHE[0].get_or_init(|| Cache::new(path_cache_config()));
+            cache.clear();
+            tracing::info!("Path cache invalidated due to database update");
         }
         CacheType::Function => {
-            if let Some(cache) = CACHE[1].get() {
-                cache.clear();
-            }
+            let cache = CACHE[1].get_or_init(|| Cache::new(function_cache_config()));
+            cache.clear();
+            tracing::info!("Function cache invalidated due to database update");
         }
     }
 }

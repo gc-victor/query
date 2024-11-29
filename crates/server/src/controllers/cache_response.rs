@@ -83,9 +83,7 @@ impl CacheResponse {
 
     #[instrument(name = "cache_response_clear", skip(self))]
     pub fn clear(&self) {
-        if !self.is_empty() {
-            self.cache.invalidate_all();
-        }
+        self.cache.invalidate_all();
     }
 
     pub fn iter(
