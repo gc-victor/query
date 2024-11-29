@@ -101,7 +101,6 @@ fn sqlite_query(
 }
 
 pub fn query_cache_invalidate() {
-    if let Some(cache) = CACHE.get() {
-        cache.invalidate_all();
-    }
+    let cache = CACHE.get_or_init(|| Cache::new(1000));
+    cache.invalidate_all();
 }
