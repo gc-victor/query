@@ -302,7 +302,7 @@ run-cli-release:
 dev:
 	cargo watch -c --ignore .dbs -x check -x clippy --shell "RUST_LOG=debug cargo run --package=query-server | bunyan"
 
-dev-build:
+dev-server:
 	cargo watch -c --ignore .dbs -x check -x clippy --shell "cargo build --package=query-server"
 
 dev-cli:
