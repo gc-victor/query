@@ -12,6 +12,8 @@ use std::{
 
 #[allow(unused_imports)]
 use anyhow::anyhow;
+#[allow(unused_imports)]
+use jsx_parser::jsx_precompile::jsx_precompile;
 
 use anyhow::Result;
 use colored::Colorize;
@@ -268,8 +270,12 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
     ];
 
     let config_esbuild = &CONFIG.esbuild;
+    let is_jsx_file = path.ends_with(".jsx") || path.ends_with(".tsx");
+    let mut has_jsx_preserve = false;
 
     for (key, value) in config_esbuild {
+        has_jsx_preserve = has_jsx_preserve || is_jsx_file && key == "jsx" && value == "preserve";
+
         let flag = if value.is_empty() {
             format!("--{}", key)
         } else {
@@ -330,7 +336,7 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
     };
 
     let bundle_path = format!("{}/{}", out_dir, function_path.split('/').last().unwrap());
-    let re = Regex::new(r"(\.tsx|\.ts)$").unwrap();
+    let re = Regex::new(r"(\.jsx|\.tsx|\.ts)$").unwrap();
     let bundle_path = re.replace(&bundle_path, ".js").to_string();
 
     let function = fs::read_to_string(&bundle_path)?;
@@ -347,6 +353,22 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
     let re_export = Regex::new(r"export\{([\S]+) as handleRequest\};\n$").unwrap();
     let function = re_export.replace(&function, "globalThis.___handleRequest = $1;".to_string());
 
+    let function = if has_jsx_preserve {
+        match jsx_precompile(&function) {
+            Ok(f) => f,
+            Err(e) => {
+                eprintln!(
+                    "{} Error precompiling the JSX from the function {function_path} - {}",
+                    String::from('●').red(),
+                    e
+                );
+                exit(1)
+            }
+        }
+    } else {
+        function.to_string()
+    };
+
     fs::remove_file(bundle_path)?;
 
     Ok(function.as_bytes().to_vec())
@@ -357,6 +379,26 @@ mod tests {
     use std::fs::create_dir_all;
 
     use super::*;
+
+    struct TestCleanup {
+        file_path: &'static str,
+    }
+
+    impl Drop for TestCleanup {
+        fn drop(&mut self) {
+            std::fs::remove_file(self.file_path).unwrap();
+        }
+    }
+
+    impl TestCleanup {
+        const NO_VALID_NAME: Self = Self {
+            file_path: "../../.tests/src/functions/post.no_index.js",
+        };
+
+        const INVALID_PREFIX: Self = Self {
+            file_path: "../../.tests/src/functions/invalid_prefix.js",
+        };
+    }
 
     #[test]
     #[should_panic(
@@ -369,20 +411,12 @@ mod tests {
         function_builder(&path).unwrap();
     }
 
-    struct TestFunctionBuilderFileNameNoValidName;
-
-    impl Drop for TestFunctionBuilderFileNameNoValidName {
-        fn drop(&mut self) {
-            std::fs::remove_file("../../.tests/src/functions/post.no_index.js").unwrap();
-        }
-    }
-
     #[test]
     #[should_panic(
         expected = r#"The file "../../.tests/src/functions/post.no_index.js" doesn't have a valid name. It should be "index" or "[slug]". Ex. "get.index.(js|jsx|ts|tsx)" or "post.[slug].(js|jsx|ts|tsx)""#
     )]
     fn test_function_builder_file_name_no_valid_name() {
-        let _after = TestFunctionBuilderFileNameNoValidName;
+        let _after = TestCleanup::NO_VALID_NAME;
 
         let dir = "../../.tests/src/functions".to_string();
         let path = format!("{dir}/post.no_index.js");
@@ -394,20 +428,12 @@ mod tests {
         function_builder(&path).unwrap();
     }
 
-    struct TestFunctionBuilderFileNameInvalidPrefix;
-
-    impl Drop for TestFunctionBuilderFileNameInvalidPrefix {
-        fn drop(&mut self) {
-            std::fs::remove_file("../../.tests/src/functions/invalid_prefix.js").unwrap();
-        }
-    }
-
     #[test]
     #[should_panic(
         expected = r#"The file "../../.tests/src/functions/invalid_prefix.js" doesn't have a valid name. It should be "index" or "[slug]". Ex. "get.index.(js|jsx|ts|tsx)" or "post.[slug].(js|jsx|ts|tsx)""#
     )]
     fn test_function_builder_invalid_prefix() {
-        let _after = TestFunctionBuilderFileNameInvalidPrefix;
+        let _after = TestCleanup::INVALID_PREFIX;
 
         let dir = "../../.tests/src/functions".to_string();
         let path = format!("{dir}/invalid_prefix.js");

@@ -69,6 +69,7 @@ impl std::fmt::Debug for Runtime {
 const DATABASE_SCRIPT_MODULE: &str = include_str!("js/database.js");
 const EMAIL_SCRIPT_MODULE: &str = include_str!("js/email.js");
 const HANDLE_RESPONSE_SCRIPT_MODULE: &str = include_str!("js/handle-response.js");
+const JSX_HELPERS_SCRIPT_MODULE: &str = include_str!("js/jsx-helpers.js");
 const PLUGIN_SCRIPT_MODULE: &str = include_str!("js/plugin.js");
 // Polyfill modules
 const BLOB_SCRIPT_MODULE: &str = include_str!("js/polyfills/blob.js");
@@ -99,6 +100,7 @@ impl Runtime {
         let resolver = BuiltinResolver::default()
             .with_module("js/database")
             .with_module("js/handle-response")
+            .with_module("js/jsx-helpers")
             .with_module("polyfill/blob")
             .with_module("polyfill/console")
             .with_module("polyfill/fetch")
@@ -114,6 +116,7 @@ impl Runtime {
             BuiltinLoader::default()
                 .with_module("js/database", DATABASE_SCRIPT_MODULE)
                 .with_module("js/handle-response", HANDLE_RESPONSE_SCRIPT_MODULE)
+                .with_module("js/jsx-helpers", JSX_HELPERS_SCRIPT_MODULE)
                 .with_module("polyfill/blob", BLOB_SCRIPT_MODULE)
                 .with_module("polyfill/console", CONSOLE_SCRIPT_MODULE)
                 .with_module("polyfill/fetch", FETCH_SCRIPT_MODULE)

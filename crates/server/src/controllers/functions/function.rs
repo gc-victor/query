@@ -190,6 +190,7 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
 
         import 'js/database';
         import 'js/handle-response';
+        import 'js/jsx-helpers';
 
         {function}
         "#,
