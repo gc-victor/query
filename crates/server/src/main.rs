@@ -25,7 +25,8 @@ use crate::{
         asset::asset,
         asset_builder::asset_builder,
         branch::branch,
-        functions::{function::function, function_builder::function_builder},
+        function::function,
+        function_builder::function_builder,
         migration::migration,
         plugin_builder::plugin_builder,
         proxy::proxy,
@@ -53,7 +54,8 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info,query-runtime=info"));
+    let env_filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("info,query-runtime=info"));
     let formatting_layer = BunyanFormattingLayer::new("query-server".into(), std::io::stdout);
     let subscriber = Registry::default()
         .with(env_filter)
