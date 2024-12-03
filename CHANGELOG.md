@@ -2,6 +2,76 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.31] - 2024-12-03
+
+### 🚀 Features
+
+- *(ci)* Ignore paths to run tests
+- *(ci)* Ignore paths to run tests
+- Add dual license
+- *(ci)* Update dist-workspace on prerelease
+- *(ci)* Change dist-workspace target on prerelease
+- *(server)* Add content cache
+- *(server)* Add cache invalidation
+- *(server)* Remove cache function
+- *(server)* Remove purge
+- *(server)* Optimize cache invalidation
+- *(ci)* Add dev-server
+- *(server)* Optimize sqlite
+- Jsx parser
+
+### 🐛 Bug Fixes
+
+- *(ci)* Hurl skip email test
+- *(docs)* Install mdbook fixed version
+- *(cli)* Current running executable
+- *(server)* Invalidate cache
+
+### 📚 Documentation
+
+- Add functions to modules
+- Update cache references
+- Remove purge references
+
+### Build
+
+- Update cargo dist 0.22.1 to 0.23.0
+- *(deps-dev)* Bump @qery/query in /examples/minimal
+- *(deps-dev)* Bump @qery/query-server in /examples/minimal (#418)
+- *(deps)* Bump openssl from 0.10.66 to 0.10.68 (#406)
+- *(deps)* Bump extism-manifest from 1.7.0 to 1.8.0
+- *(deps-dev)* Bump @biomejs/biome in /examples/minimal
+- *(deps)* Bump simd-json from 0.14.1 to 0.14.2
+- *(deps)* Bump regex from 1.11.0 to 1.11.1
+- *(deps)* Bump bytes from 1.7.2 to 1.8.0
+- *(deps-dev)* Bump @qery/query in /examples/counter
+- *(deps-dev)* Bump @biomejs/biome in /examples/counter
+- *(deps-dev)* Bump @qery/query-server in /examples/counter
+- *(deps-dev)* Bump @biomejs/biome in /examples/application
+- *(deps-dev)* Bump @qery/query-server in /examples/application
+- *(deps-dev)* Bump tailwindcss in /examples/application
+- *(deps-dev)* Bump @qery/query in /examples/application (#423)
+- Update dist 0.23.0 to 0.24.0
+- Update dist 0.24.0 to 0.24.1
+- *(deps)* Bump hyper-util from 0.1.9 to 0.1.10
+- *(deps)* Bump reqwest from 0.12.8 to 0.12.9
+- *(deps)* Bump lettre from 0.11.9 to 0.11.10
+- *(deps)* Bump extism from 1.7.0 to 1.8.0
+- *(deps)* Bump openssl from 0.10.66 to 0.10.68
+- *(deps)* Bump serde from 1.0.210 to 1.0.215
+- *(deps)* Bump simd-json from 0.14.2 to 0.14.3
+- *(deps)* Bump rustls from 0.23.15 to 0.23.17
+- *(deps)* Bump serde_json from 1.0.132 to 1.0.133
+- *(deps)* Bump clap from 4.5.20 to 4.5.21
+- *(deps-dev)* Bump tailwindcss in /examples/counter
+- *(deps-dev)* Bump tailwindcss in /examples/application
+- *(deps)* Bump cross-spawn from 7.0.3 to 7.0.6 in /examples/minimal
+- *(deps)* Bump cross-spawn from 7.0.3 to 7.0.6 in /examples/counter
+- *(deps)* Bump extism from 1.8.0 to 1.9.0
+- *(deps)* Bump hyper from 1.5.0 to 1.5.1
+- *(deps)* Bump tokio from 1.40.0 to 1.41.1
+- *(deps)* Bump rustls from 0.23.17 to 0.23.18
+
 ## [0.12.30] - 2024-10-22
 
 ### 🐛 Bug Fixes
