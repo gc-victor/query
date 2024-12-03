@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.32] - 2024-12-03
+
+### 🚀 Features
+
+- *(server)* Move function and function_builder
+- *(server)* Builder query cache invalidate
+
 ## [0.12.31] - 2024-12-03
 
 ### 🚀 Features
