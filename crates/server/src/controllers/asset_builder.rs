@@ -1,5 +1,6 @@
 use anyhow::Result;
 use hyper::{body::Incoming, Method, Request, Response};
+use query_runtime::sqlite::query_cache_invalidate;
 use regex::Regex;
 use rusqlite::named_params;
 use serde::Deserialize;
@@ -53,6 +54,7 @@ pub async fn asset_builder(
             }?;
 
             clear_response_cache(CacheResponseType::Asset);
+            query_cache_invalidate();
 
             let conn = connect_cache_invalidation_db()?;
             conn.execute(
@@ -77,6 +79,7 @@ pub async fn asset_builder(
             }?;
 
             clear_response_cache(CacheResponseType::Asset);
+            query_cache_invalidate();
 
             let conn = connect_cache_invalidation_db()?;
             conn.execute(
