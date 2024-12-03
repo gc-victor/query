@@ -1,5 +1,6 @@
 use anyhow::Result;
 use hyper::{body::Incoming, Method, Request, Response};
+use query_runtime::sqlite::query_cache_invalidate;
 use rusqlite::named_params;
 use serde::Deserialize;
 use serde_bytes::ByteBuf;
@@ -54,6 +55,7 @@ pub async fn function_builder(
             clear_response_cache(CacheResponseType::Function);
             clear_cache(CacheType::Path);
             clear_cache(CacheType::Function);
+            query_cache_invalidate();
 
             let conn = connect_cache_invalidation_db()?;
             conn.execute(
@@ -80,6 +82,7 @@ pub async fn function_builder(
             clear_response_cache(CacheResponseType::Function);
             clear_cache(CacheType::Path);
             clear_cache(CacheType::Function);
+            query_cache_invalidate();
 
             let conn = connect_cache_invalidation_db()?;
             conn.execute(
