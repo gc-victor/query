@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.33] - 2024-12-04
+
+### 🐛 Bug Fixes
+
+- *(jsx_parser)* Component spread
+
 ## [0.12.32] - 2024-12-03
 
 ### 🚀 Features
