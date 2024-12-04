@@ -233,10 +233,7 @@ fn transform_component_attributes(attributes: &[JSXAttribute]) -> Result<String,
             }
             None => {
                 if attr.name.starts_with("...") {
-                    attr_parts.push(format!(
-                        r#"`${{__jsxSpread({})}}`"#,
-                        attr.name.replace("...", "")
-                    ));
+                    attr_parts.push(format!("{{{}}}", attr.name));
                 } else {
                     attr_parts.push(format!(r#"`{}`"#, attr.name));
                 }
@@ -754,7 +751,7 @@ mod tests {
         let result = jsx_precompile(source).unwrap();
         assert_eq!(
             result,
-            "const el = `${__jsxComponent($Component, [`${__jsxSpread(props)}`], `content`)}`;"
+            "const el = `${__jsxComponent($Component, [{...props}], `content`)}`;"
         );
     }
 
@@ -791,7 +788,7 @@ mod tests {
     fn test_nested_components_and_element() {
         let source = r#"const el = <ParentComponent attr="val"  moto><ChildComponent {...spread}><div>Inner content</div></ChildComponent></ParentComponent>;"#;
         let result = jsx_precompile(source).unwrap();
-        let expected = "const el = `${__jsxComponent(ParentComponent, [{\"attr\":\"val\"},`moto`], `${__jsxComponent(ChildComponent, [`${__jsxSpread(spread)}`], `<div>Inner content</div>`)}`)}`;";
+        let expected = "const el = `${__jsxComponent(ParentComponent, [{\"attr\":\"val\"},`moto`], `${__jsxComponent(ChildComponent, [{...spread}], `<div>Inner content</div>`)}`)}`;";
         assert_eq!(result, expected);
     }
 
@@ -836,6 +833,16 @@ mod tests {
         assert_eq!(
             result,
             "const el = `${__jsxTemplate(`<div>${items.map(item => `<li>${item}</li>`)}</div>`)}`;"
+        );
+    }
+
+    #[test]
+    fn test_loop_component_spread() {
+        let source = r#"const el = <div>{posts.map((post) => <Component {...post} />)}</div>;"#;
+        let result = jsx_precompile(source).unwrap();
+        assert_eq!(
+            result,
+            "const el = `${__jsxTemplate(`<div>${posts.map((post) => `${__jsxComponent(Component, [{...post}])}`)}</div>`)}`;"
         );
     }
 
