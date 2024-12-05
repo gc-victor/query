@@ -1,24 +1,11 @@
-import type { Signal } from "@preact/signals";
-
-interface CounterProps {
-    count: Signal<number>;
-}
-
-let initialValue: number | undefined;
-
-export function Counter({ count }: CounterProps) {
-    initialValue = initialValue ?? count.value;
-
+export function Counter({ count }: { count: number }) {
     return (
         <>
             <div className="flex items-center justify-center text-4xl font-bold text-slate-800 dark:text-slate-200 mb-6">
                 <button
                     className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                    onClick={() => {
-                        count.value = (count.value as number) - 1;
-                    }}
-                    disabled={count.value === 0}
                     type="button"
+                    data-action="decrement"
                 >
                     <svg
                         className="w-6 h-6"
@@ -36,13 +23,11 @@ export function Counter({ count }: CounterProps) {
                         <path d="M5 12h14" />
                     </svg>
                 </button>
-                <span className="mx-4 w-12">{count}</span>
+                <span className="mx-4 w-12" data-counter>{count}</span>
                 <button
                     className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                    onClick={() => {
-                        count.value = (count.value as number) + 1;
-                    }}
                     type="button"
+                    data-action="increment"
                 >
                     <svg
                         className="w-6 h-6"
@@ -89,10 +74,8 @@ export function Counter({ count }: CounterProps) {
                         px-4
                         py-2
                         mr-2"
-                    onClick={() => {
-                        count.value = initialValue as number;
-                    }}
                     type="reset"
+                    data-action="reset"
                 >
                     Reset
                 </button>

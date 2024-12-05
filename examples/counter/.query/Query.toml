@@ -6,19 +6,23 @@ functions_folder = "src"
 migrations_folder = "migrations"
 
 [esbuild]
-"loader:.html" = "text"
+"external:query:database" = ""
 "loader:.svg" = "text"
+"jsx" = "preserve"
 
 [task]
-clean = ".query/tasks/clean.sh &"
-deploy = ".query/tasks/deploy.sh &"
-bundle = ".query/tasks/bundle.sh &"
+clean = ".query/tasks/clean.sh"
+deploy = ".query/tasks/deploy.sh"
+bundle = ".query/tasks/bundle.sh"
 tailwind = "node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
 
 [task.create]
-migration = "node_modules/.bin/query task migration -y"
-deploy = ".query/tasks/deploy.sh &"
+migrations = "node_modules/.bin/query task migrations -y"
+deploy = ".query/tasks/deploy.sh"
 
 [task.dev]
-bundle = ".query/tasks/bundle.sh &"
+bundle = ".query/tasks/bundle.sh"
 tailwind = "node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
+
+[task.migrations]
+001_create_counter_table = "node_modules/.bin/query migration counter.sql migrations/counter.sql/001_counter.sql"

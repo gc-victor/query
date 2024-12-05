@@ -11,7 +11,7 @@ export async function handleRequest(req: Request) {
         html: await body.text(),
     };
 
-    const message = `id: hot-reload\ndata: ${JSON.stringify(data)}\nretry: 150\n\n`;
+    const message = `id: hot-reload\ndata: ${JSON.stringify(data)}\nretry: 250\n\n`;
 
     return new Response(message, {
         headers: {

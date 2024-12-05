@@ -5,7 +5,17 @@ url = "http://localhost:3000"
 functions_folder = "src"
 
 [esbuild]
-"loader:.html" = "text"
 "external:query:database" = ""
+"jsx" = "preserve"
 
 [task]
+clean = ".query/tasks/clean.sh"
+deploy = ".query/tasks/deploy.sh"
+bundle = ".query/tasks/bundle.sh"
+tailwind = "node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
+
+[task.create]
+deploy = ".query/tasks/deploy.sh"
+
+[task.dev]
+bundle = ".query/tasks/bundle.sh & node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"

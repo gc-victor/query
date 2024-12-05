@@ -1,4 +1,3 @@
-import type { ComponentChildren } from "preact";
 
 type Tag = "button" | "a";
 type Variant = "sm" | "md" | "lg" | "w-sm" | "w-md" | "w-lg" | "transparent" | "link";

@@ -1,4 +1,3 @@
-import type { ComponentChildren } from "preact";
 
 export function Legend({ children = "", ...props }: { children?: ComponentChildren; [key: string]: unknown }) {
     return (

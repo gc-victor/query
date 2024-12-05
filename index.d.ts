@@ -16,5 +16,6 @@ declare global {
     }
     type ComponentChild = object | string | number | bigint | boolean | null | undefined;
     type ComponentChildren = ComponentChild[] | ComponentChild;
+    const Fragment: (props: JSX.Fragment) => ComponentChildren;
     const StringHTML: (input: string) => string;
 }

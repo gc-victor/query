@@ -1,4 +1,3 @@
-import type { ComponentChildren } from "preact";
 
 export function Label({
     children,

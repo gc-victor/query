@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Firefox */
+* {
+    scrollbar-width: auto;
+    scrollbar-color: var(--scrollbar-color-secondary) var(--scrollbar-color-primary);
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+    width: 15px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--scrollbar-color-primary);
+    border-radius: 5px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-color-secondary);
+    border-radius: 14px;
+    border: 3px solid var(--scrollbar-color-primary);
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Webfonts */
+
+@font-face {
+    font-family: "Cal Sans";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 800;
+    src: url("/_/asset/public/webfonts/cache/CalSans-SemiBold.woff2") format("woff2"),
+        url("/_/asset/public/webfonts/cache/CalSans-SemiBold.woff") format("woff"),
+        url("/_/asset/public/webfonts/cache/CalSans-SemiBold.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Red Hat Text";
+    font-style: normal;
+    font-display: optional;
+    font-weight: 400;
+    src: url("/_/asset/public/webfonts/cache/RedHatText-Regular.ttf") format("truetype");
+}
+
+body {
+    font-family: "Red Hat Text", sans-serif;
+}

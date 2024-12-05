@@ -6,7 +6,12 @@
     "linter": {
         "enabled": true,
         "rules": {
-            "recommended": true
+            "recommended": true,
+            "correctness": {
+                "useJsxKeyInIterable": {
+                    "level": "off"
+                }
+            }
         }
     },
     "files": {

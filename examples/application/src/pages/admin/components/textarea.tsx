@@ -1,4 +1,3 @@
-import type { ComponentChildren } from "preact";
 
 import { FieldError } from "./filed-error";
 import { Label } from "./label";

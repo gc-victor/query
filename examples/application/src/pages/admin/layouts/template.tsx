@@ -1,4 +1,3 @@
-import type { ComponentChildren } from "preact";
 
 export function Head({ children }: { children?: ComponentChildren }) {
     return (

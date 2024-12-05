@@ -9,14 +9,35 @@ declare global {
         };
     };
 
+    namespace JSX {
+        interface Element {
+            type: string;
+            props: { [key: string]: unknown };
+            children: unknown[];
+        }
+
+        interface IntrinsicElements {
+            [elemName: string]: unknown;
+            'counter-island': unknown;
+        }
+    }
+    type ComponentChild = object | string | number | bigint | boolean | null | undefined;
+    type ComponentChildren = ComponentChild[] | ComponentChild;
+    const Fragment: (props: JSX.Fragment) => ComponentChildren;
+    const StringHTML: (input: string) => string;
+
     class Database {
         constructor(path: string);
-        query(sql: string, params?: unknown[] | Record<string, unknown>): Promise<Record<string, unknown>[]>;
+        query<T>(sql: string, params?: unknown[]): T[];
+        query_cache<T>(query: string, params: Array<string | number | boolean | null>, ttl: number): T;
     }
- 
-    namespace JSX {
-        interface IntrinsicElements {
-            "is-land": unknown;
+    
+    declare module "*query:database" {
+        export class Database {
+            constructor(path: string);
+            query<T>(sql: string, params?: unknown[]): T[];
+            query_cache<T>(query: string, params: Array<string | number | boolean | null>, ttl: number): T;
+
         }
     }
 }

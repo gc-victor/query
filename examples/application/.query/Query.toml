@@ -6,13 +6,14 @@ functions_folder = "src"
 migrations_folder = "migrations"
 
 [esbuild]
-"loader:.html" = "text"
 "loader:.svg" = "text"
+"external:query:database" = ""
+"jsx" = "preserve"
 
 [task]
-clean = ".query/tasks/clean.sh &"
-deploy = ".query/tasks/deploy.sh &"
-bundle = ".query/tasks/bundle.sh &"
+clean = ".query/tasks/clean.sh"
+deploy = ".query/tasks/deploy.sh"
+bundle = ".query/tasks/bundle.sh"
 tailwind = "node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
 
 [task.create]
@@ -20,7 +21,7 @@ migration = "node_modules/.bin/query task migration -y"
 deploy = ".query/tasks/deploy.sh"
 
 [task.dev]
-bundle = ".query/tasks/bundle.sh & node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css &"
+bundle = ".query/tasks/bundle.sh & node_modules/.bin/tailwindcss -i ./src/pages/styles.css -o ./dist/styles.css"
 
 [task.migration]
 20240116141458 = "node_modules/.bin/query migration admin_user_session.sql migrations/admin_user_session.sql/20240116141458-admin_user_session-up.sql"
