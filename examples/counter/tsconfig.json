@@ -1,25 +1,24 @@
 {
-    "compilerOptions": {
-        "lib": ["ESNext"],
-        "baseUrl": "./src",
-        "paths": {
-            "@/*": ["./*"]
-        },
-        "module": "esnext",
-        "target": "esnext",
-        "moduleResolution": "bundler",
-        "moduleDetection": "force",
-        "allowImportingTsExtensions": true,
-        "noEmit": true,
-        "composite": true,
-        "strict": true,
-        "downlevelIteration": true,
-        "skipLibCheck": true,
-        "jsx": "react-jsx",
-        "jsxImportSource": "preact",
-        "allowSyntheticDefaultImports": true,
-        "forceConsistentCasingInFileNames": true,
-        "allowJs": true,
-        "types": ["preact", "./index.d.ts"]
-    }
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "composite": true,
+    "strict": true,
+    "downlevelIteration": true,
+    "skipLibCheck": true,
+    "jsx": "preserve",
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "types": ["./index.d.ts"]
+  }
 }

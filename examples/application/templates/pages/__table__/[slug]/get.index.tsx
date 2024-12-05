@@ -1,24 +1,24 @@
 import { {{ tableConstantCase }}_DATABASE } from "@/config/shared/{{ tableLowerCase }}.constants";
 import { HOME_PATH } from "@/config/shared/shared.constants";
 import { HotReload } from "@/pages/hot-reload/hot-reload";
-import { getNameHashed } from "@/lib/server/get-bundle-files";
+import { getAssetPath } from "@/lib/server/get-asset-path";
 import { NOT_FOUND_CODE } from "@/lib/server/status";
 import { render } from '@/lib/server/render';
 import { Html404 } from "@/pages/layouts/404";
 import { Layout } from "@/pages/layouts/layout";
 import { Body, Head } from "@/pages/layouts/template";
-import { SVG } from "@/pages/components/svg";
+import svg from "@/pages/pages.svg";
 import { Button } from "@/pages/components/button";
 import { {{ tablePascalCase }} } from "@/pages/{{ tableLowerCase }}/{{ tableLowerCase }}";
 
 export async function handleRequest(req: Request) {
     const url = new URL(req.url);
 
-    const stylesNameHashed = await getNameHashed("dist/styles.css");
+    const stylesPath = getAssetPath("dist/styles.css");
 
     try {
         const db = new Database({{ tableConstantCase }}_DATABASE);
-        const result = await db.query("SELECT * FROM  {{ tableSnakeCase }} WHERE uuid = ?", [url.pathname.replace("/{{ tableLowerCase }}/", "")]);
+        const result = db.query("SELECT * FROM  {{ tableSnakeCase }} WHERE uuid = ?", [url.pathname.replace("/{{ tableLowerCase }}/", "")]);
         const uuid = result[0]?.uuid as string;
         {% for column in columns %}
         const {{ column.columnNameCamelCase }} = result[0]?.{{ column.columnName }} as {{ column.columnTypeMatchTS }};
@@ -35,7 +35,7 @@ export async function handleRequest(req: Request) {
                 <>
                     <Head>
                         <title>Query {{ tableCapitalCase }} Item</title>
-                        <link rel="stylesheet" href={`/_/asset/${stylesNameHashed}`} />
+                        <link rel="stylesheet" href={stylesPath} />
                     </Head>
                     <Body class="overflow-y-scroll">
                         <Layout>
@@ -53,7 +53,7 @@ export async function handleRequest(req: Request) {
                                 </p>
                             </article>
                         </Layout>
-                        <SVG />
+                        { svg }
                         <HotReload href={url.href} />
                     </Body>
                 </>
@@ -70,7 +70,7 @@ export async function handleRequest(req: Request) {
                 <>
                     <Head>
                         <title>Page Not Found</title>
-                        <link rel="stylesheet" href={`/_/asset/${stylesNameHashed}`} />
+                        <link rel="stylesheet" href={stylesPath} />
                     </Head>
                     <Body class="overflow-y-scroll">
                         <Layout>

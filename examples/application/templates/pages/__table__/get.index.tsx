@@ -1,10 +1,10 @@
 import { {{ tableConstantCase }}_DATABASE } from "@/config/shared/{{ tableLowerCase }}.constants";
 import { HotReload } from "@/pages/hot-reload/hot-reload";
-import { getNameHashed } from "@/lib/server/get-bundle-files";
+import { getAssetPath } from "@/lib/server/get-asset-path";
 import { render } from '@/lib/server/render';
 import { Layout } from "@/pages/layouts/layout";
 import { Body, Head } from "@/pages/layouts/template";
-import { SVG } from "@/pages/components/svg";
+import svg from "@/pages/pages.svg";
 import { {{ tablePascalCase }} } from "@/pages/{{ tableLowerCase }}/{{ tableLowerCase }}";
 
 export interface {{ tablePascalCase }}Type {
@@ -20,7 +20,7 @@ export async function handleRequest(req: Request) {
     const url = new URL(req.url);
 
     const db = new Database({{ tableConstantCase }}_DATABASE);
-    const result = await db.query("SELECT * FROM  {{ tableSnakeCase }} ORDER BY created_at DESC");
+    const result = db.query("SELECT * FROM  {{ tableSnakeCase }} ORDER BY created_at DESC");
     const {{ tableCamelCase }}List = result.map(({{ tableCamelCase }}): {{ tablePascalCase }}Type => {
         {% for column in columns %}
         const {{ column.columnNameCamelCase }} = {{ tableCamelCase }}.{{ column.columnName }} as {{ column.columnTypeMatchTS }};
@@ -43,14 +43,14 @@ export async function handleRequest(req: Request) {
         };
     });
 
-    const stylesNameHashed = await getNameHashed("dist/styles.css");
+    const stylesPath = getAssetPath("dist/styles.css");
 
     return new Response((
             render(
                 <>
                     <Head>
                         <title>Query {{ tableCapitalCase }} List</title>
-                        <link rel="stylesheet" href={`/_/asset/${stylesNameHashed}`} />
+                        <link rel="stylesheet" href={stylesPath} />
                     </Head>
                     <Body class="overflow-y-scroll">
                         <Layout>
@@ -71,7 +71,7 @@ export async function handleRequest(req: Request) {
                                 )) }
                             </div>
                         </Layout>
-                        <SVG />
+                        { svg }
                         <HotReload href={url.href} />
                     </Body>
                 </>

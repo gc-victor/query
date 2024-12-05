@@ -1,26 +1,10 @@
 /// <reference lib="dom" />
 
-import type { JSX as PreactJSX } from 'preact';
-
-declare module 'preact' {
-    namespace JSX {
-        interface IntrinsicElements extends PreactJSX.IntrinsicElements {
-            'table-element': TableElementProps;
-        }
-    }
-}
-
 interface TableElementProps extends HTMLAttributes<HTMLTableElement> {
     url: string;
 }
 
-interface Table extends React.HTMLAttributes {
-    url: string;
-}
-
 declare global {
-    // NOTE: To avoid editor ts error
-
     interface Window {
         SideDrawer: NodeElement;
     }
@@ -31,14 +15,34 @@ declare global {
         };
     };
 
+    namespace JSX {
+        interface Element {
+            type: string;
+            props: { [key: string]: unknown };
+            children: unknown[];
+        }
+
+        interface IntrinsicElements {
+            [elemName: string]: unknown;
+            'table-element': TableElementProps;
+        }
+    }
+    type ComponentChild = object | string | number | bigint | boolean | null | undefined;
+    type ComponentChildren = ComponentChild[] | ComponentChild;
+    const StringHTML: (input: string) => string;
+
     class Database {
         constructor(path: string);
-        query(sql: string, params?: unknown[] | Record<string, unknown>): Promise<Record<string, unknown>[]>;
+        query<T>(sql: string, params?: unknown[]): T[];
+        query_cache<T>(query: string, params: Array<string | number | boolean | null>, ttl: number): T;
     }
 
-    declare module "*.html" {
-        const content: string;
-        export default content;
+    declare module "*query:database" {
+        export class Database {
+            constructor(path: string);
+            query<T>(sql: string, params?: unknown[]): T[];
+            query_cache<T>(query: string, params: Array<string | number | boolean | null>, ttl: number): T;
+        }
     }
 
     declare module "*.svg" {
@@ -46,3 +50,5 @@ declare global {
         export default content;
     }
 }
+
+export type {};

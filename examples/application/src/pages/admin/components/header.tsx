@@ -1,4 +1,3 @@
-import type { ComponentChildren } from "preact";
 
 import { API_ADMIN_LOGOUT_PATH } from "@/config/shared/shared.constants";
 import { Button } from "./button";

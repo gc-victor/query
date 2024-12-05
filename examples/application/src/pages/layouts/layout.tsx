@@ -1,5 +1,3 @@
-import type { ComponentChildren } from "preact";
-
 import { PAGE_POST_PATH } from "@/config/shared/post.constants";
 
 export function Layout({ children }: { children?: ComponentChildren }) {

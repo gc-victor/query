@@ -15,11 +15,10 @@
         "strict": true,
         "downlevelIteration": true,
         "skipLibCheck": true,
-        "jsx": "react-jsx",
-        "jsxImportSource": "preact",
+        "jsx": "preserve",
         "allowSyntheticDefaultImports": true,
         "forceConsistentCasingInFileNames": true,
         "allowJs": true,
-        "types": ["preact", "./index.d.ts"]
+        "types": ["./index.d.ts"]
     }
 }

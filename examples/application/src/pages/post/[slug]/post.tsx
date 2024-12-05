@@ -7,8 +7,6 @@ export interface PostType {
 }
 
 export function Post({ image_url, datetime, created_at, title, content }: PostType) {
-    // console.error(JSON.stringify({ content }));
-
     return (
         <article>
             <header class="text-center">
@@ -27,14 +25,7 @@ export function Post({ image_url, datetime, created_at, title, content }: PostTy
                 </p>
                 <h1 class="font-cal font-bold mt-4 text-5xl text-slate-900">{title}</h1>
             </header>
-            <div
-                id="post"
-                class="mt-8 text-slate-700 space-y-4 leading-6"
-                // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-                dangerouslySetInnerHTML={{
-                    __html: content,
-                }}
-            />
+            <div id="post" class="mt-8 text-slate-700 space-y-4 leading-6">{ content }</div>
         </article>
     );
 }

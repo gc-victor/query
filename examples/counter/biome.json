@@ -10,9 +10,7 @@
         }
     },
     "files": {
-        "ignore": [
-            "templates"
-        ]
+        "ignore": ["templates"]
     },
     "formatter": {
         "enabled": true,

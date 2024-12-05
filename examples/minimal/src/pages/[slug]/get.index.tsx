@@ -1,5 +1,6 @@
-// https://marketplace.visualstudio.com/items?itemName=Tobermory.es6-string-html
-const js = String.raw;
+import { Database } from "query:database";
+import { HotReload } from "@/pages/hot-reload/hot-reload";
+import { render } from "../render";
 
 export async function handleRequest(req: Request) {
     const url = new URL(req.url);
@@ -7,20 +8,32 @@ export async function handleRequest(req: Request) {
     const slug = href.split("/").pop();
     const title = slug ? slug.charAt(0).toUpperCase() + slug.slice(1) : "";
 
+    const db = new Database("query_asset.sql");
+    const result = db.query("SELECT name_hashed FROM asset WHERE name = ?", ["dist/styles.css"]) as {
+        name_hashed: string;
+    }[];
+    const styles = `/_/asset/${result[0].name_hashed}`;
+
     return new Response(
-        js`
-        <!DOCTYPE html>
-        <html>
-            <head>
-                <title>${title}</title>
-                <script src="/_/asset/public/js/hot-reload.js"></script>
-            </head>
-            <body>
-                <h1>${title}</h1>
-                <p></p>
-            </body>
-        </html>
-    `,
+        render(
+            <>
+                <head>
+                    <title>{title}</title>
+                    <link rel="stylesheet" href={styles} />
+                </head>
+                <body class="bg-slate-100 text-slate-900">
+                    <div class="container mx-auto pt-12 p-4">
+                        <h1 class="text-4xl font-cal mb-4 text-slate-700">{title}</h1>
+                        <p class="text-lg mb-4">This page is a dynamic route.</p>
+                        <ul class="flex gap-4 mb-4">
+                            <li><a href="/" class="text-blue-600 hover:text-blue-800 underline">Home</a></li>
+                            <li><a href="/no-dynamic" class="text-blue-600 hover:text-blue-800 underline">No Dynamic</a></li>
+                        </ul>
+                        <HotReload href={url.href} />
+                    </div>
+                </body>
+            </>
+        ),
         {
             status: 200,
             headers: {
