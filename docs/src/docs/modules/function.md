@@ -38,6 +38,162 @@ functions/
             └── get.index.js  // GET "/api/posts/:slug"
 ```
 
+### Dynamic Routes
+
+Query's dynamic route syntax allows you to create flexible, parameter-based routes, handle variable paths, and create RESTful resources.
+
+```javascript
+// src/users/get.[slug].js | src/users/[slug]/get.index.js 
+export async function handleRequest(req) {
+  const segments = req.url.split("/");
+  const userId = segments[segments.length - 1];
+
+  const db = new Database("app.sql");
+  const user = await db.query("SELECT * FROM users WHERE id = ?", [userId]);
+
+  if (!user.length) {
+    return new Response(JSON.stringify({ error: "User not found" }), {
+      status: 404,
+      headers: {
+        "content-type": "application/json",
+      },
+    });
+  }
+
+  return new Response(JSON.stringify({ data: user[0] }), {
+    status: 200,
+    headers: {
+      "content-type": "application/json",
+    },
+  });
+}
+```
+
+## JSX Syntax
+
+Query supports JSX syntax for building dynamic HTML responses, making it easy to generate complex HTML structures using components. It is **transpiled at build time** to standard JavaScript, so you can use JSX without any additional setup.
+
+```javascript
+// src/pages/get.index.js
+import { Head, Body } from "@/pages/components";
+import { App } from "@/pages/application";
+
+export async function handleRequest(req) {
+  return new Response(
+    `<!DOCTYPE html>${
+      <html lang="en">
+        <Head>
+          <title>Query</title>
+        </Head>
+        <Body>
+          <App />
+        </Body>
+      </html>
+    }`,
+    {
+      status: 200,
+      headers: {
+        "content-type": "text/html",
+      },
+    }
+  );
+}
+```
+
+To use JSX in your Query functions, make sure to add `"jsx" = "preserve"` to the `[esbuild]` section of your `Query.toml` file:
+
+```toml
+[esbuild]
+"jsx" = "preserve"
+```
+
+If you are using TypeScript, you have to also add the following to your `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    ...
+    "jsx": "preserve",
+    "jsxFactory": "jsx",
+    "jsxFragmentFactory": "Fragment",
+    ...
+  }
+}
+```
+
+### Inline JavaScript
+
+You can add an inline JavaScript code by using the `script` tag in the JSX syntax. Here is an example:
+
+```javascript
+...
+<script>
+  ${`console.log("Hello from inline JavaScript!");`}
+</script>
+...
+```
+
+### String HTML
+
+You can also use string HTML in the JSX syntax. Here is an example:
+
+```javascript
+...
+<div>
+  ${StringHTML(`<h1>Hello from string HTML!</h1>`)}
+</div>
+...
+```
+
+### Handling Different HTTP Methods
+
+Query supports all standard HTTP methods, making it easy to build RESTful APIs or handle various types of requests. Here's how to work with different request types and their data.
+
+#### GET with Query Parameters
+
+Process URL parameters and search queries with the built-in URL API, making it easy to handle user inputs and search requests.
+
+```javascript
+// src/posts/search/get.index.js
+export async function handleRequest(req) {
+  const url = new URL(req.url);
+  const query = url.searchParams.get("q");
+  const db = new Database("app.sql");
+
+  const results = await db.query("SELECT * FROM posts WHERE title LIKE ?", [`%${query}%`]);
+
+  return new Response(JSON.stringify({ data: results }), {
+    status: 200,
+    headers: {
+      "content-type": "application/json",
+    },
+  });
+}
+```
+
+#### POST with Form Data
+
+Handle form submissions and file uploads using the standard FormData API, making it familiar for web developers.
+
+```javascript
+// src/posts/upload/post.index.js
+export async function handleRequest(req) {
+  const formData = await req.formData();
+  const title = formData.get("title");
+  const content = formData.get("content");
+
+  const db = new Database("blog.sql");
+  await db.query("INSERT INTO posts (title, content) VALUES (?, ?)", [title, content]);
+
+  return new Response(JSON.stringify({ success: true }), {
+    status: 201,
+    headers: {
+      "content-type": "application/json",
+    },
+  });
+}
+```
+
 ## Working with Databases
 
 Query provides a straightforward database interface through its `Database` class. Unlike traditional ORMs or database clients, Query's database operations are designed to be simple and SQLite-native while providing all the power you need for complex operations.
@@ -79,86 +235,6 @@ export async function handleRequest(req) {
 
   return new Response(JSON.stringify({ success: true }), {
     status: 201,
-    headers: {
-      "content-type": "application/json",
-    },
-  });
-}
-```
-
-## Handling Different HTTP Methods
-
-Query supports all standard HTTP methods, making it easy to build RESTful APIs or handle various types of requests. Here's how to work with different request types and their data.
-
-### GET with Query Parameters
-
-Process URL parameters and search queries with the built-in URL API, making it easy to handle user inputs and search requests.
-
-```javascript
-// src/posts/search/get.index.js
-export async function handleRequest(req) {
-  const url = new URL(req.url);
-  const query = url.searchParams.get("q");
-  const db = new Database("app.sql");
-
-  const results = await db.query("SELECT * FROM posts WHERE title LIKE ?", [`%${query}%`]);
-
-  return new Response(JSON.stringify({ data: results }), {
-    status: 200,
-    headers: {
-      "content-type": "application/json",
-    },
-  });
-}
-```
-
-### POST with Form Data
-
-Handle form submissions and file uploads using the standard FormData API, making it familiar for web developers.
-
-```javascript
-// src/posts/upload/post.index.js
-export async function handleRequest(req) {
-  const formData = await req.formData();
-  const title = formData.get("title");
-  const content = formData.get("content");
-
-  const db = new Database("blog.sql");
-  await db.query("INSERT INTO posts (title, content) VALUES (?, ?)", [title, content]);
-
-  return new Response(JSON.stringify({ success: true }), {
-    status: 201,
-    headers: {
-      "content-type": "application/json",
-    },
-  });
-}
-```
-
-## Dynamic Routes
-
-Query's dynamic route syntax allows you to create flexible, parameter-based routes, handle variable paths, and create RESTful resources.
-
-```javascript
-// src/users/get.[slug].js | src/users/[slug]/get.index.js 
-export async function handleRequest(req) {
-  const segments = req.url.split("/");
-  const userId = segments[segments.length - 1];
-
-  const db = new Database("app.sql");
-  const user = await db.query("SELECT * FROM users WHERE id = ?", [userId]);
-
-  if (!user.length) {
-    return new Response(JSON.stringify({ error: "User not found" }), {
-      status: 404,
-      headers: {
-        "content-type": "application/json",
-      },
-    });
-  }
-
-  return new Response(JSON.stringify({ data: user[0] }), {
-    status: 200,
     headers: {
       "content-type": "application/json",
     },
