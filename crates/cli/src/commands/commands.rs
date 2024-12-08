@@ -39,6 +39,8 @@ pub enum Commands {
     Shell(ShellArgs),
     /// Execution of custom commands defined in the Query.toml file
     Task(TaskArgs),
+    /// Run a JavaScript/TypeScript test file
+    Test(TestArgs),
     /// Manage tokens without relation to a user
     Token(TokenArgs),
     /// Manage users
@@ -172,6 +174,16 @@ pub struct TaskArgs {
     /// Confirm the execution of the task
     #[arg(short, long, default_value_t = false)]
     pub yes: bool,
+}
+
+// Add new TestArgs struct
+#[derive(Args)]
+pub struct TestArgs {
+    /// Filter by test name pattern
+    #[arg(short = 't', long = "test-name-pattern")]
+    pub test_name_pattern: Option<String>,
+    /// Test files/directories to run (filters)
+    pub filters: Vec<String>,
 }
 
 #[derive(Args)]
