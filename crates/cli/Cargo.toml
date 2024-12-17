@@ -23,15 +23,24 @@ inquire = "0.7"
 jsx_parser = { path = "../jsx_parser" }
 lazy_static = "1.5"
 mime_guess = "2.0"
+num_cpus = "1.16.0"
 once_cell = "1.20"
 openssl = { version = "0.10", features = ["vendored"] }
+query-runtime = { path = "../runtime" }
+rayon = "1.10.0"
 regex = "1.11"
 reqwest = { version = "0.12", features = ["json"] }
+rquickjs = { version = "0.6.2", features = [
+    "full-async",
+    "parallel",
+    "rust-alloc",
+], default-features = false }
 rustyline = "15.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
 serde_json = "1.0"
 tabled = "0.17"
+tempfile = "3.14"
 tokio = { version = "1.42", features = ["full"] }
 toml = { version = "0.8", features = ["preserve_order"] }
 toml_edit = "0.22.22"

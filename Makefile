@@ -105,11 +105,17 @@ help:
 build-server:
 	cargo build --package=query-server --release
 
+debug-server:
+	cargo build --package=query-server
+
 build-server-watch:
 	cargo watch -c --ignore .dbs -x check -x clippy --shell "RUST_LOG=debug cargo build --package=query-server | bunyan"
 
 build-cli:
-	cargo build --package=query --profile dist
+	cargo build --package=query --release
+
+debug-cli:
+	cargo build --package=query
 
 # Changelog
 
@@ -297,7 +303,7 @@ run-release:
 	RUST_LOG=info cargo run --package=query-server --release -q | bunyan
 
 run-cli-release:
-	RUST_LOG=info cargo run --package=query --profile dist
+	RUST_LOG=info cargo run --package=query --release
 
 dev:
 	cargo watch -c --ignore .dbs -x check -x clippy --shell "RUST_LOG=debug cargo run --package=query-server | bunyan"
@@ -339,8 +345,14 @@ nextest-match:
 test-watch:
 	cargo watch -c -s "make test"
 
-test-js:
-	find crates/runtime/src/js -name '*.test.js' -exec node {} \;
+test-watch-js:
+	cargo watch --ignore .dbs --shell "make test-js -s"
+
+test-js: debug-cli
+	./target/debug/query test crates/runtime/src/js/ -s
+
+test-release-js: build-cli
+	./target/release/query test crates/runtime/src/js/ -s
 
 # Tag
 

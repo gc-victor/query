@@ -14,20 +14,16 @@ export const email = {
         }
 
         const emailData = {
-            from: options.from,
+            ...options,
             to: typeof options.to === "string" ? [options.to] : options.to,
-            subject: options.subject,
-            body: options.body,
-            reply_to: options.replyTo,
-            cc: typeof options.cc === "string" ? [options.cc] : options.cc,
+            cc: typeof options.cc === "string" ? [options.cc] : options.cc, 
             bcc: typeof options.bcc === "string" ? [options.bcc] : options.bcc,
-            attachment: options.attachment,
-            // The image `attachment` will display inline into the email. E.g. <img src="cid:123">
+            reply_to: options.replyTo,
             file_inline: options.fileInline,
             smtp_server: options.smtpServer,
             smtp_username: options.smtpUsername,
             smtp_password: options.smtpPassword,
-            smtp_protocol: options.smtpProtocol,
+            smtp_protocol: options.smtpProtocol
         };
 
         return await ___send_email(JSON.stringify(emailData));

@@ -1,19 +1,8 @@
-import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, expect, test } from "query:test";
 import { email } from "./email.js";
 
-describe("email.send", () => {
-    let capturedJsonString;
-
-    // Mock the ___send_email function
-    global.___send_email = (jsonString) => {
-        capturedJsonString = jsonString;
-        return "Email sent successfully";
-    };
-
-    it("should correctly format and send email data and return success", async () => {
-        capturedJsonString = null; // Reset before test
-
+describe("Basic email functionality", () => {
+    test("should correctly format and send email data and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: "recipient@example.com",
@@ -27,27 +16,30 @@ describe("email.send", () => {
             smtpPassword: "password",
         };
 
-        const result = await email.send(options);
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
+        };
 
+        const result = await email.send(options);
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.strictEqual(sentData.from, options.from);
-        assert.deepStrictEqual(sentData.to, [options.to]);
-        assert.strictEqual(sentData.subject, options.subject);
-        assert.strictEqual(sentData.body, options.body);
-        assert.strictEqual(sentData.reply_to, options.replyTo);
-        assert.deepStrictEqual(sentData.cc, [options.cc]);
-        assert.deepStrictEqual(sentData.bcc, [options.bcc]);
-        assert.strictEqual(sentData.smtp_server, options.smtpServer);
-        assert.strictEqual(sentData.smtp_username, options.smtpUsername);
-        assert.strictEqual(sentData.smtp_password, options.smtpPassword);
+        expect(sentData.from).toBe(options.from);
+        expect(sentData.to).toDeepEqual([options.to]);
+        expect(sentData.subject).toBe(options.subject);
+        expect(sentData.body).toBe(options.body);
+        expect(sentData.reply_to).toBe(options.replyTo);
+        expect(sentData.cc).toDeepEqual([options.cc]);
+        expect(sentData.bcc).toDeepEqual([options.bcc]);
+        expect(sentData.smtp_server).toBe(options.smtpServer);
+        expect(sentData.smtp_username).toBe(options.smtpUsername);
+        expect(sentData.smtp_password).toBe(options.smtpPassword);
 
-        assert.deepStrictEqual(result, "Email sent successfully");
+        expect(result).toBe("Email sent successfully");
     });
 
-    it("should handle missing optional fields and return success", async () => {
-        capturedJsonString = null; // Reset before test
-
+    test("should handle missing optional fields and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: "recipient@example.com",
@@ -55,27 +47,34 @@ describe("email.send", () => {
             body: "Test Body",
         };
 
-        const result = await email.send(options);
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
+        };
 
+        const result = await email.send(options);
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.strictEqual(sentData.from, options.from);
-        assert.deepStrictEqual(sentData.to, [options.to]);
-        assert.strictEqual(sentData.subject, options.subject);
-        assert.strictEqual(sentData.body, options.body);
-        assert.strictEqual(sentData.reply_to, undefined);
-        assert.strictEqual(sentData.cc, undefined);
-        assert.strictEqual(sentData.bcc, undefined);
-        assert.strictEqual(sentData.smtp_server, undefined);
-        assert.strictEqual(sentData.smtp_username, undefined);
-        assert.strictEqual(sentData.smtp_password, undefined);
+        expect(sentData.from).toBe(options.from);
+        expect(sentData.to).toDeepEqual([options.to]);
+        expect(sentData.subject).toBe(options.subject);
+        expect(sentData.body).toBe(options.body);
+        expect(sentData.reply_to).toBe(undefined);
+        expect(sentData.cc).toBe(undefined);
+        expect(sentData.bcc).toBe(undefined);
+        expect(sentData.smtp_server).toBe(undefined);
+        expect(sentData.smtp_username).toBe(undefined);
+        expect(sentData.smtp_password).toBe(undefined);
 
-        assert.deepStrictEqual(result, "Email sent successfully");
+        expect(result).toBe("Email sent successfully");
     });
+});
 
-    it("should handle multiple recipients and return success", async () => {
-        capturedJsonString = null; // Reset before test
+describe("Recipients handling", () => {
+    let capturedJsonString;
 
+    test("should handle multiple recipients and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: ["recipient1@example.com", "recipient2@example.com"],
@@ -83,108 +82,20 @@ describe("email.send", () => {
             body: "Test Body",
         };
 
-        const result = await email.send(options);
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
+        };
 
+        const result = await email.send(options);
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.deepStrictEqual(sentData.to, options.to);
-        assert.deepStrictEqual(result, "Email sent successfully");
+        expect(sentData.to).toDeepEqual(options.to);
+        expect(result).toBe("Email sent successfully");
     });
 
-    it("should throw an error when 'from' field is missing", async () => {
-        const options = {
-            to: "recipient@example.com",
-            subject: "Test Subject",
-            body: "Test Body",
-        };
-
-        await assert.rejects(
-            async () => {
-                await email.send(options);
-            },
-            {
-                name: "Error",
-                message: "From field is required",
-            },
-        );
-    });
-
-    it("should throw an error when 'to' field is missing", async () => {
-        const options = {
-            from: "sender@example.com",
-            subject: "Test Subject",
-            body: "Test Body",
-        };
-
-        await assert.rejects(
-            async () => {
-                await email.send(options);
-            },
-            {
-                name: "Error",
-                message: "To field is required",
-            },
-        );
-    });
-
-    it("should throw an error when 'to' field is an empty array", async () => {
-        const options = {
-            from: "sender@example.com",
-            to: [],
-            subject: "Test Subject",
-            body: "Test Body",
-        };
-
-        await assert.rejects(
-            async () => {
-                await email.send(options);
-            },
-            {
-                name: "Error",
-                message: "To field is required",
-            },
-        );
-    });
-
-    it("should throw an error when 'subject' field is missing", async () => {
-        const options = {
-            from: "sender@example.com",
-            to: "recipient@example.com",
-            body: "Test Body",
-        };
-
-        await assert.rejects(
-            async () => {
-                await email.send(options);
-            },
-            {
-                name: "Error",
-                message: "Subject field is required",
-            },
-        );
-    });
-
-    it("should throw an error when 'body' field is missing", async () => {
-        const options = {
-            from: "sender@example.com",
-            to: "recipient@example.com",
-            subject: "Test Subject",
-        };
-
-        await assert.rejects(
-            async () => {
-                await email.send(options);
-            },
-            {
-                name: "Error",
-                message: "Body field is required",
-            },
-        );
-    });
-
-    it("should handle multiple CC recipients and return success", async () => {
-        capturedJsonString = null; // Reset before test
-
+    test("should handle multiple CC recipients and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: "recipient@example.com",
@@ -193,17 +104,20 @@ describe("email.send", () => {
             cc: ["cc1@example.com", "cc2@example.com"],
         };
 
-        const result = await email.send(options);
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
+        };
 
+        const result = await email.send(options);
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.deepStrictEqual(sentData.cc, options.cc);
-        assert.deepStrictEqual(result, "Email sent successfully");
+        expect(sentData.cc).toDeepEqual(options.cc);
+        expect(result).toBe("Email sent successfully");
     });
 
-    it("should handle multiple BCC recipients and return success", async () => {
-        capturedJsonString = null; // Reset before test
-
+    test("should handle multiple BCC recipients and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: "recipient@example.com",
@@ -212,17 +126,87 @@ describe("email.send", () => {
             bcc: ["bcc1@example.com", "bcc2@example.com"],
         };
 
-        const result = await email.send(options);
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
+        };
 
+        const result = await email.send(options);
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.deepStrictEqual(sentData.bcc, options.bcc);
-        assert.deepStrictEqual(result, "Email sent successfully");
+        expect(sentData.bcc).toDeepEqual(options.bcc);
+        expect(result).toBe("Email sent successfully");
+    });
+});
+
+describe("Required field validation", () => {
+    let capturedJsonString;
+
+    test("should throw an error when 'from' field is missing", async () => {
+        const options = {
+            to: "recipient@example.com",
+            subject: "Test Subject",
+            body: "Test Body",
+        };
+
+        await expect(async () => {
+            await email.send(options);
+        }).toThrow("From field is required");
     });
 
-    it("should handle missing 'replyTo' field and return success", async () => {
-        capturedJsonString = null; // Reset before test
+    test("should throw an error when 'to' field is missing", async () => {
+        const options = {
+            from: "sender@example.com",
+            subject: "Test Subject",
+            body: "Test Body",
+        };
 
+        await expect(async () => {
+            await email.send(options);
+        }).toThrow("To field is required");
+    });
+
+    test("should throw an error when 'to' field is an empty array", async () => {
+        const options = {
+            from: "sender@example.com",
+            to: [],
+            subject: "Test Subject",
+            body: "Test Body",
+        };
+
+        await expect(async () => {
+            await email.send(options);
+        }).toThrow("To field is required");
+    });
+
+    test("should throw an error when 'subject' field is missing", async () => {
+        const options = {
+            from: "sender@example.com",
+            to: "recipient@example.com",
+            body: "Test Body",
+        };
+
+        await expect(async () => {
+            await email.send(options);
+        }).toThrow("Subject field is required");
+    });
+
+    test("should throw an error when 'body' field is missing", async () => {
+        const options = {
+            from: "sender@example.com",
+            to: "recipient@example.com",
+            subject: "Test Subject",
+        };
+
+        await expect(async () => {
+            await email.send(options);
+        }).toThrow("Body field is required");
+    });
+});
+
+describe("Optional fields handling", () => {
+    test("should handle missing 'replyTo' field and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: "recipient@example.com",
@@ -235,17 +219,20 @@ describe("email.send", () => {
             smtpPassword: "password",
         };
 
-        const result = await email.send(options);
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
+        };
 
+        const result = await email.send(options);
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.strictEqual(sentData.reply_to, undefined);
-        assert.deepStrictEqual(result, "Email sent successfully");
+        expect(sentData.reply_to).toBe(undefined);
+        expect(result).toBe("Email sent successfully");
     });
 
-    it("should handle missing 'cc' field and return success", async () => {
-        capturedJsonString = null; // Reset before test
-
+    test("should handle missing 'cc' field and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: "recipient@example.com",
@@ -258,17 +245,20 @@ describe("email.send", () => {
             smtpPassword: "password",
         };
 
-        const result = await email.send(options);
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
+        };
 
+        const result = await email.send(options);
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.strictEqual(sentData.cc, undefined);
-        assert.deepStrictEqual(result, "Email sent successfully");
+        expect(sentData.cc).toBe(undefined);
+        expect(result).toBe("Email sent successfully");
     });
 
-    it("should handle missing 'bcc' field and return success", async () => {
-        capturedJsonString = null; // Reset before test
-
+    test("should handle missing 'bcc' field and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: "recipient@example.com",
@@ -281,17 +271,20 @@ describe("email.send", () => {
             smtpPassword: "password",
         };
 
-        const result = await email.send(options);
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
+        };
 
+        const result = await email.send(options);
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.strictEqual(sentData.bcc, undefined);
-        assert.deepStrictEqual(result, "Email sent successfully");
+        expect(sentData.bcc).toBe(undefined);
+        expect(result).toBe("Email sent successfully");
     });
 
-    it("should handle missing 'smtpServer' field and return success", async () => {
-        capturedJsonString = null; // Reset before test
-
+    test("should handle missing 'smtpServer' field and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: "recipient@example.com",
@@ -304,17 +297,20 @@ describe("email.send", () => {
             smtpPassword: "password",
         };
 
-        const result = await email.send(options);
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
+        };
 
+        const result = await email.send(options);
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.strictEqual(sentData.smtp_server, undefined);
-        assert.deepStrictEqual(result, "Email sent successfully");
+        expect(sentData.smtp_server).toBe(undefined);
+        expect(result).toBe("Email sent successfully");
     });
 
-    it("should handle missing 'smtpUsername' field and return success", async () => {
-        capturedJsonString = null; // Reset before test
-
+    test("should handle missing 'smtpUsername' field and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: "recipient@example.com",
@@ -327,17 +323,20 @@ describe("email.send", () => {
             smtpPassword: "password",
         };
 
-        const result = await email.send(options);
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
+        };
 
+        const result = await email.send(options);
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.strictEqual(sentData.smtp_username, undefined);
-        assert.deepStrictEqual(result, "Email sent successfully");
+        expect(sentData.smtp_username).toBe(undefined);
+        expect(result).toBe("Email sent successfully");
     });
 
-    it("should handle missing 'smtpPassword' field and return success", async () => {
-        capturedJsonString = null; // Reset before test
-
+    test("should handle missing 'smtpPassword' field and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: "recipient@example.com",
@@ -350,17 +349,22 @@ describe("email.send", () => {
             smtpUsername: "username",
         };
 
-        const result = await email.send(options);
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
+        };
 
+        const result = await email.send(options);
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.strictEqual(sentData.smtp_password, undefined);
-        assert.deepStrictEqual(result, "Email sent successfully");
+        expect(sentData.smtp_password).toBe(undefined);
+        expect(result).toBe("Email sent successfully");
     });
+});
 
-    it("should handle attachment field and return success", async () => {
-        capturedJsonString = null; // Reset before test
-
+describe("Attachment handling", () => {
+    test("should handle attachment field and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: "recipient@example.com",
@@ -369,23 +373,28 @@ describe("email.send", () => {
             replyTo: "reply@example.com",
             cc: "cc@example.com",
             bcc: "bcc@example.com",
-            attachment: [{
-                filename: "file.txt",
-                content: "file content",
-                contentType: "text/plain",
-            }],
+            attachment: [
+                {
+                    filename: "file.txt",
+                    content: "file content",
+                    contentType: "text/plain",
+                },
+            ],
+        };
+
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
         };
 
         await email.send(options);
-
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.deepStrictEqual(sentData.attachment, options.attachment);
+        expect(sentData.attachment).toDeepEqual(options.attachment);
     });
 
-    it("should handle fileInline field and return success", async () => {
-        capturedJsonString = null; // Reset before test
-
+    test("should handle fileInline field and return success", async () => {
         const options = {
             from: "sender@example.com",
             to: "recipient@example.com",
@@ -394,18 +403,24 @@ describe("email.send", () => {
             replyTo: "reply@example.com",
             cc: "cc@example.com",
             bcc: "bcc@example.com",
-            fileInline: [{
-                content: "file content",
-                contentType: "text/plain",
-                contentId: "123",
-            }],
+            fileInline: [
+                {
+                    content: "file content",
+                    contentType: "text/plain",
+                    contentId: "123",
+                },
+            ],
+        };
+
+        let capturedJsonString = null;
+        global.___send_email = (jsonString) => {
+            capturedJsonString = jsonString;
+            return "Email sent successfully";
         };
 
         await email.send(options);
-
         const sentData = JSON.parse(capturedJsonString);
 
-        assert.deepStrictEqual(sentData.file_inline, options.fileInline);
-
+        expect(sentData.file_inline).toDeepEqual(options.fileInline);
     });
 });

@@ -19,12 +19,5 @@ lto = "thin"
 opt-level = "s"
 strip = true
 
-[profile.dist]
-inherits = "release"
-codegen-units = 1
-lto = "thin"
-opt-level = "s"
-strip = true
-
 [profile.dev.package."*"]
 opt-level = 3

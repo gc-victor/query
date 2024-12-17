@@ -17,7 +17,7 @@ use commands::{
     asset::command_asset, branch::command_branch, commands::Commands, create::command_create,
     deploy::command_deploy, dev::command_dev, function::command_function,
     generate::command_generate, migration::command_migration, plugin::command_plugin,
-    settings::command_settings, shell::command_shell, task::command_task,
+    settings::command_settings, shell::command_shell, task::command_task, test::command_test,
     token::command_token, user::command_user, user_token::command_user_token,
 };
 
@@ -65,6 +65,7 @@ async fn main() {
         Commands::Plugin(command) => command_plugin(command).await,
         Commands::Shell(command) => command_shell(command).await.unwrap(),
         Commands::Task(command) => command_task(command).unwrap(),
+        Commands::Test(command) => command_test(command).await.unwrap(),
         Commands::Token(command) => command_token(command).await.unwrap(),
         Commands::User(command) => command_user(command).await.unwrap(),
         Commands::UserToken(command) => command_user_token(command).await.unwrap(),
