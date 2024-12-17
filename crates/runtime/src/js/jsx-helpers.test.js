@@ -1,67 +1,65 @@
-import assert from "node:assert";
-import { describe, it } from "node:test";
-
+import { beforeEach, describe, expect, test } from "query:test";
 import "./jsx-helpers.js";
 
 describe("__jsxTemplate", () => {
-    it("should handle basic static template", () => {
+    test("should handle basic static template", () => {
         const result = __jsxTemplate("<div>Hello</div>");
-        assert.equal(result.toString(), "<div>Hello</div>");
+        expect(result.toString()).toBe("<div>Hello</div>");
     });
 
-    it("should handle template with dynamic values", () => {
+    test("should handle template with dynamic values", () => {
         const dynamicClass = "active";
         const result = __jsxTemplate(`<div class="${dynamicClass}">Content</div>`);
-        assert.equal(result.toString(), '<div class="active">Content</div>');
+        expect(result.toString()).toBe('<div class="active">Content</div>');
     });
 
-    it("should handle nested elements with dynamic content", () => {
+    test("should handle nested elements with dynamic content", () => {
         const items = ["one", "two"];
         const result = __jsxTemplate(`<div class="test"><ul>${items.map((item) => __jsxTemplate(`<li>${item}</li>`))}</ul></div>`);
-        assert.equal(result.toString(), '<div class="test"><ul><li>one</li><li>two</li></ul></div>');
+        expect(result.toString()).toBe('<div class="test"><ul><li>one</li><li>two</li></ul></div>');
     });
 });
 
 describe("__jsxComponent", () => {
-    it("should handle component with no props", () => {
+    test("should handle component with no props", () => {
         const Component = () => "<div>Basic Component</div>";
         const result = __jsxComponent(Component, []);
-        assert.equal(result.toString(), "<div>Basic Component</div>");
+        expect(result.toString()).toBe("<div>Basic Component</div>");
     });
 
-    it("should handle component with props", () => {
+    test("should handle component with props", () => {
         const Component = (props) => `<div class="${props.class}">With Props</div>`;
         const result = __jsxComponent(Component, [{ class: "test-class" }]);
-        assert.equal(result.toString(), '<div class="test-class">With Props</div>');
+        expect(result.toString()).toBe('<div class="test-class">With Props</div>');
     });
 
-    it("should handle component with children", () => {
+    test("should handle component with children", () => {
         const Component = ({ children }) => `<div>${children}</div>`;
         const result = __jsxComponent(Component, [], "<span>Child Content</span>");
-        assert.equal(result.toString(), "<div><span>Child Content</span></div>");
+        expect(result.toString()).toBe("<div><span>Child Content</span></div>");
     });
 
-    it("should handle component with props and children", () => {
+    test("should handle component with props and children", () => {
         const Component = ({ children, ...props }) => `<div id="${props.id}">${children}</div>`;
         const result = __jsxComponent(Component, [{ id: "test" }], "<span>Child Content</span>");
-        assert.equal(result.toString(), '<div id="test"><span>Child Content</span></div>');
+        expect(result.toString()).toBe('<div id="test"><span>Child Content</span></div>');
     });
 });
 
 describe("__jsxSpread", () => {
-    it("should spread object properties into string", () => {
+    test("should spread object properties into string", () => {
         const props = { class: "test", id: "main", disabled: true };
         const result = __jsxSpread(props);
-        assert.equal(result.toString(), 'class="test" id="main" disabled');
+        expect(result.toString()).toBe('class="test" id="main" disabled');
     });
 
-    it("should handle empty object", () => {
+    test("should handle empty object", () => {
         const props = {};
         const result = __jsxSpread(props);
-        assert.equal(result.toString(), "");
+        expect(result.toString()).toBe("");
     });
 
-    it("should handle boolean and null values", () => {
+    test("should handle boolean and null values", () => {
         const props = {
             visible: true,
             hidden: false,
@@ -69,10 +67,10 @@ describe("__jsxSpread", () => {
             zero: 0,
         };
         const result = __jsxSpread(props);
-        assert.equal(result.toString(), 'visible zero="0"');
+        expect(result.toString()).toBe('visible zero="0"');
     });
 
-    it("should handle complex jsx with conditions", () => {
+    test("should handle complex jsx with conditions", () => {
         const mockMenuItems = [
             { href: "/home", icon: "home", label: "Home" },
             { href: "/profile", icon: "user", label: "Profile", badge: 3, badgeType: "notification" },
@@ -112,6 +110,6 @@ describe("__jsxSpread", () => {
         const expected =
             '<div class="container light"><header class="header-class"><h1>Default Title</h1><nav><a key="0" href="/home" class="link-class active-class"><i>home</i><span>Home</span></a><a key="1" href="/profile" class="link-class "><i>user</i><span>Profile</span><span type="notification">3</span></a></nav><div class="user-menu"><img src="/avatar.jpg" alt="User avatar" /><span>John Doe</span><button onclick="handleLogout">Logout</button></div></header></div>';
 
-        assert.equal(result.toString().replace(/\s+/g, ""), expected.replace(/\s+/g, ""));
+        expect(result.toString().replace(/\s+/g, "")).toBe(expected.replace(/\s+/g, ""));
     });
 });

@@ -71,6 +71,7 @@ const EMAIL_SCRIPT_MODULE: &str = include_str!("js/email.js");
 const HANDLE_RESPONSE_SCRIPT_MODULE: &str = include_str!("js/handle-response.js");
 const JSX_HELPERS_SCRIPT_MODULE: &str = include_str!("js/jsx-helpers.js");
 const PLUGIN_SCRIPT_MODULE: &str = include_str!("js/plugin.js");
+const TEST_SCRIPT_MODULE: &str = include_str!("js/test.js");
 // Polyfill modules
 const BLOB_SCRIPT_MODULE: &str = include_str!("js/polyfills/blob.js");
 const CONSOLE_SCRIPT_MODULE: &str = include_str!("js/polyfills/console.js");
@@ -110,8 +111,9 @@ impl Runtime {
             .with_module("polyfill/response")
             .with_module("polyfill/web-streams")
             .with_module("query:email")
+            .with_module("query:database")
             .with_module("query:plugin")
-            .with_module("query:database");
+            .with_module("query:test");
         let loader = (
             BuiltinLoader::default()
                 .with_module("js/database", DATABASE_SCRIPT_MODULE)
@@ -127,7 +129,8 @@ impl Runtime {
                 .with_module("polyfill/web-streams", WEB_STREAMS_SCRIPT_MODULE)
                 .with_module("query:database", DATABASE_SCRIPT_MODULE)
                 .with_module("query:email", EMAIL_SCRIPT_MODULE)
-                .with_module("query:plugin", PLUGIN_SCRIPT_MODULE),
+                .with_module("query:plugin", PLUGIN_SCRIPT_MODULE)
+                .with_module("query:test", TEST_SCRIPT_MODULE),
             ModuleLoader::default()
                 .with_module("module", ModuleModule)
                 .with_module("url", UrlModule),
