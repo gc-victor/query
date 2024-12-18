@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.34] - 2024-12-18
+
+### 🚀 Features
+
+- *(example)* Update to jsx preserve
+- *(docs)* Add jsx server-side
+- Add test runner
+
+### 🐛 Bug Fixes
+
+- *(jsx_parser)* Child spaces and bool attr
+- *(runtime)* Return value accepts args
+
+### 📚 Documentation
+
+- Add cli test runner
+
+### Build
+
+- *(deps)* Bump tabled from 0.16.0 to 0.17.0
+- *(deps)* Bump clap from 4.5.21 to 4.5.23
+- *(deps)* Bump rustyline from 14.0.0 to 15.0.0
+- *(deps)* Bump chrono from 0.4.38 to 0.4.39
+- *(deps)* Bump tokio from 1.41.1 to 1.42.0
+- *(deps)* Bump lettre from 0.11.10 to 0.11.11
+- *(deps)* Bump colored from 2.1.0 to 2.2.0
+- *(deps)* Bump rustls from 0.23.19 to 0.23.20
+- *(deps)* Bump serde from 1.0.215 to 1.0.216
+- *(deps)* Bump time from 0.3.36 to 0.3.37
+
 ## [0.12.33] - 2024-12-04
 
 ### 🐛 Bug Fixes

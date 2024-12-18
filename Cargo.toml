@@ -8,12 +8,19 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.12.33"
+version = "0.12.34"
 authors = ["Víctor García"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [profile.release]
+codegen-units = 1
+lto = "thin"
+opt-level = "s"
+strip = true
+
+[profile.dist]
+inherits = "release"
 codegen-units = 1
 lto = "thin"
 opt-level = "s"
