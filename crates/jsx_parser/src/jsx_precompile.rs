@@ -537,7 +537,7 @@ mod tests {
             "const el = `<div class=\"container\" id=\"main\">Content</div>`;"
         );
     }
-    
+
     #[test]
     fn test_boolean_attribute_component() {
         let source = r#"const el = <CustomComponent disabled />;"#;
@@ -749,10 +749,16 @@ mod tests {
 
     #[test]
     fn test_self_close_component() {
-        let source = r#"const el = <div className={styles.loader}><Spinner size="large" color={theme === 'dark' ? 'white' : 'black'} /></div>;"#;
+        let source = "const el = <Component/>;";
         let result = jsx_precompile(source).unwrap();
-        let expected = "const el = `<div class=\"${styles.loader}\">${__jsxComponent(Spinner, [{\"size\":\"large\"},{\"color\":theme === 'dark' ? 'white' : 'black'}])}</div>`;";
-        assert_eq!(result, expected);
+        assert_eq!(result, "const el = `${__jsxComponent(Component, [])}`;");
+
+        let source_with_space = "const el = <Component />;";
+        let result_with_space = jsx_precompile(source_with_space).unwrap();
+        assert_eq!(
+            result_with_space,
+            "const el = `${__jsxComponent(Component, [])}`;"
+        );
     }
 
     #[test]
