@@ -37,6 +37,7 @@
 - [Settings](./docs/cli/settings.md)
 - [Shell](./docs/cli/shell.md)
 - [Task](./docs/cli/task.md)
+- [Test](./docs/cli/test.md)
 - [Token](./docs/cli/token.md)
 - [User](./docs/cli/user.md)
   - [User Token](./docs/cli/user-token.md)
