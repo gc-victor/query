@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.35] - 2024-12-18
+
+### 🐛 Bug Fixes
+
+- *(jsx_parser)* Self closing component without spaces
+
 ## [0.12.34] - 2024-12-18
 
 ### 🚀 Features
