@@ -98,7 +98,15 @@ impl JSXExtractor {
 
                     // Look ahead to ensure the element name is valid
                     while let Some(&(_, c)) = chars.peek() {
-                        if c.is_whitespace() || c == CLOSE_ANGLE_BRACKET || c == OPEN_CURLY_BRACE {
+                        if c.is_whitespace()
+                            || c == CLOSE_ANGLE_BRACKET
+                            || c == OPEN_CURLY_BRACE
+                            || (c == SLASH
+                                && chars
+                                    .next()
+                                    .and_then(|_| chars.peek())
+                                    .map_or(false, |&(_, c)| c == CLOSE_ANGLE_BRACKET))
+                        {
                             return Some(from + i);
                         }
                         // Only continue if we find valid element name characters
@@ -431,6 +439,39 @@ mod tests {
             locations,
             vec![r#"<img src="test.jpg" alt="Test" />"#.to_string()]
         );
+    }
+
+    #[test]
+    fn test_self_closing_component_without_space() {
+        let input = r#"const el = <Component/>;"#;
+        let mut extractor = JSXExtractor::new(String::from(input));
+        let locations = extractor
+            .extract()
+            .expect("Failed to extract JSX locations");
+
+        assert_eq!(locations, vec!["<Component/>".to_string()]);
+    }
+
+    #[test]
+    fn test_self_closing_component_with_slash_in_name() {
+        let input = r#"const el = <Comp/onent />;"#;
+        let mut extractor = JSXExtractor::new(String::from(input));
+        let locations = extractor
+            .extract()
+            .expect("Failed to extract JSX locations");
+
+        assert_eq!(locations, Vec::<String>::new());
+    }
+
+    #[test]
+    fn test_self_closing_component_with_space() {
+        let input = r#"const el = <Component />;"#;
+        let mut extractor = JSXExtractor::new(String::from(input));
+        let locations = extractor
+            .extract()
+            .expect("Failed to extract JSX locations");
+
+        assert_eq!(locations, vec!["<Component />".to_string()]);
     }
 
     #[test]

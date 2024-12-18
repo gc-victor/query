@@ -106,7 +106,6 @@ pub enum TestRunnerError {
     QuickJsError(rquickjs::Error),
     ThreadError(String),
     TokioRuntimeError(String),
-    ParseError(String),
     RegexError(regex::Error),
 }
 
@@ -164,7 +163,6 @@ impl Display for TestRunnerError {
                 String::from('●').red(),
                 msg
             ),
-            Self::ParseError(msg) => write!(f, "{} Parse error: {}", String::from('●').red(), msg),
             Self::RegexError(err) => write!(f, "{} Regex error: {}", String::from('●').red(), err),
         }
     }
