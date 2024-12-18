@@ -161,7 +161,7 @@ class TestSuite {
                 stats.callCount++;
                 stats.called = true;
                 stats.calls.push(...args);
-                stats.returnValue = returnValue();
+                stats.returnValue = returnValue.apply(null, args);
                 return stats.returnValue;
             },
             writable: true,
