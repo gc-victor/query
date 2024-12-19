@@ -698,7 +698,7 @@ impl TestRunner {
 
         let path_str = path.to_string_lossy();
         let bundle_path = format!("{}/{}", outdir, path_str.split('/').last().unwrap());
-        let re = Regex::new(r"(\.jsx|\.tsx|\.ts)$").map_err(|e| TestRunnerError::RegexError(e))?;
+        let re = Regex::new(r"(\.jsx|\.tsx|\.ts)$").map_err(TestRunnerError::RegexError)?;
         let bundle_path = re.replace(&bundle_path, ".js").to_string();
         let function = fs::read_to_string(&bundle_path)?;
 

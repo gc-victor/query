@@ -258,14 +258,24 @@ fn transform_element(
     children: &[JSXNode],
 ) -> Result<String, JSXError> {
     let attrs = transform_element_attributes(attributes)?;
+
     let attrs_str = if !attrs.is_empty() {
-        format!(" {}", attrs.join(" "))
+        attrs
+            .iter()
+            .map(|attr| {
+                if attr.starts_with("${__jsxSpread") {
+                    attr.to_string()
+                } else {
+                    format!(" {}", attr)
+                }
+            })
+            .collect::<String>()
     } else {
         String::new()
     };
 
     if is_self_closing(tag) {
-        return Ok(format!("<{}{} />", tag, attrs_str));
+        return Ok(format!("<{}{}/>", tag, attrs_str));
     }
 
     let mut children_parts = Vec::new();
@@ -554,7 +564,7 @@ mod tests {
         let result = jsx_precompile(source).unwrap();
         assert_eq!(
             result,
-            r#"const el = `<input type="checkbox" disabled />`;"#
+            r#"const el = `<input type="checkbox" disabled/>`;"#
         );
     }
 
@@ -723,7 +733,7 @@ mod tests {
         let result = jsx_precompile(source).unwrap();
         assert_eq!(
             result,
-            "const el = `<div class=\"${dynamicClass}\" ${__jsxSpread(spread)} moto>Content</div>`;"
+            "const el = `<div class=\"${dynamicClass}\"${__jsxSpread(spread)} moto>Content</div>`;"
         );
     }
 
@@ -733,7 +743,7 @@ mod tests {
         let result = jsx_precompile(source).unwrap();
         assert_eq!(
             result,
-            "const el = `<label for=\"${data}\">My Label<input id=\"myInput\" /></label>`;"
+            "const el = `<label for=\"${data}\">My Label<input id=\"myInput\"/></label>`;"
         );
     }
 
@@ -743,7 +753,7 @@ mod tests {
             r#"const el = <label htmlFor="myInput">My Label<input id="myInput" /></label>;"#;
         let result = jsx_precompile(source).unwrap();
         let expected =
-            "const el = `<label for=\"myInput\">My Label<input id=\"myInput\" /></label>`;";
+            "const el = `<label for=\"myInput\">My Label<input id=\"myInput\"/></label>`;";
         assert_eq!(result, expected);
     }
 
@@ -830,7 +840,7 @@ mod tests {
     fn test_seo_component() {
         let source = r#"const el = <A><title>Query - An All-In-One Solution For Your Side-Projects And Startups</title><link rel="stylesheet" href={r}/></A>;"#;
         let result = jsx_precompile(source).unwrap();
-        let expected = "const el = `${__jsxComponent(A, [], `<title>Query - An All-In-One Solution For Your Side-Projects And Startups</title><link rel=\"stylesheet\" href=\"${r}\" />`)}`;";
+        let expected = "const el = `${__jsxComponent(A, [], `<title>Query - An All-In-One Solution For Your Side-Projects And Startups</title><link rel=\"stylesheet\" href=\"${r}\"/>`)}`;";
 
         assert_eq!(result, expected);
     }
@@ -917,7 +927,7 @@ onChange={() => onToggle(index)}
             .trim();
 
         let result = jsx_precompile(source).unwrap();
-        let expected = "const TodoList = ({items, onToggle}) => (\n`${__jsxTemplate(`<div class=\"${`todo-list ${items.length ? 'has-items' : ''}`}\"><header class=\"todo-header\"><h1>${items.length} Tasks Remaining</h1><input type=\"text\" ${__jsxSpread(inputProps)} placeholder=\"Add new task\" /></header><ul class=\"todo-items\">${items.map((item, index) => ( `<li key=\"${item.id}\" class=\"${item.completed ? 'completed' : ''}\"><input type=\"checkbox\" checked=\"${item.completed}\" onchange=\"${() => onToggle(index)}\" /><span class=\"todo-text\">${item.text}</span><button onclick=\"${() => onDelete(item.id)}\">Delete</button></li>` ))}</ul></div>`)}`)";
+        let expected = "const TodoList = ({items, onToggle}) => (\n`${__jsxTemplate(`<div class=\"${`todo-list ${items.length ? 'has-items' : ''}`}\"><header class=\"todo-header\"><h1>${items.length} Tasks Remaining</h1><input type=\"text\"${__jsxSpread(inputProps)} placeholder=\"Add new task\"/></header><ul class=\"todo-items\">${items.map((item, index) => ( `<li key=\"${item.id}\" class=\"${item.completed ? 'completed' : ''}\"><input type=\"checkbox\" checked=\"${item.completed}\" onchange=\"${() => onToggle(index)}\"/><span class=\"todo-text\">${item.text}</span><button onclick=\"${() => onDelete(item.id)}\">Delete</button></li>` ))}</ul></div>`)}`)";
 
         assert_eq!(result, expected);
     }
@@ -971,7 +981,7 @@ onChange={() => onToggle(index)}
             </div>
         ;"#;
         let result = jsx_precompile(input).unwrap();
-        let expected = "const el = `${__jsxTemplate(`<div class=\"${`container ${theme}`}\"><header class=\"${styles.header}\"><h1>${title || \"Default Title\"}</h1><nav>${menuItems.map((item, index) => ( `<a key=\"${index}\" href=\"${item.href}\" class=\"${`${styles.link} ${currentPath === item.href ? styles.active : ''}`}\">${item.icon && `${__jsxComponent(Icon, [{\"name\":item.icon}])}`}<span>${item.label}</span>${item.badge && ( `${__jsxComponent(Badge, [{\"count\":item.badge},{\"type\":item.badgeType}])}` )}</a>` ))}</nav>${user ? ( `<div class=\"${styles.userMenu}\"><img src=\"${user.avatar}\" alt=\"User avatar\" /><span>${user.name}</span><button onclick=\"${handleLogout}\">Logout</button></div>` ) : ( `<button class=\"${styles.loginButton}\" onclick=\"${handleLogin}\">Login</button>` )}</header><main class=\"${styles.main}\">${loading ? ( `<div class=\"${styles.loader}\">${__jsxComponent(Spinner, [{\"size\":\"large\"},{\"color\":theme === 'dark' ? 'white' : 'black'}])}</div>` ) : error ? ( `${__jsxComponent(ErrorMessage, [{\"message\":error},{\"onRetry\":handleRetry}])}` ) : ( `${children}` )}</main><footer class=\"${styles.footer}\"><p>&copy; ${currentYear} My Application</p></footer></div>`)}`\n        ;";
+        let expected = "const el = `${__jsxTemplate(`<div class=\"${`container ${theme}`}\"><header class=\"${styles.header}\"><h1>${title || \"Default Title\"}</h1><nav>${menuItems.map((item, index) => ( `<a key=\"${index}\" href=\"${item.href}\" class=\"${`${styles.link} ${currentPath === item.href ? styles.active : ''}`}\">${item.icon && `${__jsxComponent(Icon, [{\"name\":item.icon}])}`}<span>${item.label}</span>${item.badge && ( `${__jsxComponent(Badge, [{\"count\":item.badge},{\"type\":item.badgeType}])}` )}</a>` ))}</nav>${user ? ( `<div class=\"${styles.userMenu}\"><img src=\"${user.avatar}\" alt=\"User avatar\"/><span>${user.name}</span><button onclick=\"${handleLogout}\">Logout</button></div>` ) : ( `<button class=\"${styles.loginButton}\" onclick=\"${handleLogin}\">Login</button>` )}</header><main class=\"${styles.main}\">${loading ? ( `<div class=\"${styles.loader}\">${__jsxComponent(Spinner, [{\"size\":\"large\"},{\"color\":theme === 'dark' ? 'white' : 'black'}])}</div>` ) : error ? ( `${__jsxComponent(ErrorMessage, [{\"message\":error},{\"onRetry\":handleRetry}])}` ) : ( `${children}` )}</main><footer class=\"${styles.footer}\"><p>&copy; ${currentYear} My Application</p></footer></div>`)}`\n        ;";
         assert_eq!(result, expected);
     }
 }
