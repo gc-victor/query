@@ -6,11 +6,12 @@ use hyper_util::{
     client::legacy::Client,
     rt::{TokioExecutor, TokioTimer},
 };
+use llrt_utils::result::ResultExt;
 use once_cell::sync::Lazy;
 use rquickjs::{
     function::Opt,
     prelude::{Async, Func},
-    Array, Ctx, Error, Exception, FromIteratorJs, FromJs, Object, Result, Value,
+    Array, Ctx, Error, Exception, FromIteratorJs, FromJs, JsLifetime, Object, Result, Value,
 };
 use rustls::{crypto::ring, ClientConfig, RootCertStore};
 use tracing::warn;
@@ -19,12 +20,7 @@ use webpki_roots::TLS_SERVER_ROOTS;
 use core::str;
 use std::{env, time::Duration};
 
-use crate::{
-    environment,
-    http::headers::Headers,
-    utils::{object::get_bytes, result::ResultExt},
-    VERSION,
-};
+use crate::{environment, http::headers::Headers, utils::object::get_bytes, VERSION};
 
 pub const DEFAULT_CONNECTION_POOL_IDLE_TIMEOUT_SECONDS: u64 = 15;
 
@@ -44,7 +40,7 @@ pub static TLS_CONFIG: Lazy<ClientConfig> = Lazy::new(|| {
 
 #[allow(dead_code)]
 #[rquickjs::class]
-#[derive(rquickjs::class::Trace, Clone, Debug)]
+#[derive(rquickjs::class::Trace, JsLifetime, Clone, Debug)]
 pub struct ___FetcherResponse<'js> {
     #[qjs(skip_trace)]
     body: Option<Array<'js>>,

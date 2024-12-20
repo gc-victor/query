@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 
+use llrt_utils::result::ResultExt;
 use rquickjs::{
-    atom::PredefinedAtom, Array, ArrayBuffer, Coerced, Ctx, Exception, FromJs, Function, IntoAtom,
-    IntoJs, Object, Result, Symbol, TypedArray, Value,
+    Array, ArrayBuffer, Coerced, Ctx, Exception, FromJs, IntoAtom, IntoJs, Object, Result,
+    TypedArray, Value,
 };
-
-use super::result::ResultExt;
 
 #[allow(dead_code)]
 pub fn array_to_hash_map<'js>(
@@ -226,15 +225,6 @@ pub fn obj_to_array_buffer<'js>(
     Ok(None)
 }
 
-pub fn get_array_buffer_bytes(
-    array_buffer: ArrayBuffer<'_>,
-    start: usize,
-    end_end: usize,
-) -> Vec<u8> {
-    let bytes: &[u8] = array_buffer.as_ref();
-    bytes[start..end_end].to_vec()
-}
-
 pub fn get_bytes<'js>(ctx: &Ctx<'js>, value: Value<'js>) -> Result<Vec<u8>> {
     get_bytes_offset_length(ctx, value, 0, None)
 }
@@ -258,17 +248,5 @@ impl<'js> ObjectExt<'js> for Value<'js> {
             return obj.get_optional(k);
         }
         Ok(None)
-    }
-}
-
-pub trait CreateSymbol<'js> {
-    fn for_description(globals: &Object<'js>, description: &'static str) -> Result<Symbol<'js>>;
-}
-
-impl<'js> CreateSymbol<'js> for Symbol<'js> {
-    fn for_description(globals: &Object<'js>, description: &'static str) -> Result<Symbol<'js>> {
-        let symbol_function: Function = globals.get(PredefinedAtom::Symbol)?;
-        let for_function: Function = symbol_function.get(PredefinedAtom::For)?;
-        for_function.call((description,))
     }
 }

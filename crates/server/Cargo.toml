@@ -27,7 +27,7 @@ openssl = { version = "0.10", features = ["vendored"] }
 query-runtime = { path = "../runtime" }
 rbase64 = "2.0"
 regex = "1.11"
-rquickjs = { version = "0.6.2", features = [
+rquickjs = { git = "https://github.com/DelSkayn/rquickjs.git", version = "0.8.1", features = [
     "full-async",
     "parallel",
     "rust-alloc",

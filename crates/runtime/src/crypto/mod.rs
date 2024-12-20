@@ -1,10 +1,11 @@
+use llrt_utils::{class::get_class_name, result::ResultExt};
 use once_cell::sync::Lazy;
 use ring::rand::{SecureRandom, SystemRandom};
 use rquickjs::{prelude::Func, Ctx, Exception, Object, Result};
 use uuid::Uuid;
 use uuid_simd::UuidExt;
 
-use crate::utils::{class::get_class_name, object::obj_to_array_buffer, result::ResultExt};
+use crate::utils::object::obj_to_array_buffer;
 
 pub static SYSTEM_RANDOM: Lazy<SystemRandom> = Lazy::new(SystemRandom::new);
 

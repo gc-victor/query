@@ -1,14 +1,12 @@
-use rquickjs::{function::Opt, Ctx, Object, Result, Value};
+use llrt_utils::{bytes::ObjectBytes, result::ResultExt};
+use rquickjs::{function::Opt, Ctx, Object, Result};
 
-use crate::utils::{
-    object::{get_bytes, ObjectExt},
-    result::ResultExt,
-};
+use crate::utils::object::ObjectExt;
 
 use super::encoder::Encoder;
 
 #[rquickjs::class]
-#[derive(rquickjs::class::Trace)]
+#[derive(rquickjs::class::Trace, rquickjs::JsLifetime)]
 pub struct TextDecoder {
     #[qjs(skip_trace)]
     encoder: Encoder,
@@ -20,14 +18,10 @@ pub struct TextDecoder {
 impl<'js> TextDecoder {
     #[qjs(constructor)]
     pub fn new(ctx: Ctx<'js>, label: Opt<String>, options: Opt<Object<'js>>) -> Result<Self> {
-        let encoding = label
-            .0
-            .filter(|lbl| !lbl.is_empty())
-            .unwrap_or_else(|| String::from("utf-8"));
         let mut fatal = false;
         let mut ignore_bom = false;
 
-        let encoder = Encoder::from_str(&encoding).or_throw(&ctx)?;
+        let encoder = Encoder::from_optional_str(label.as_deref()).or_throw_range(&ctx, "")?;
 
         if let Some(options) = options.0 {
             if let Some(opt) = options.get_optional("fatal")? {
@@ -60,18 +54,20 @@ impl<'js> TextDecoder {
         self.ignore_bom
     }
 
-    pub fn decode(&self, ctx: Ctx<'js>, buffer: Value<'js>) -> Result<String> {
-        let bytes = get_bytes(&ctx, buffer)?;
-        let start_pos = if !self.ignore_bom && bytes.len() >= 2 && bytes[..2] == [0xFF, 0xFE] {
-            2
-        } else if !self.ignore_bom && bytes.len() >= 3 && bytes[..3] == [0xEF, 0xBB, 0xBF] {
-            3
+    pub fn decode(&self, ctx: Ctx<'js>, bytes: ObjectBytes<'js>) -> Result<String> {
+        let bytes = bytes.as_bytes();
+        let start_pos = if !self.ignore_bom {
+            match bytes.get(..3) {
+                Some([0xFF, 0xFE, ..]) | Some([0xFE, 0xFF, ..]) => 2,
+                Some([0xEF, 0xBB, 0xBF]) => 3,
+                _ => 0,
+            }
         } else {
             0
         };
 
         self.encoder
             .encode_to_string(&bytes[start_pos..], !self.fatal)
-            .or_throw(&ctx)
+            .or_throw_type(&ctx, "")
     }
 }

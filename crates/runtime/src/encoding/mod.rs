@@ -2,9 +2,8 @@ pub mod encoder;
 pub mod text_decoder;
 pub mod text_encoder;
 
+use llrt_utils::result::ResultExt;
 use rquickjs::{prelude::Func, Class, Ctx, Result};
-
-use crate::utils::result::ResultExt;
 
 use self::encoder::{bytes_from_b64, bytes_to_b64_string};
 use self::text_decoder::TextDecoder;
