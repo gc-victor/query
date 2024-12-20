@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.37] - 2024-12-20
+
+### 🐛 Bug Fixes
+
+- *(cli)* Function esbuild external
+
 ## [0.12.36] - 2024-12-19
 
 ### 🐛 Bug Fixes
