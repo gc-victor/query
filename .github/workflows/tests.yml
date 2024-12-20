@@ -32,7 +32,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install esbuild
         run: |
-          curl -fsSL https://esbuild.github.io/dl/latest | sh
+          curl -fsSL https://esbuild.github.io/dl/v0.24.0 | sh
           sudo mv ./esbuild /usr/local/bin/
           sudo chmod +x /usr/local/bin/esbuild
           esbuild --version
@@ -108,7 +108,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install esbuild
         run: |
-          curl -fsSL https://esbuild.github.io/dl/latest | sh
+          curl -fsSL https://esbuild.github.io/dl/v0.24.0 | sh
           sudo mv ./esbuild /usr/local/bin/
           sudo chmod +x /usr/local/bin/esbuild
           esbuild --version

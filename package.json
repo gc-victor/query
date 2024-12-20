@@ -4,7 +4,7 @@
 	"types": "./index.d.ts",
 	"devDependencies": {
 		"@biomejs/biome": "^1.8.3",
-		"esbuild": "^0.24.0"
+		"esbuild": "0.24.0"
 	},
 	"files": [
 		"index.d.ts"
