@@ -9,6 +9,7 @@ use std::{
     time::Instant,
 };
 
+use llrt_utils::class::get_class_name;
 use rquickjs::{
     atom::PredefinedAtom,
     function::{Constructor, Opt},
@@ -22,14 +23,11 @@ use tokio::sync::oneshot::{self, Receiver};
 
 use crate::timers::poll_timers;
 
-mod buffer;
 mod console;
 mod crypto;
 mod email;
 mod encoding;
 mod environment;
-mod events;
-mod exceptions;
 mod http;
 mod json;
 mod module;
@@ -51,7 +49,7 @@ use crate::{
     module::ModuleModule,
     number::number_to_string,
     url::UrlModule,
-    utils::{class::get_class_name, clone::structured_clone, object::get_bytes},
+    utils::{clone::structured_clone, object::get_bytes},
 };
 
 pub struct Runtime {
@@ -140,13 +138,15 @@ impl Runtime {
         let ctx = AsyncContext::full(&runtime).await?;
         ctx.with(|ctx| {
             (|| {
-                crate::buffer::init(&ctx)?;
+                llrt_modules::buffer::init(&ctx)?;
+                llrt_modules::events::init(&ctx)?;
+                llrt_modules::exceptions::init(&ctx)?;
+                llrt_modules::abort::init(&ctx)?;
+                llrt_modules::url::init(&ctx)?;
                 crate::console::init(&ctx)?;
                 crate::crypto::init(&ctx)?;
                 crate::email::init(&ctx)?;
                 crate::encoding::init(&ctx)?;
-                crate::events::init(&ctx)?;
-                crate::exceptions::init(&ctx)?;
                 crate::http::init(&ctx)?;
                 crate::plugin::init(&ctx)?;
                 crate::process::init(&ctx)?;

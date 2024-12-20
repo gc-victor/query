@@ -402,7 +402,7 @@ fn append_ctor_value<'js>(
 
 #[cfg(test)]
 mod tests {
-
+    use llrt_modules::buffer;
     use rquickjs::{function::Opt, Object, Value};
 
     use crate::{test_utils::utils::with_js_runtime, utils::clone::structured_clone};
@@ -410,7 +410,7 @@ mod tests {
     #[tokio::test]
     async fn clone() {
         with_js_runtime(|ctx| {
-            crate::buffer::init(&ctx)?;
+            buffer::init(&ctx)?;
             let value: Object = ctx.eval(
                 r#"
 const a = {
