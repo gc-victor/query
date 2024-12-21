@@ -5,8 +5,9 @@ Query's test suite provides a simple and efficient way to write and run tests fo
 ### Features
 
 - **Familiar Syntax**: Use `test`, `describe`, and `expect` functions similar to Jest.
-- **Assertion Matchers**: Validate your code with a variety of matchers like `.toBe`, `.toEqual`, and more. 
+- **Assertion Matchers**: Validate your code with a variety of matchers like `.toBe`, `.toEqual`, and more.
 - **Asynchronous Testing**: Support for async tests using `async/await`.
+- **Lifecycle Hooks**: Support for setup and teardown with `beforeAll`, `beforeEach`, `afterEach`, and `afterAll` hooks at both file and suite levels.
 - **Spying and Mocking**: Monitor function calls with `spyOn`.
 - **Command-Line Options**: Run tests with filters, watch mode, and more.
 
@@ -28,12 +29,12 @@ query test [filters] [options]
 - `-t`, `--test-name-pattern <pattern>`: Run only tests with names matching the given pattern.
 - `-w`, `--watch`: Watch for file changes and re-run tests automatically.
 
-### Examples 
+### Examples
 
 - **Run All Tests**
 
   ```bash
-  query test 
+  query test
   ```
 
 - **Run Specific Test Files**
@@ -102,7 +103,7 @@ describe("Math operations", () => {
 });
 ```
 
-### Asynchronous Tests 
+### Asynchronous Tests
 
 **Using `async/await`**
 
@@ -135,7 +136,7 @@ The `expect` function is used to assert that a value meets certain conditions. I
 
 - **`.toDeepEqual(expected)`**: Tests deep equality checking nested objects.
 
-  ```javascript  
+  ```javascript
   expect({ a: { b: 2 } }).toDeepEqual({ a: { b: 2 } });
   ```
 
@@ -172,7 +173,7 @@ The `expect` function is used to assert that a value meets certain conditions. I
 ```javascript
 test("number comparisons", () => {
   expect(10).toBe(10);
-  expect(5 + 5).toEqual(10); 
+  expect(5 + 5).toEqual(10);
 });
 ```
 
@@ -198,6 +199,112 @@ test("deep object equality", () => {
   expect(obj).toDeepEqual({ a: { b: { c: 3 } } });
 });
 ```
+
+## Lifecycle Hooks
+
+Query's test suite provides lifecycle hooks that allow you to run setup and teardown code at various points during test execution. These hooks can be defined at both the file level and within test suites.
+
+### Available Hooks
+
+| Hook         | Description                                   |
+| ------------ | --------------------------------------------- |
+| `beforeAll`  | Runs once before all tests in a file or suite |
+| `beforeEach` | Runs before each test in a file or suite      |
+| `afterEach`  | Runs after each test in a file or suite       |
+| `afterAll`   | Runs once after all tests in a file or suite  |
+
+### Hook Execution Order
+
+When running tests, hooks execute in the following order:
+
+1. File-level `beforeAll`
+2. Suite-level `beforeAll` (if within a describe block)
+3. File-level `beforeEach`
+4. Suite-level `beforeEach` (if within a describe block)
+5. Test execution
+6. Suite-level `afterEach` (if within a describe block)
+7. File-level `afterEach`
+8. Suite-level `afterAll` (if within a describe block)
+9. File-level `afterAll`
+
+### Example Usage
+
+```javascript
+import { describe, beforeAll, beforeEach, afterEach, afterAll, test, expect } from "query:test";
+
+// File-level hooks
+beforeAll(() => {
+  // Runs once before all tests in the file
+  console.log("File beforeAll");
+});
+
+beforeEach(() => {
+  // Runs before each test in the file
+  console.log("File beforeEach");
+});
+
+afterEach(() => {
+  // Runs after each test in the file
+  console.log("File afterEach");
+});
+
+afterAll(() => {
+  // Runs once after all tests in the file
+  console.log("File afterAll");
+});
+
+describe("test suite", () => {
+  // Suite-level hooks
+  beforeAll(() => {
+    // Runs once before all tests in this suite
+    console.log("Suite beforeAll");
+  });
+
+  beforeEach(() => {
+    // Runs before each test in this suite
+    console.log("Suite beforeEach");
+  });
+
+  afterEach(() => {
+    // Runs after each test in this suite
+    console.log("Suite afterEach");
+  });
+
+  afterAll(() => {
+    // Runs once after all tests in this suite
+    console.log("Suite afterAll");
+  });
+
+  test("example test", () => {
+    console.log("Test execution");
+    expect(true).toBeTruthy();
+  });
+});
+```
+
+For the example above, the output would show the following execution order:
+
+```
+File beforeAll
+Suite beforeAll
+File beforeEach
+Suite beforeEach
+Test execution
+Suite afterEach
+File afterEach
+Suite afterAll
+File afterAll
+```
+
+### Best Practices
+
+- Use `beforeAll` for one-time setup that is needed for all tests
+- Use `beforeEach` for setup that should be fresh for each test
+- Use `afterEach` to clean up after each test
+- Use `afterAll` for one-time cleanup after all tests
+- Keep hooks focused and minimal to prevent test interdependence
+- Consider using suite-level hooks to organize related setup/teardown
+- Use file-level hooks sparingly and only for truly global setup/teardown
 
 ## Spying and Mocking with `spyOn`
 
@@ -227,7 +334,7 @@ The `spyOn` function returns an object with the following properties:
 ```javascript
 test("spy on object method", () => {
   const calculator = {
-    add: (a, b) => a + b,  
+    add: (a, b) => a + b,
   };
 
   // Spy on the 'add' method
@@ -285,7 +392,7 @@ Test: subtraction fails
 Files: 2
 Tests: 5
 Passed: 4
-Failed: 1 
+Failed: 1
 Time: 30ms
 ```
 
@@ -309,7 +416,7 @@ Use the `--test-name-pattern` option to run only tests matching a specific patte
 query test --test-name-pattern "addition"
 ```
 
-### Running Specific Test Files 
+### Running Specific Test Files
 
 Specify the test files or directories as arguments to run only those tests.
 
