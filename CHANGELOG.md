@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.38] - 2024-12-21
+
+### 🚀 Features
+
+- *(runtime)* Update rquickjs to version 0.8.1
+- *(runtime)* Add lifecycle hooks
+
+### 🐛 Bug Fixes
+
+- Esbuild regression (pin to 0.24.0)
+
+### 📚 Documentation
+
+- Add test runner lifecycle hooks
+
 ## [0.12.37] - 2024-12-20
 
 ### 🐛 Bug Fixes
