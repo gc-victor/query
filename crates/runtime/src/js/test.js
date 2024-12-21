@@ -2,19 +2,16 @@ class TestSuite {
     #filename = null;
     #testResults = [];
     #currentSuite = null;
-    #beforeEachFns = [];
+    #fileHooks = {
+        beforeEach: [],
+        afterEach: [],
+        beforeAll: [],
+        afterAll: [],
+    };
+    #suiteHooks = {};
 
     constructor() {
         this.testNamePattern = null;
-
-        this.colors = {
-            green: "\x1b[32m",
-            red: "\x1b[31m",
-            reset: "\x1b[0m",
-            cyan: "\x1b[36m",
-            grey: "\x1b[90m",
-            bold: "\x1b[1m",
-        };
     }
 
     #now() {
@@ -23,31 +20,83 @@ class TestSuite {
 
     describe(name, fn) {
         this.#currentSuite = name;
-        this.#beforeEachFns = [];
+        this.#suiteHooks[name] = {
+            beforeEach: [],
+            afterEach: [],
+            beforeAll: [],
+            afterAll: [],
+        };
+
         try {
             fn();
         } catch (error) {
-            print(`${this.colors.red}Error in test suite "${name}":${this.colors.reset}`, error);
+            print(`Error in test suite "${name}":`);
+            print(error.message);
+            print(error.stack);
         }
         this.#currentSuite = null;
     }
 
     beforeEach(fn) {
-        this.#beforeEachFns.push(fn);
+        if (this.#currentSuite) {
+            this.#suiteHooks[this.#currentSuite].beforeEach.push(fn);
+        } else {
+            this.#fileHooks.beforeEach.push(fn);
+        }
+    }
+
+    afterEach(fn) {
+        if (this.#currentSuite) {
+            this.#suiteHooks[this.#currentSuite].afterEach.push(fn);
+        } else {
+            this.#fileHooks.afterEach.push(fn);
+        }
+    }
+
+    beforeAll(fn) {
+        if (this.#currentSuite) {
+            this.#suiteHooks[this.#currentSuite].beforeAll.push(fn);
+        } else {
+            this.#fileHooks.beforeAll.push(fn);
+        }
+    }
+
+    afterAll(fn) {
+        if (this.#currentSuite) {
+            this.#suiteHooks[this.#currentSuite].afterAll.push(fn);
+        } else {
+            this.#fileHooks.afterAll.push(fn);
+        }
     }
 
     async test(name, fn) {
-        if (this.testNamePattern && !name.includes(this.testNamePattern)) {
-            return;
-        }
-
         const start = this.#now();
         const filename = this.#filename;
         const currentSuite = this.#currentSuite;
 
         try {
-            for (const beforeFn of this.#beforeEachFns) {
+            for (const beforeFn of this.#fileHooks.beforeAll) {
                 beforeFn();
+            }
+
+            this.#fileHooks.beforeAll = [];
+
+            if (currentSuite) {
+                for (const beforeFn of this.#suiteHooks[currentSuite].beforeAll) {
+                    beforeFn();
+                }
+
+                this.#suiteHooks[currentSuite].beforeAll = [];
+            }
+
+            for (const beforeFn of this.#fileHooks.beforeEach) {
+                beforeFn();
+            }
+
+            if (currentSuite) {
+                for (const beforeFn of this.#suiteHooks[currentSuite].beforeEach) {
+                    beforeFn();
+                }
             }
 
             if (fn.constructor.name === "AsyncFunction") {
@@ -56,22 +105,46 @@ class TestSuite {
                 fn();
             }
 
+            this.afterHooks(currentSuite);
+
             this.#testResults.push({
                 filename: filename,
-                currentSuite: currentSuite,
+                currentSuite: currentSuite || "Global",
                 name,
                 start: start,
                 end: this.#now(),
             });
         } catch (error) {
+            this.afterHooks(currentSuite);
+
             this.#testResults.push({
                 filename: filename,
-                currentSuite: currentSuite,
+                currentSuite: currentSuite || "Global",
                 name,
                 start: start,
                 end: this.#now(),
                 error: error.message,
             });
+        }
+    }
+
+    afterHooks(currentSuite) {
+        if (currentSuite) {
+            for (const afterFn of this.#suiteHooks[currentSuite].afterEach) {
+                afterFn();
+            }
+        }
+
+        for (const afterFn of this.#fileHooks.afterEach) {
+            afterFn();
+        }
+
+        this.#suiteHooks[currentSuite].afterEach = [];
+
+        if (currentSuite) {
+            for (const afterFn of this.#suiteHooks[currentSuite].afterAll) {
+                afterFn();
+            }
         }
     }
 
@@ -170,71 +243,12 @@ class TestSuite {
         return stats;
     }
 
-    testsResults() {
+    async testsResults() {
+        for (const afterFn of this.#fileHooks.afterAll) {
+            afterFn();
+        }
+
         return this.#testResults;
-    }
-
-    printGlobalTestSummary() {
-        let totalTests = 0;
-        let totalPassed = 0;
-        let totalFailed = 0;
-        const totalResults = [];
-
-        print(`${this.#testResults.length}`);
-        console.log(this.#testResults);
-
-        for (const results of this.#testResults) {
-            const filename = results.filename;
-            const fileTotal = results.length;
-            const filePassed = results.filter((t) => t.passed).length;
-            const fileFailed = fileTotal - filePassed;
-
-            totalTests += fileTotal;
-            totalPassed += filePassed;
-            totalFailed += fileFailed;
-
-            totalResults.push({
-                filename,
-                total: fileTotal,
-                passed: filePassed,
-                failed: fileFailed,
-                results,
-            });
-        }
-
-        globalThis.___totalFailed = totalFailed;
-
-        print(`\nFiles: ${totalResults.length}`);
-        print(`Tests: ${totalTests}`);
-        print(`${this.colors.green}Passed: ${totalPassed}${this.colors.reset}`);
-        print(`${this.colors.red}Failed: ${totalFailed}${this.colors.reset}`);
-
-        if (totalResults[0].results.length) {
-            const firstTest = totalResults[0].results[0];
-            const lastTest = totalResults.at(-1).results.at(-1);
-            const totalTime = (lastTest.end - firstTest.start).toFixed(2);
-            print(`${this.colors.grey}Time: ${totalTime}ms${this.colors.reset}`);
-
-            for (const file of totalResults) {
-                if (file.failed === 0) {
-                    continue;
-                }
-
-                print(`\n${this.colors.red}File: ${file.filename}`);
-                print(`Failed: ${file.failed} tests${this.colors.reset}`);
-
-                const failedTests = file.results
-                    .filter((t) => !t.passed)
-                    .map((t) => ({
-                        name: t.name,
-                        message: t.error.message.split("\n").map((l) => `- ${l}`),
-                    }));
-
-                for (const test of failedTests) {
-                    print(`${this.colors.red}${test.name}\n${this.colors.red}${test.message.join("\n  ")}${this.colors.reset}`);
-                }
-            }
-        }
     }
 
     /**
@@ -247,11 +261,14 @@ class TestSuite {
 
 const testSuite = new TestSuite();
 
-export const describe = testSuite.describe.bind(testSuite);
+export const beforeAll = testSuite.beforeAll.bind(testSuite);
 export const beforeEach = testSuite.beforeEach.bind(testSuite);
+export const afterAll = testSuite.afterAll.bind(testSuite);
+export const afterEach = testSuite.afterEach.bind(testSuite);
+export const describe = testSuite.describe.bind(testSuite);
 export const test = testSuite.test.bind(testSuite);
 export const expect = testSuite.expect.bind(testSuite);
 export const spyOn = testSuite.spyOn.bind(testSuite);
 
-globalThis.___testsResults = globalThis.___testsResults || testSuite.testsResults.bind(testSuite);
-globalThis.___testFilename = globalThis.___testFilename || testSuite.setFilename.bind(testSuite);
+globalThis.___testsResults = testSuite.testsResults.bind(testSuite);
+globalThis.___testFilename = testSuite.setFilename.bind(testSuite);
