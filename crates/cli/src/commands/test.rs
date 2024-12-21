@@ -725,7 +725,9 @@ impl TestRunner {
                 globalThis.___testNamePattern = '{}'; \
                 globalThis.___testFilename('{path_str}'); \
                 {code} \
-                globalThis.___handleTests = async () => {{ return await Promise.resolve(globalThis.___testsResults()); }};
+                globalThis.___handleTests = async () => {{ \
+                    return await globalThis.___testsResults(); \
+                }};
             ",
             imports,
             self.test_name_pattern
