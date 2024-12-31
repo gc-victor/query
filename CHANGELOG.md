@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.39] - 2024-12-31
+
+### 🚀 Features
+
+- *(runtime)* Add llrt crypto module
+
+### Build
+
+- *(deps)* Bump serde from 1.0.216 to 1.0.217
+- *(deps)* Bump anyhow from 1.0.93 to 1.0.95
+- *(deps)* Bump hyper from 1.5.1 to 1.5.2
+- *(deps)* Bump hyper-rustls from 0.27.3 to 0.27.5
+- *(deps)* Bump serde_json from 1.0.133 to 1.0.134
+- *(deps-dev)* Bump @qery/query-server in /examples/minimal
+- *(deps-dev)* Bump tailwindcss in /examples/minimal
+- *(deps-dev)* Bump @qery/query-server in /examples/counter
+- *(deps-dev)* Bump esbuild from 0.24.0 to 0.24.2 in /examples/minimal
+- *(deps-dev)* Bump @qery/query in /examples/minimal
+- *(deps-dev)* Bump @qery/query in /examples/counter
+- *(deps-dev)* Bump esbuild from 0.24.0 to 0.24.2 in /examples/counter
+- *(deps-dev)* Bump tailwindcss in /examples/application
+- *(deps-dev)* Bump @qery/query-server in /examples/application
+- *(deps-dev)* Bump tailwindcss in /examples/counter
+- *(deps-dev)* Bump @qery/query in /examples/application
+- *(deps-dev)* Bump esbuild in /examples/application
+
 ## [0.12.38] - 2024-12-21
 
 ### 🚀 Features
