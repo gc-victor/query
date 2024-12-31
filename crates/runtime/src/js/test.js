@@ -149,7 +149,7 @@ class TestSuite {
     }
 
     expect(actual) {
-        return {
+        const matchers = {
             toBe(expected) {
                 if (actual !== expected) {
                     throw new Error(`Expected ${JSON.stringify(actual)} to be ${JSON.stringify(expected)}`);
@@ -206,6 +206,16 @@ class TestSuite {
                 }
             },
 
+            toMatch(pattern) {
+                if (typeof actual !== "string") {
+                    throw new Error(`Expected ${JSON.stringify(actual)} to be a string`);
+                }
+                const regex = pattern instanceof RegExp ? pattern : new RegExp(pattern);
+                if (!regex.test(actual)) {
+                    throw new Error(`Expected ${JSON.stringify(actual)} to match ${regex}`);
+                }
+            },
+
             toThrow() {
                 if (typeof actual !== "function") {
                     throw new Error("Expected a function to test for thrown errors");
@@ -214,11 +224,40 @@ class TestSuite {
                     actual();
                     throw new Error("Expected function to throw an error");
                 } catch (e) {
-                    // Successfully caught error
                     return true;
                 }
             },
         };
+
+        const wrapper = {
+            ...matchers,
+
+            get not() {
+                const negatedMatchers = {};
+
+                for (const [name, matcher] of Object.entries(matchers)) {
+                    negatedMatchers[name] = (...args) => {
+                        try {
+                            matcher.apply(this, args);
+                            throw new Error(
+                                `Expected ${JSON.stringify(actual)} not to ${name.toLowerCase()} ${
+                                    args.length ? JSON.stringify(args[0]) : ""
+                                }`,
+                            );
+                        } catch (error) {
+                            if (error.message.startsWith("Expected")) {
+                                return;
+                            }
+                            throw error;
+                        }
+                    };
+                }
+
+                return negatedMatchers;
+            },
+        };
+
+        return wrapper;
     }
 
     spyOn(obj, method, returnValue) {

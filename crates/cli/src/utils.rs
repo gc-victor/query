@@ -45,7 +45,7 @@ pub fn json_to_table(value: &Value) -> Result<String> {
 
     let array = value.as_array().unwrap();
 
-    if array.first().is_none() {
+    if array.is_empty() {
         return Ok(String::new());
     }
     let first_object = array.first().unwrap();

@@ -265,12 +265,11 @@ pub fn esbuild(function_path: &str) -> Result<Vec<u8>> {
         "--legal-comments=none".to_string(),
         "--minify=true".to_string(),
         "--target=esnext".to_string(),
-        "--platform=browser".to_string(),
+        "--platform=node".to_string(),
         "--external:query:database".to_string(),
         "--external:query:email".to_string(),
         "--external:query:database".to_string(),
         "--external:query:plugin".to_string(),
-        // "--external:query:test".to_string(),
         out_dir_flag.to_string(),
     ];
 

@@ -1,26 +1,9 @@
+use llrt_utils::module::{export_default, ModuleInfo};
 use rquickjs::{
     module::{Declarations, Exports, ModuleDef},
     prelude::Func,
-    Ctx, Object, Result, Value,
+    Ctx, Result, Value,
 };
-
-pub fn export_default<'js, F>(ctx: &Ctx<'js>, exports: &Exports<'js>, f: F) -> Result<()>
-where
-    F: FnOnce(&Object<'js>) -> Result<()>,
-{
-    let default = Object::new(ctx.clone())?;
-    f(&default)?;
-
-    for name in default.keys::<String>() {
-        let name = name?;
-        let value: Value = default.get(&name)?;
-        exports.export(name, value)?;
-    }
-
-    exports.export("default", default)?;
-
-    Ok(())
-}
 
 pub struct ModuleModule;
 
@@ -29,7 +12,7 @@ fn create_require(ctx: Ctx<'_>) -> Result<Value<'_>> {
 }
 
 impl ModuleDef for ModuleModule {
-    fn declare(declare: &Declarations<'_>) -> Result<()> {
+    fn declare(declare: &Declarations) -> Result<()> {
         declare.declare("createRequire")?;
         declare.declare("default")?;
 
@@ -44,5 +27,14 @@ impl ModuleDef for ModuleModule {
         })?;
 
         Ok(())
+    }
+}
+
+impl From<ModuleModule> for ModuleInfo<ModuleModule> {
+    fn from(val: ModuleModule) -> Self {
+        ModuleInfo {
+            name: "module",
+            module: val,
+        }
     }
 }

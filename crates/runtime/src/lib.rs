@@ -1,5 +1,6 @@
 use std::{
     cmp::min,
+    collections::HashSet,
     env, fmt,
     future::{poll_fn, Future},
     mem::MaybeUninit,
@@ -9,11 +10,16 @@ use std::{
     time::Instant,
 };
 
+use llrt_modules::{
+    abort, buffer::{self, BufferModule},
+    crypto::{self, CryptoModule},
+    events, exceptions, url,
+};
 use llrt_utils::class::get_class_name;
 use rquickjs::{
     atom::PredefinedAtom,
     function::{Constructor, Opt},
-    loader::{BuiltinLoader, BuiltinResolver, ModuleLoader},
+    loader::{BuiltinLoader, BuiltinResolver, ModuleLoader, Resolver},
     prelude::Func,
     qjs, AsyncContext, AsyncRuntime, CatchResultExt, CaughtError, Ctx, Error, Function, IntoJs,
     Object, Result, String as JsString, Value,
@@ -24,7 +30,6 @@ use tokio::sync::oneshot::{self, Receiver};
 use crate::timers::poll_timers;
 
 mod console;
-mod crypto;
 mod email;
 mod encoding;
 mod environment;
@@ -37,7 +42,6 @@ mod process;
 pub mod sqlite;
 mod test_utils;
 pub mod timers;
-mod url;
 mod utils;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -51,6 +55,32 @@ use crate::{
     url::UrlModule,
     utils::{clone::structured_clone, object::get_bytes},
 };
+
+#[derive(Debug, Default)]
+pub struct ModuleResolver {
+    modules: HashSet<String>,
+}
+
+impl ModuleResolver {
+    #[must_use]
+    pub fn with_module<P: Into<String>>(mut self, path: P) -> Self {
+        self.modules.insert(path.into());
+        self
+    }
+}
+
+impl Resolver for ModuleResolver {
+    fn resolve(&mut self, _: &Ctx<'_>, base: &str, name: &str) -> Result<String> {
+        let name = name.trim_start_matches("node:");
+        if self.modules.contains(name) {
+            eprintln!("base: {}, name: {}", base, name);
+            Ok(name.into())
+        } else {
+            eprintln!("Error - base: {}, name: {}", base, name);
+            Err(Error::new_resolving(base, name))
+        }
+    }
+}
 
 pub struct Runtime {
     pub runtime: AsyncRuntime,
@@ -96,22 +126,28 @@ impl Runtime {
             .set_gc_threshold(gc_threshold_mb * 1024 * 1024)
             .await;
 
-        let resolver = BuiltinResolver::default()
-            .with_module("js/database")
-            .with_module("js/handle-response")
-            .with_module("js/jsx-helpers")
-            .with_module("polyfill/blob")
-            .with_module("polyfill/console")
-            .with_module("polyfill/fetch")
-            .with_module("polyfill/file")
-            .with_module("polyfill/form-data")
-            .with_module("polyfill/request")
-            .with_module("polyfill/response")
-            .with_module("polyfill/web-streams")
-            .with_module("query:email")
-            .with_module("query:database")
-            .with_module("query:plugin")
-            .with_module("query:test");
+        let resolver = (
+            BuiltinResolver::default()
+                .with_module("js/database")
+                .with_module("js/handle-response")
+                .with_module("js/jsx-helpers")
+                .with_module("polyfill/blob")
+                .with_module("polyfill/console")
+                .with_module("polyfill/fetch")
+                .with_module("polyfill/file")
+                .with_module("polyfill/form-data")
+                .with_module("polyfill/request")
+                .with_module("polyfill/response")
+                .with_module("polyfill/web-streams")
+                .with_module("query:email")
+                .with_module("query:database")
+                .with_module("query:plugin")
+                .with_module("query:test"),
+            ModuleResolver::default()
+                .with_module("buffer")
+                .with_module("crypto")
+            ,
+        );
         let loader = (
             BuiltinLoader::default()
                 .with_module("js/database", DATABASE_SCRIPT_MODULE)
@@ -130,28 +166,31 @@ impl Runtime {
                 .with_module("query:plugin", PLUGIN_SCRIPT_MODULE)
                 .with_module("query:test", TEST_SCRIPT_MODULE),
             ModuleLoader::default()
+                .with_module("crypto", CryptoModule)
+                .with_module("buffer", BufferModule)
                 .with_module("module", ModuleModule)
-                .with_module("url", UrlModule),
+                .with_module("url", UrlModule)
+            ,
         );
         runtime.set_loader(resolver, loader).await;
 
         let ctx = AsyncContext::full(&runtime).await?;
         ctx.with(|ctx| {
             (|| {
-                llrt_modules::buffer::init(&ctx)?;
-                llrt_modules::events::init(&ctx)?;
-                llrt_modules::exceptions::init(&ctx)?;
-                llrt_modules::abort::init(&ctx)?;
-                llrt_modules::url::init(&ctx)?;
-                crate::console::init(&ctx)?;
-                crate::crypto::init(&ctx)?;
-                crate::email::init(&ctx)?;
-                crate::encoding::init(&ctx)?;
-                crate::http::init(&ctx)?;
-                crate::plugin::init(&ctx)?;
-                crate::process::init(&ctx)?;
-                crate::timers::init(&ctx)?;
-                crate::sqlite::init(&ctx)?;
+                buffer::init(&ctx)?;
+                crypto::init(&ctx)?;
+                events::init(&ctx)?;
+                exceptions::init(&ctx)?;
+                abort::init(&ctx)?;
+                url::init(&ctx)?;
+                console::init(&ctx)?;
+                email::init(&ctx)?;
+                encoding::init(&ctx)?;
+                http::init(&ctx)?;
+                plugin::init(&ctx)?;
+                process::init(&ctx)?;
+                timers::init(&ctx)?;
+                sqlite::init(&ctx)?;
 
                 init(&ctx)?;
 

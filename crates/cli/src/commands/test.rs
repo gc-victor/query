@@ -42,7 +42,7 @@ mod constants {
         "--format=esm",
         "--minify-whitespace",
         "--legal-comments=none",
-        "--platform=browser",
+        "--platform=node",
         "--jsx=preserve",
     ];
 
