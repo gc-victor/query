@@ -160,7 +160,7 @@ pub trait TimerPoller {
     fn poll_timers(&self) -> bool;
 }
 
-impl<'js> TimerPoller for Ctx<'js> {
+impl TimerPoller for Ctx<'_> {
     fn poll_timers(&self) -> bool {
         let rt = unsafe { qjs::JS_GetRuntime(self.as_raw().as_ptr()) };
 
