@@ -15,10 +15,11 @@ use crate::cache::{Cache, CacheItem};
 use colored::Colorize;
 use jsx_parser::jsx_precompile::jsx_precompile;
 use num_cpus;
-use query_runtime::{timers::TimerPoller, Runtime};
+use query_runtime::{poll_timers, Runtime};
 use rayon::prelude::*;
 use regex::Regex;
-use rquickjs::{async_with, Array, Function, Module, Object, Promise};
+use rquickjs::{async_with, qjs, Array, Function, Module, Object, Promise};
+use tokio::time::Instant as TokioInstant;
 use walkdir::WalkDir;
 use watchexec::Watchexec;
 
@@ -500,7 +501,13 @@ impl TestRunner {
                     let handle_tests: Function = global_this.get("___handleTests")?;
                     let promise: Promise = handle_tests.call(())?;
 
-                    while ctx.poll_timers() {}
+                    let rt = unsafe { qjs::JS_GetRuntime(ctx.as_raw().as_ptr()) };
+                    let mut deadline = TokioInstant::now();
+                    let mut executing_timers = Vec::new();
+
+                    while poll_timers(rt, &mut executing_timers, None, Some(&mut deadline))? {
+                        ctx.execute_pending_job();
+                    }
 
                     let test_array: Array = promise.into_future().await?;
                     let test_result = test_array.iter::<Object>()
@@ -729,8 +736,7 @@ impl TestRunner {
                     return await globalThis.___testsResults(); \
                 }};
             ",
-            imports,
-            self.test_name_pattern
+            imports, self.test_name_pattern
         ))
     }
 }

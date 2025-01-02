@@ -12,12 +12,13 @@ use hyper::{
     body::Incoming, header::CONTENT_TYPE, http::HeaderName, Request, Response, StatusCode,
 };
 use multer::Multipart;
-use query_runtime::{timers::TimerPoller, Runtime};
+use query_runtime::{poll_timers, Runtime};
 use rbase64::encode;
 use regex::Regex;
-use rquickjs::{async_with, Function, Module, Object, Promise, Value};
+use rquickjs::{async_with, qjs, Function, Module, Object, Promise, Value};
 use rusqlite::{named_params, Row};
 use serde::{Deserialize, Serialize};
+use tokio::time::Instant;
 use tracing::instrument;
 
 use crate::{
@@ -168,11 +169,6 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         "https"
     };
 
-    let ctx = match Runtime::new().await {
-        Ok(r) => Ok(r.ctx),
-        Err(e) => Err(internal_server_error(e.to_string())),
-    }?;
-
     let module_name = format!("{}::{}", path, method_lower_case);
     let method_str = method.as_str();
     let url = format!("{}://{}{}", scheme, host, uri);
@@ -196,6 +192,10 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
         "#,
     );
 
+    let ctx = match Runtime::new().await {
+        Ok(r) => Ok(r.ctx),
+        Err(e) => Err(internal_server_error(e.to_string())),
+    }?;
     let res = async_with!(ctx => |ctx| {
         let module = match Module::declare(ctx.clone(), module_name, handle_response) {
             Ok(m) => m,
@@ -236,12 +236,6 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
             },
         };
 
-        loop {
-            if !ctx.poll_timers() {
-                break;
-            }
-        }
-
         let response: Object = match promise.into_future().await {
             Ok(r) => r,
             Err(e) => {
@@ -250,13 +244,54 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
             },
         };
 
-        let body: Value = response.get("body").unwrap();
-        let body = body.as_string().unwrap();
-        let body = body.to_string().unwrap();
+        let rt = unsafe { qjs::JS_GetRuntime(ctx.as_raw().as_ptr()) };
+        let mut deadline = Instant::now();
+        let mut executing_timers = Vec::new();
+
+        while poll_timers(rt, &mut executing_timers, None, Some(&mut deadline)).map_err(|e| {
+                tracing::error!("Error: {}", e);
+                handle_fatal_error();
+            }).unwrap_or(false) {
+            ctx.execute_pending_job();
+        }
+
+        let body: Value = match response.get("body"){
+            Ok(v) => v,
+            Err(e) => {
+                tracing::error!("Error: {}", e);
+                return handle_fatal_error();
+            },
+        };
+        let body = match body.as_string() {
+            Some(v) => v,
+            None => {
+                tracing::error!("Error: body could not be converted to string");
+                return handle_fatal_error();
+            },
+        };
+        let body = match body.to_string() {
+            Ok(v) => v,
+            Err(e) => {
+                tracing::error!("Error: {}", e);
+                return handle_fatal_error();
+            },
+        };
         let body = if body.is_empty() { None } else { Some(body) };
 
-        let headers = response.get("headers").unwrap();
-        let status = response.get("status").unwrap();
+        let headers = match response.get("headers") {
+            Ok(v) => v,
+            Err(e) => {
+                tracing::error!("Error: {}", e);
+                return handle_fatal_error();
+            },
+        };
+        let status = match response.get("status") {
+            Ok(v) => v,
+            Err(e) => {
+                tracing::error!("Error: {}", e);
+                return handle_fatal_error();
+            },
+        };
 
         HandleResponse {
             body,

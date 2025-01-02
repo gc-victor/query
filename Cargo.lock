@@ -2878,6 +2878,7 @@ dependencies = [
  "llrt_crypto",
  "llrt_events",
  "llrt_exceptions",
+ "llrt_timers",
  "llrt_url",
  "llrt_utils",
 ]

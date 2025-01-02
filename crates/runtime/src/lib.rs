@@ -1,33 +1,28 @@
 use std::{
-    cmp::min,
-    collections::HashSet,
-    env, fmt,
-    future::{poll_fn, Future},
-    mem::MaybeUninit,
-    pin::pin,
-    result::Result as StdResult,
-    task::Poll,
-    time::Instant,
+    cmp::min, collections::HashSet, env, fmt, future::Future, mem::MaybeUninit,
+    result::Result as StdResult, time::Instant,
 };
 
+pub use llrt_modules::timers::poll_timers;
 use llrt_modules::{
-    abort, buffer::{self, BufferModule},
-    crypto::{self, CryptoModule},
-    events, exceptions, url,
+    abort,
+    buffer::{self, BufferModule},
+    crypto::{self, CryptoModule, SYSTEM_RANDOM},
+    events, exceptions, timers, url,
 };
 use llrt_utils::class::get_class_name;
+use once_cell::sync::Lazy;
+use ring::rand::{SecureRandom, SystemRandom};
 use rquickjs::{
     atom::PredefinedAtom,
     function::{Constructor, Opt},
     loader::{BuiltinLoader, BuiltinResolver, ModuleLoader, Resolver},
     prelude::Func,
-    qjs, AsyncContext, AsyncRuntime, CatchResultExt, CaughtError, Ctx, Error, Function, IntoJs,
-    Object, Result, String as JsString, Value,
+    AsyncContext, AsyncRuntime, CatchResultExt, CaughtError, Ctx, Error, Function, IntoJs, Object,
+    Result, String as JsString, Value,
 };
 
 use tokio::sync::oneshot::{self, Receiver};
-
-use crate::timers::poll_timers;
 
 mod console;
 mod email;
@@ -41,7 +36,6 @@ mod plugin;
 mod process;
 pub mod sqlite;
 mod test_utils;
-pub mod timers;
 mod utils;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -114,6 +108,14 @@ impl Runtime {
     pub const ENV_TASK_ROOT: &'static str = "TASK_ROOT";
 
     pub async fn new() -> StdResult<Self, Box<dyn std::error::Error + Send + Sync>> {
+        llrt_modules::time::init();
+
+        if let Some(rng) = Lazy::<SystemRandom>::get(&SYSTEM_RANDOM) {
+            let mut buf = [0u8; 8];
+            rng.fill(&mut buf)
+                .expect("Failed to initialize SystemRandom");
+        }
+
         const DEFAULT_GC_THRESHOLD_MB: usize = 20;
 
         let gc_threshold_mb: usize = env::var(environment::QUERY_RUNTIME_GC_THRESHOLD_MB)
@@ -146,7 +148,7 @@ impl Runtime {
             ModuleResolver::default()
                 .with_module("buffer")
                 .with_module("crypto")
-            ,
+                .with_module("timers"),
         );
         let loader = (
             BuiltinLoader::default()
@@ -169,8 +171,7 @@ impl Runtime {
                 .with_module("crypto", CryptoModule)
                 .with_module("buffer", BufferModule)
                 .with_module("module", ModuleModule)
-                .with_module("url", UrlModule)
-            ,
+                .with_module("url", UrlModule),
         );
         runtime.set_loader(resolver, loader).await;
 
@@ -194,6 +195,8 @@ impl Runtime {
 
                 init(&ctx)?;
 
+                ctx.execute_pending_job();
+
                 Ok(())
             })()
             .catch(&ctx)
@@ -204,34 +207,6 @@ impl Runtime {
         .await?;
 
         Ok(Runtime { runtime, ctx })
-    }
-
-    pub async fn idle(self) -> StdResult<(), Box<dyn std::error::Error + Sync + Send>> {
-        let rt = self
-            .ctx
-            .with(|ctx| unsafe { qjs::JS_GetRuntime(ctx.as_raw().as_ptr()) as usize })
-            .await;
-
-        let rt = rt as *mut qjs::JSRuntime;
-
-        let runtime = self.runtime;
-
-        poll_fn(move |cx| {
-            poll_timers(rt);
-
-            let mut pending_job = pin!(runtime.idle());
-
-            if pending_job.as_mut().poll(cx).is_ready() && !poll_timers(rt) {
-                return Poll::Ready(());
-            }
-            cx.waker().wake_by_ref();
-            Poll::Pending
-        })
-        .await;
-
-        drop(self.ctx);
-
-        Ok(())
     }
 }
 
