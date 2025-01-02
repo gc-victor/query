@@ -157,6 +157,13 @@ The `expect` function is used to assert that a value meets certain conditions. I
   ```javascript
   expect([1, 2, 3]).toContain(2);
   ```
+  
+- **`.toMatch(pattern)`**: Tests if a string matches a regular expression or string pattern.
+
+  ```javascript
+  expect("hello world").toMatch(/world/);
+  expect("hello world").toMatch("hello");
+  ```
 
 - **`.toThrow()`**: Expects the function to throw an error.
 
@@ -165,6 +172,18 @@ The `expect` function is used to assert that a value meets certain conditions. I
     throw new Error("Error!");
   }).toThrow();
   ```
+
+### Negating Matchers with `not`
+
+You can negate any matcher by chaining `.not` before the matcher:
+
+```javascript
+test("not examples", () => {
+  expect(1).not.toBe(2);
+  expect([1, 2]).not.toContain(3);
+  expect({ a: 1 }).not.toEqual({ a: 2 });
+});
+```
 
 ### Usage Examples
 
