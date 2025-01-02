@@ -9,23 +9,13 @@ export async function handleRequest(_) {
 
         return new Response(JSON.stringify(data), {
             headers: {
-                "content-type": "application/json",
+                "content-disposition": 'attachment; filename="data.json"',
+                "content-type": "application/json"
             },
         });
     } catch (e) {
         console.error(e);
 
-        return new Response(
-            JSON.stringify({
-                message: e.message,
-                stack: e.stack,
-            }),
-            {
-                status: 500,
-                headers: {
-                    "content-type": "application/json",
-                },
-            },
-        );
+        return new Response(e.message, { status: 500 });
     }
 }

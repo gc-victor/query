@@ -18,7 +18,6 @@ let compat = {};
 for (const feature of union) {
     const entry = deepCreate(compat, feature);
     if (!entry.__compat) {
-        
         const browserCompat = get(data, `${feature}.__compat`) ?? {};
         entry.__compat = {
             ...browserCompat,
@@ -103,21 +102,21 @@ for (const feature of winterCGAPIs) {
 
 compat = sortObject(compat);
 
-await writeFile(new URL("../result.json", import.meta.url), JSON.stringify(compat));
-
 const api = compat.api;
 let markdown = "";
 
 for (const key in api) {
     if (Object.prototype.hasOwnProperty.call(api, key)) {
-        const tickOrCross = api[key].__compat.support[1].version_added ? '✓' : '✗';
-        markdown += `- [${tickOrCross}] [${key}](${api[key].__compat.mdn_url || api[key].__compat.spec_url})\n`;
+        if (api[key].__compat) {
+            const tickOrCross = api[key].__compat.support[1].version_added ? "✓" : "✗";
+            markdown += `- [${tickOrCross}] [${key}](${api[key].__compat.mdn_url || api[key].__compat.spec_url})\n`;
 
-        const children = api[key];
-        for (const childKey in children) {
-            if (Object.prototype.hasOwnProperty.call(children, childKey) && childKey !== '__compat') {
-                const tickOrCross = children[childKey].__compat.support[1].version_added ? '✓' : '✗';
-                markdown += `  - [${tickOrCross}] [${childKey}](${children[childKey].__compat.mdn_url || children[childKey].__compat.spec_url})\n`;
+            const children = api[key];
+            for (const childKey in children) {
+                if (Object.prototype.hasOwnProperty.call(children, childKey) && childKey !== "__compat") {
+                    const tickOrCross = children[childKey].__compat.support[1].version_added ? "✓" : "✗";
+                    markdown += `  - [${tickOrCross}] [${childKey}](${children[childKey].__compat.mdn_url || children[childKey].__compat.spec_url})\n`;
+                }
             }
         }
     }
@@ -160,7 +159,7 @@ function get(obj, path) {
 }
 
 function sortObject(obj) {
-    if (typeof obj !== 'object' || obj === null) {
+    if (typeof obj !== "object" || obj === null) {
         return obj;
     }
 
@@ -168,8 +167,10 @@ function sortObject(obj) {
         return obj.map(sortObject);
     }
 
-    return Object.keys(obj).sort().reduce((result, key) => {
-        result[key] = sortObject(obj[key]);
-        return result;
-    }, {});
+    return Object.keys(obj)
+        .sort()
+        .reduce((result, key) => {
+            result[key] = sortObject(obj[key]);
+            return result;
+        }, {});
 }

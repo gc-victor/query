@@ -10,4 +10,4 @@ node_modules/
 .query/.token
 
 # Runtime Compatibility
-download/
+download/data.json
