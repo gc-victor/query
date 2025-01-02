@@ -37,6 +37,7 @@ llrt_modules = { git = "https://github.com/awslabs/llrt", package = "llrt_module
     "crypto",
     "events",
     "exceptions",
+    "timers",
     "url",
 ], default-features = false }
 llrt_utils = { git = "https://github.com/awslabs/llrt", package = "llrt_utils", rev = "2f7181a9f31d30e32096e408637a7839e0f1b6bb" }
