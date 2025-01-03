@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.40] - 2025-01-03
+
+### 🚀 Features
+
+- *(docs)* Update cli test api
+- *(docs)* Update runtime-compat
+- *(runtime)* Add llrt timers module
+- *(docs)* Update runtime-compat
+
 ## [0.12.39] - 2024-12-31
 
 ### 🚀 Features
