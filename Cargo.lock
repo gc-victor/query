@@ -2634,7 +2634,7 @@ dependencies = [
 
 [[package]]
 name = "jsx_parser"
-version = "0.12.39"
+version = "0.12.40"
 dependencies = [
  "criterion",
  "regex",
@@ -3857,7 +3857,7 @@ dependencies = [
 
 [[package]]
 name = "query"
-version = "0.12.39"
+version = "0.12.40"
 dependencies = [
  "anyhow",
  "chrono",
@@ -3894,7 +3894,7 @@ dependencies = [
 
 [[package]]
 name = "query-runtime"
-version = "0.12.39"
+version = "0.12.40"
 dependencies = [
  "anyhow",
  "base64-simd",
@@ -3936,7 +3936,7 @@ dependencies = [
 
 [[package]]
 name = "query-server"
-version = "0.12.39"
+version = "0.12.40"
 dependencies = [
  "anyhow",
  "argon2",
