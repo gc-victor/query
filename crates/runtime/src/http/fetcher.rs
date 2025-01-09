@@ -139,8 +139,7 @@ pub(crate) fn init(globals: &Object) -> Result<()> {
                 let mut req = Request::builder()
                     .method(method)
                     .uri(uri)
-                    .header("user-agent", format!("Query {}", VERSION))
-                    .header("accept", "*/*");
+                    .header("user-agent", format!("Query {}", VERSION));
 
                 if let Some(headers) = options.headers {
                     for (key, value) in headers.iter() {
@@ -162,8 +161,19 @@ pub(crate) fn init(globals: &Object) -> Result<()> {
 
                 let headers = Object::new(ctx.clone())?;
                 for (key, value) in parts.headers {
-                    let key = key.unwrap().to_string();
-                    let value = value.to_str().unwrap().to_string();
+                    let key = match key {
+                        Some(k) => k.to_string(),
+                        None => continue,
+                    };
+                    let value = match value.to_str() {
+                        Ok(v) => v.to_string(),
+                        Err(e) => {
+                            return Err(Exception::throw_type(
+                                &ctx,
+                                &format!("Invalid header value: {}", e),
+                            ))
+                        }
+                    };
 
                     headers.set(key, value)?;
                 }
