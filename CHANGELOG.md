@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.41] - 2025-01-09
+
+### 🐛 Bug Fixes
+
+- *(runtime)* Fetcher accept header
+
+### Build
+
+- Update dist 0.24.1 to 0.27.0
+- Update dist 0.27.0 to 0.27.1
+- *(deps)* Bump rquickjs from `832be2f` to `ff980e2`
+- *(deps)* Bump reqwest from 0.12.9 to 0.12.12
+- *(deps-dev)* Bump @qery/query in /examples/minimal
+- *(deps-dev)* Bump @qery/query-server in /examples/counter
+- *(deps-dev)* Bump @qery/query in /examples/application
+- *(deps)* Bump valibot in /examples/application
+- *(deps-dev)* Bump @qery/query-server in /examples/minimal
+- *(deps-dev)* Bump @qery/query-server in /examples/application
+- *(deps-dev)* Bump @qery/query in /examples/counter
+
 ## [0.12.40] - 2025-01-03
 
 ### 🚀 Features
