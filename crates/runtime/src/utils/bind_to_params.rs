@@ -1,5 +1,3 @@
-use anyhow::Result;
-use regex::{Captures, Regex};
 use rusqlite::ParamsFromIter;
 use serde_json::Value;
 
@@ -13,36 +11,17 @@ pub fn bind_array_to_params(values: Value) -> ParamsFromIter<Vec<rusqlite::types
     rusqlite::params_from_iter(params)
 }
 
-pub fn bind_object_to_params(
-    values: Value,
-    query: String,
-) -> Result<(ParamsFromIter<Vec<rusqlite::types::Value>>, String)> {
-    let mut updated_query = query;
-    let mut params: Vec<rusqlite::types::Value> = Vec::new();
-    if let Value::Object(o) = values {
-        for (index, (key, value)) in o.iter().enumerate() {
-            // https://www.sqlite.org/lang_expr.html#varparam
-            if key.starts_with(':') || key.starts_with('@') || key.starts_with('$') {
-                let re = Regex::new(&format!(r#"(?m)('[^']*')|{key}"#)).unwrap();
+pub fn bind_named_params(json: Value) -> Vec<(String, rusqlite::types::Value)> {
+    let mut params = Vec::new();
 
-                updated_query = re
-                    .replace_all(&updated_query, |caps: &Captures| match caps.get(1) {
-                        Some(m) => m.as_str().to_string(),
-                        None => format!("?{}", index + 1),
-                    })
-                    .to_string();
-            } else {
-                anyhow::bail!(
-                    "Invalid key: {}. A named parameter should start with : or @ or $",
-                    key
-                )
-            }
-
-            params.push(get_value(value));
+    if let Value::Object(map) = json {
+        for (key, value) in map {
+            let rusqlite_value = get_value(&value);
+            params.push((key, rusqlite_value));
         }
     }
 
-    Ok((rusqlite::params_from_iter(params), updated_query))
+    params
 }
 
 fn get_value(values: &Value) -> rusqlite::types::Value {
@@ -116,81 +95,52 @@ mod tests {
     }
 
     #[test]
-    fn test_bind_object_to_params_empty() {
-        let values = json!({});
-        let query = "SELECT * FROM users".to_owned();
-        let result = bind_object_to_params(values, query).unwrap();
+    fn test_bind_named_params_empty() {
+        let json = json!({});
+        let result = bind_named_params(json);
 
-        assert_eq!(format!("{:?}", result.0), "ParamsFromIter([])".to_string());
-        assert_eq!(result.1, "SELECT * FROM users");
+        assert_eq!(result, Vec::new());
     }
 
-    #[test]
-    fn test_bind_object_to_params_single() {
-        let values = json!({":name": "Alice"});
-        let query = "SELECT * FROM users WHERE name = :name".to_owned();
-        let result = bind_object_to_params(values, query).unwrap();
+    #[test] 
+    fn test_bind_named_params_single() {
+        let json = json!({
+            "id": 42
+        });
+        let result = bind_named_params(json);
 
         assert_eq!(
-            format!("{:?}", result.0),
-            "ParamsFromIter([Text(\"Alice\")])".to_string()
-        );
-        assert_eq!(result.1, "SELECT * FROM users WHERE name = ?1");
-    }
-
-    #[test]
-    fn test_bind_object_to_params_multiple() {
-        let values = json!({":name": "Alice", ":age": 30});
-        let query = "SELECT * FROM users WHERE name = :name AND age = :age".to_owned();
-        let result = bind_object_to_params(values, query).unwrap();
-
-        assert_eq!(
-            format!("{:?}", result.0),
-            "ParamsFromIter([Integer(30), Text(\"Alice\")])".to_string()
-        );
-        assert_eq!(result.1, "SELECT * FROM users WHERE name = ?2 AND age = ?1");
-    }
-
-    #[test]
-    fn test_bind_object_to_params_same_key_value_as_string() {
-        let values = json!({":name": "Alice"});
-        let query = "SELECT * FROM users WHERE name = :name AND name = ':name :name '".to_owned();
-        let result = bind_object_to_params(values, query).unwrap();
-
-        assert_eq!(
-            format!("{:?}", result.0),
-            "ParamsFromIter([Text(\"Alice\")])".to_string()
-        );
-        assert_eq!(
-            result.1,
-            "SELECT * FROM users WHERE name = ?1 AND name = ':name :name '"
+            result,
+            vec![("id".to_string(), rusqlite::types::Value::Integer(42))]
         );
     }
 
     #[test]
-    fn test_bind_object_to_params_blob() {
-        let values = json!({":file": [1,2,3]});
-        let query = "SELECT * FROM users WHERE file = :file".to_owned();
-        let result = bind_object_to_params(values, query).unwrap();
+    fn test_bind_named_params_multiple() {
+        let json = json!({
+            "id": 1,
+            "name": "test",
+            "active": true,
+            "score": 3.14,
+            "data": null
+        });
+        let mut result = bind_named_params(json);
 
-        assert_eq!(
-            format!("{:?}", result.0),
-            "ParamsFromIter([Blob([1, 2, 3])])".to_string()
-        );
-        assert_eq!(result.1, "SELECT * FROM users WHERE file = ?1");
+        // Sort result by key for consistent comparison
+        result.sort_by(|a, b| a.0.cmp(&b.0));
+
+        let mut expected = vec![
+            ("active".to_string(), rusqlite::types::Value::Integer(1)),
+            ("data".to_string(), rusqlite::types::Value::Null),
+            ("id".to_string(), rusqlite::types::Value::Integer(1)),
+            ("name".to_string(), rusqlite::types::Value::Text("test".to_string())),
+            ("score".to_string(), rusqlite::types::Value::Real(3.14))
+        ];
+        expected.sort_by(|a, b| a.0.cmp(&b.0));
+
+        assert_eq!(result, expected);
     }
 
-    #[test]
-    fn test_bind_object_to_params_invalid_key() {
-        let values = json!({"foo": "bar"});
-        let query = "SELECT * FROM users WHERE name = :name".to_owned();
-        let result = bind_object_to_params(values, query);
-        assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "Invalid key: foo. A named parameter should start with : or @ or $"
-        );
-    }
 
     #[test]
     fn test_get_value_null() {

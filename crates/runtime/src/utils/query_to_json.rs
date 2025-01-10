@@ -1,7 +1,7 @@
 use rusqlite::{types::Value as RusqliteValue, Error, Params, Statement};
 use serde_json::{json, Value as JsonValue};
 
-pub fn query_to_json<P: Params>(mut stmt: Statement, params: P) -> Result<JsonValue, Error> {
+pub fn query_to_json<P: Params>(stmt: &mut Statement, params: P) -> Result<JsonValue, Error> {
     let names = stmt
         .column_names()
         .into_iter()
@@ -45,7 +45,7 @@ fn _merge(prev: &mut JsonValue, next: &JsonValue) {
 mod tests {
     use rusqlite::Connection;
 
-    use crate::utils::bind_to_params::{bind_array_to_params, bind_object_to_params};
+    use crate::utils::bind_to_params::{bind_array_to_params, bind_named_params};
 
     use super::*;
 
@@ -66,17 +66,9 @@ mod tests {
         let query = "SELECT * FROM users WHERE age > ?";
         let values: JsonValue = serde_json::from_str("[24]").unwrap();
 
-        let result = if values.is_object() {
-            let (params, updated_query) = bind_object_to_params(values, query.to_owned()).unwrap();
-            let statement = conn.prepare(&updated_query);
-
-            query_to_json(statement.unwrap(), params).unwrap()
-        } else {
-            let params = bind_array_to_params(values);
-            let statement = conn.prepare(query);
-
-            query_to_json(statement.unwrap(), params).unwrap()
-        };
+        let params = bind_array_to_params(values);
+        let mut statement = conn.prepare(query).unwrap();
+        let result = query_to_json(&mut statement, params).unwrap();
 
         assert_eq!(result.as_array().unwrap().len(), 2);
         assert_eq!(result[0]["name"], "Alice");
@@ -86,7 +78,7 @@ mod tests {
     }
 
     #[test]
-    fn test_query_to_json_object_params() {
+    fn test_query_to_json_named_params() {
         let conn = Connection::open_in_memory().unwrap();
         conn.execute(
             "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)",
@@ -102,17 +94,14 @@ mod tests {
         let query = "SELECT * FROM users WHERE age > :age";
         let values: JsonValue = serde_json::from_str(r#"{":age": 24}"#).unwrap();
 
-        let result = if values.is_object() {
-            let (params, updated_query) = bind_object_to_params(values, query.to_owned()).unwrap();
-            let statement = conn.prepare(&updated_query);
+        let params_bound = bind_named_params(values);
+        let params: &[(&str, &dyn rusqlite::ToSql)] = &params_bound
+            .iter()
+            .map(|(name, val)| (name.as_str(), val as &dyn rusqlite::ToSql))
+            .collect::<Vec<_>>();
+        let mut statement = conn.prepare(query).unwrap();
 
-            query_to_json(statement.unwrap(), params).unwrap()
-        } else {
-            let params = bind_array_to_params(values);
-            let statement = conn.prepare(query);
-
-            query_to_json(statement.unwrap(), params).unwrap()
-        };
+        let result = query_to_json(&mut statement, params).unwrap();
 
         assert_eq!(result.as_array().unwrap().len(), 2);
         assert_eq!(result[0]["name"], "Alice");
