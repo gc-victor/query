@@ -1,5 +1,5 @@
 use hyper::{body::Incoming, Method, Request, Response};
-use rusqlite::{Connection, Error, ParamsFromIter, Statement};
+use rusqlite::{Connection, Error, Statement};
 use serde::Deserialize;
 
 use anyhow::Result;
@@ -9,7 +9,7 @@ use tracing::instrument;
 use crate::{
     constants::DB_CONFIG_NAME,
     controllers::utils::{
-        bind_to_params::{bind_array_to_params, bind_object_to_params},
+        bind_to_params::{bind_array_to_params, bind_named_params},
         body::{Body, BoxBody},
         get_query_string::get_query_string,
         get_token::get_token,
@@ -139,40 +139,52 @@ fn query_controller(
     query: &str,
     params: Option<Value>,
 ) -> Result<String, HttpError> {
-    let (mut stmt, params) = match prepare_statement(conn, query, params) {
-        Ok(v) => Ok(v),
-        Err(e) => Err(bad_request(e.to_string())),
-    }?;
+    let mut stmt = conn.prepare(query)?;
+    let empty_params = rusqlite::params_from_iter(Vec::<rusqlite::types::Value>::new());
 
     if is_select(query) {
-        handle_select(stmt, params)
+        match params {
+            Some(params) if !params.is_array() => {
+                let params_bound = bind_named_params(params);
+                let params: &[(&str, &dyn rusqlite::ToSql)] = &params_bound
+                    .iter()
+                    .map(|(name, val)| (name.as_str(), val as &dyn rusqlite::ToSql))
+                    .collect::<Vec<_>>();
+                handle_select(stmt, params)
+            }
+            Some(params) => handle_select(stmt, bind_array_to_params(params)),
+            None => {
+                let stmt = conn.prepare(query)?;
+                handle_select(stmt, empty_params)
+            }
+        }
     } else if query.starts_with("INSERT") {
-        handle_insert(&mut stmt, params)
+        match params {
+            Some(params) if !params.is_array() => {
+                let params_bound = bind_named_params(params);
+                let params: &[(&str, &dyn rusqlite::ToSql)] = &params_bound
+                    .iter()
+                    .map(|(name, val)| (name.as_str(), val as &dyn rusqlite::ToSql))
+                    .collect::<Vec<_>>();
+                handle_insert(stmt, params)
+            }
+            Some(params) => handle_insert(stmt, bind_array_to_params(params)),
+            None => handle_insert(stmt, empty_params),
+        }
     } else {
-        handle_execute(&mut stmt, params)
-    }
-}
-
-fn prepare_statement<'a>(
-    conn: &'a Connection,
-    query: &str,
-    params: Option<Value>,
-) -> Result<(Statement<'a>, ParamsFromIter<Vec<rusqlite::types::Value>>)> {
-    match params {
-        Some(params) if !params.is_array() => {
-            let (bound_params, modified_query) = bind_object_to_params(params, query.to_string())?;
-            let stmt = conn.prepare(&modified_query)?;
-            Ok((stmt, bound_params))
-        }
-        Some(params) => {
-            let bound_params = bind_array_to_params(params);
-            let stmt = conn.prepare(query)?;
-            Ok((stmt, bound_params))
-        }
-        None => {
-            let stmt = conn.prepare(query)?;
-            let empty_params = rusqlite::params_from_iter(Vec::<rusqlite::types::Value>::new());
-            Ok((stmt, empty_params))
+        match params {
+            Some(params) if !params.is_array() => {
+                let params_bound = bind_named_params(params);
+                let params: &[(&str, &dyn rusqlite::ToSql)] = &params_bound
+                    .iter()
+                    .map(|(name, val)| (name.as_str(), val as &dyn rusqlite::ToSql))
+                    .collect::<Vec<_>>();
+                handle_execute(&mut stmt, params)
+            }
+            Some(params) => {
+                handle_execute(&mut stmt, bind_array_to_params(params))
+            }
+            None => handle_execute(&mut stmt, empty_params),
         }
     }
 }
@@ -184,37 +196,37 @@ fn is_select(query: &str) -> bool {
 }
 
 #[instrument(err(Debug), skip(stmt, params))]
-fn handle_select(
-    stmt: Statement,
-    params: ParamsFromIter<Vec<rusqlite::types::Value>>,
-) -> Result<String, HttpError> {
+fn handle_select<P>(stmt: Statement, params: P) -> Result<String, HttpError>
+where
+    P: rusqlite::Params,
+{
     statement_to_vec(stmt, params)
         .map(|v| json!({ "data": v }).to_string())
         .map_err(|e| bad_request(e.to_string()))
 }
 
 #[instrument(err(Debug), skip(stmt, params))]
-fn handle_insert(
-    stmt: &mut Statement,
-    params: ParamsFromIter<Vec<rusqlite::types::Value>>,
-) -> Result<String, HttpError> {
-    match stmt.insert(params) {
+fn handle_insert<P>(mut stmt: Statement, params: P) -> Result<String, HttpError>
+where
+    P: rusqlite::Params + Clone,
+{
+    match stmt.insert(params.clone()) {
         Ok(rowid) => Ok(json!({ "data": [{ "success": true, "rowid": rowid }] }).to_string()),
-        Err(e) => {
-            if let Error::StatementChangedRows(0) = e {
-                Ok(json!({ "data": [{ "success": false, "rowid": 0 }] }).to_string())
-            } else {
-                Err(bad_request(e.to_string()))
-            }
+        Err(Error::StatementChangedRows(0)) => {
+            Ok(json!({ "data": [{ "success": false, "rowid": 0 }] }).to_string())
         }
+        Err(_) => stmt
+            .execute(params)
+            .map(|changes| json!({ "data": [{ "success": true, "changes": changes }] }).to_string())
+            .map_err(|e| bad_request(e.to_string())),
     }
 }
 
 #[instrument(err(Debug), skip(stmt, params))]
-fn handle_execute(
-    stmt: &mut Statement,
-    params: ParamsFromIter<Vec<rusqlite::types::Value>>,
-) -> Result<String, HttpError> {
+fn handle_execute<P>(stmt: &mut Statement, params: P) -> Result<String, HttpError>
+where
+    P: rusqlite::Params,
+{
     stmt.execute(params)
         .map(|changes| json!({ "data": [{ "success": true, "changes": changes }] }).to_string())
         .map_err(|e| bad_request(e.to_string()))
@@ -226,112 +238,301 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn test_query_controller() {
+    fn setup_test_db() -> Connection {
         let conn = Connection::open_in_memory().unwrap();
-
         conn.execute(
             "CREATE TABLE test (
                 id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL
+                name TEXT NOT NULL,
+                age INTEGER,
+                email TEXT
             )",
             params![],
         )
         .unwrap();
+        conn
+    }
 
-        let query = "SELECT * FROM test";
-        let params = None;
-        let result = query_controller(&conn, query, params).unwrap();
-        assert_eq!(result, "{\"data\":[]}");
-
-        let query = "INSERT INTO test (name) VALUES (?)";
-        let params = Some(json!(["John Doe"]));
-        let result = query_controller(&conn, query, params).unwrap();
-        assert_eq!(result, "{\"data\":[{\"rowid\":1,\"success\":true}]}");
-
-        let query = "SELECT * FROM test";
-        let params = None;
-        let result = query_controller(&conn, query, params).unwrap();
-        assert_eq!(result, "{\"data\":[{\"id\":1,\"name\":\"John Doe\"}]}");
-
-        let query = "UPDATE test SET name = ? WHERE id = ?";
-        let params = Some(json!(["Jane Doe", 1]));
-        let result = query_controller(&conn, query, params).unwrap();
-        assert_eq!(result, "{\"data\":[{\"changes\":1,\"success\":true}]}");
-
-        let query = "SELECT * FROM test";
-        let params = None;
-        let result = query_controller(&conn, query, params).unwrap();
-        assert_eq!(result, "{\"data\":[{\"id\":1,\"name\":\"Jane Doe\"}]}");
-
-        let query = "DELETE FROM test WHERE id = ?";
-        let params = Some(json!([1]));
-        let result = query_controller(&conn, query, params).unwrap();
-        assert_eq!(result, "{\"data\":[{\"changes\":1,\"success\":true}]}");
-
-        let query = "SELECT * FROM test";
-        let params = None;
-        let result = query_controller(&conn, query, params).unwrap();
+    #[test]
+    fn test_empty_select() {
+        let conn = setup_test_db();
+        let result = query_controller(&conn, "SELECT * FROM test", None).unwrap();
         assert_eq!(result, "{\"data\":[]}");
     }
 
     #[test]
-    fn test_prepare_statement() {
-        let conn = Connection::open_in_memory().unwrap();
+    fn test_basic_insert_with_positional_params() {
+        let conn = setup_test_db();
+        let result = query_controller(
+            &conn,
+            "INSERT INTO test (name, age) VALUES (?, ?)",
+            Some(json!(["John Doe", 30])),
+        )
+        .unwrap();
+        assert_eq!(result, "{\"data\":[{\"rowid\":1,\"success\":true}]}");
 
-        conn.execute(
-            "CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT)",
-            params![],
+        let select_result = query_controller(&conn, "SELECT * FROM test", None).unwrap();
+        assert_eq!(
+            select_result,
+            "{\"data\":[{\"age\":30,\"email\":null,\"id\":1,\"name\":\"John Doe\"}]}"
+        );
+    }
+
+    #[test]
+    fn test_colon_parameters() {
+        let conn = setup_test_db();
+        let result = query_controller(
+            &conn,
+            "INSERT INTO test (name, email) VALUES (:name, :email)",
+            Some(json!({
+                ":name": "Bob Smith",
+                ":email": "bob@example.com"
+            })),
+        )
+        .unwrap();
+        assert_eq!(result, "{\"data\":[{\"rowid\":1,\"success\":true}]}");
+
+        let select_result = query_controller(
+            &conn,
+            "SELECT * FROM test WHERE email = :email",
+            Some(json!({
+                ":email": "bob@example.com"
+            })),
+        )
+        .unwrap();
+        assert_eq!(
+            select_result,
+            "{\"data\":[{\"age\":null,\"email\":\"bob@example.com\",\"id\":1,\"name\":\"Bob Smith\"}]}"
+        );
+    }
+
+    #[test]
+    fn test_at_parameters() {
+        let conn = setup_test_db();
+        let result = query_controller(
+            &conn,
+            "INSERT INTO test (name, email) VALUES (@name, @email)",
+            Some(json!({
+                "@name": "Bob Smith",
+                "@email": "bob@example.com"
+            })),
+        )
+        .unwrap();
+        assert_eq!(result, "{\"data\":[{\"rowid\":1,\"success\":true}]}");
+
+        let select_result = query_controller(
+            &conn,
+            "SELECT * FROM test WHERE email = @email",
+            Some(json!({
+                "@email": "bob@example.com"
+            })),
+        )
+        .unwrap();
+        assert_eq!(
+            select_result,
+            "{\"data\":[{\"age\":null,\"email\":\"bob@example.com\",\"id\":1,\"name\":\"Bob Smith\"}]}"
+        );
+    }
+
+    #[test]
+    fn test_dolar_parameters() {
+        let conn = setup_test_db();
+        let result = query_controller(
+            &conn,
+            "INSERT INTO test (name, email) VALUES ($name, $email)",
+            Some(json!({
+                "$name": "Bob Smith",
+                "$email": "bob@example.com"
+            })),
+        )
+        .unwrap();
+        assert_eq!(result, "{\"data\":[{\"rowid\":1,\"success\":true}]}");
+
+        let select_result = query_controller(
+            &conn,
+            "SELECT * FROM test WHERE email = $email",
+            Some(json!({
+                "$email": "bob@example.com"
+            })),
+        )
+        .unwrap();
+        assert_eq!(
+            select_result,
+            "{\"data\":[{\"age\":null,\"email\":\"bob@example.com\",\"id\":1,\"name\":\"Bob Smith\"}]}"
+        );
+    }
+
+    #[test]
+    fn test_multiple_inserts_and_select() {
+        let conn = setup_test_db();
+
+        query_controller(
+            &conn,
+            "INSERT INTO test (name) VALUES (?), (?), (?)",
+            Some(json!(["Alice", "Bob", "Charlie"])),
         )
         .unwrap();
 
-        let query = "SELECT * FROM test";
-        let params = None;
-        let (stmt, bound_params) = prepare_statement(&conn, query, params).unwrap();
-        assert_eq!(&stmt.expanded_sql().unwrap(), "SELECT * FROM test");
-        assert_eq!(
-            format!("{:?}", bound_params),
-            String::from("ParamsFromIter([])"),
-        );
+        let result = query_controller(&conn, "SELECT * FROM test", None).unwrap();
+        assert!(result.contains("Alice"));
+        assert!(result.contains("Bob"));
+        assert!(result.contains("Charlie"));
+    }
 
-        let query = "SELECT * FROM test WHERE id = :id AND name = :name";
-        let params = Some(json!({ ":id": 1, ":name": "test" }));
-        let (stmt, bound_params) = prepare_statement(&conn, query, params).unwrap();
-        assert_eq!(
-            &stmt.expanded_sql().unwrap(),
-            "SELECT * FROM test WHERE id = NULL AND name = NULL"
-        );
-        assert_eq!(
-            format!("{:?}", bound_params),
-            String::from("ParamsFromIter([Integer(1), Text(\"test\")])")
-        );
+    #[test]
+    fn test_update_named_parameters() {
+        let conn = setup_test_db();
 
-        let query = "SELECT * FROM test WHERE id = ? AND name = ?";
-        let params = Some(json!([1, "test"]));
-        let (stmt, bound_params) = prepare_statement(&conn, query, params).unwrap();
-        assert_eq!(
-            &stmt.expanded_sql().unwrap(),
-            "SELECT * FROM test WHERE id = NULL AND name = NULL"
-        );
-        assert_eq!(
-            format!("{:?}", bound_params),
-            String::from("ParamsFromIter([Integer(1), Text(\"test\")])")
-        );
+        query_controller(
+            &conn,
+            "INSERT INTO test (name, age) VALUES (?, ?)",
+            Some(json!(["John Doe", 30])),
+        )
+        .unwrap();
 
-        let query = "SELECT * FROM test WHERE id IN (:ids) AND name LIKE :pattern";
-        let params = Some(json!({
-            ":ids": [1, 2, 3],
-            ":pattern": "%test%"
-        }));
-        let (stmt, bound_params) = prepare_statement(&conn, query, params).unwrap();
-        assert_eq!(
-            &stmt.expanded_sql().unwrap(),
-            "SELECT * FROM test WHERE id IN (NULL) AND name LIKE NULL"
-        );
-        assert_eq!(
-            format!("{:?}", bound_params),
-            String::from("ParamsFromIter([Blob([1, 2, 3]), Text(\"%test%\")])")
-        );
+        let result = query_controller(
+            &conn,
+            "UPDATE test SET age = :new_age WHERE name = :name",
+            Some(json!({
+                ":new_age": 31,
+                ":name": "John Doe"
+            })),
+        )
+        .unwrap();
+        assert_eq!(result, "{\"data\":[{\"changes\":1,\"success\":true}]}");
+    }
+
+    #[test]
+    fn test_delete_operations() {
+        let conn = setup_test_db();
+
+        query_controller(
+            &conn,
+            "INSERT INTO test (name) VALUES (?)",
+            Some(json!(["ToDelete"])),
+        )
+        .unwrap();
+
+        let result = query_controller(
+            &conn,
+            "DELETE FROM test WHERE name = ?",
+            Some(json!(["ToDelete"])),
+        )
+        .unwrap();
+        assert_eq!(result, "{\"data\":[{\"changes\":1,\"success\":true}]}");
+
+        let select_result = query_controller(&conn, "SELECT * FROM test", None).unwrap();
+        assert_eq!(select_result, "{\"data\":[]}");
+    }
+
+    #[test]
+    #[should_panic(expected = "syntax error in INVALID SQL at offset 0")]
+    fn test_invalid_sql() {
+        let conn = setup_test_db();
+        query_controller(&conn, "INVALID SQL", None).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "Wrong number of parameters passed to query. Got 2, needed 1")]
+    fn test_parameter_mismatch() {
+        let conn = setup_test_db();
+        query_controller(
+            &conn,
+            "INSERT INTO test (name) VALUES (?)",
+            Some(json!(["name", "extra_param"])),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn test_null_handling() {
+        let conn = setup_test_db();
+        let result = query_controller(
+            &conn,
+            "INSERT INTO test (name, age, email) VALUES (?, ?, ?)",
+            Some(json!(["Test", null, null])),
+        )
+        .unwrap();
+        assert_eq!(result, "{\"data\":[{\"rowid\":1,\"success\":true}]}");
+    }
+
+    #[test]
+    fn test_complex_query() {
+        let conn = setup_test_db();
+
+        query_controller(
+            &conn,
+            "INSERT INTO test (name, age) VALUES (?, ?), (?, ?)",
+            Some(json!(["Young", 20, "Old", 60])),
+        )
+        .unwrap();
+
+        let result = query_controller(
+            &conn,
+            "SELECT name, age FROM test WHERE age > :min_age AND age < :max_age",
+            Some(json!({
+                ":min_age": 18,
+                ":max_age": 30
+            })),
+        )
+        .unwrap();
+        assert!(result.contains("Young"));
+        assert!(!result.contains("Old"));
+    }
+
+    #[test]
+    fn test_handle_execute_with_named_params() {
+        let conn = setup_test_db();
+
+        conn.execute("INSERT INTO test (name) VALUES (?)", params!["John Doe"])
+            .unwrap();
+
+        let query = "UPDATE test SET name = :new_name WHERE id = :id";
+        let mut stmt = conn.prepare(query).unwrap();
+        let named_params = vec![
+            (":new_name", &"Jane Doe" as &dyn rusqlite::ToSql),
+            (":id", &1 as &dyn rusqlite::ToSql),
+        ];
+        let result = handle_execute(&mut stmt, named_params.as_slice()).unwrap();
+        assert_eq!(result, "{\"data\":[{\"changes\":1,\"success\":true}]}");
+
+        conn.execute("INSERT INTO test (name) VALUES (?)", params!["John Doe"])
+            .unwrap();
+
+        let query = "UPDATE test SET name = :new_name";
+        let mut stmt = conn.prepare(query).unwrap();
+        let named_params = vec![(":new_name", &"Jane Doe" as &dyn rusqlite::ToSql)];
+        let result = handle_execute(&mut stmt, named_params.as_slice()).unwrap();
+        assert_eq!(result, "{\"data\":[{\"changes\":2,\"success\":true}]}");
+
+        let query = "UPDATE nonexistent_table SET name = :new_name WHERE id = :id";
+        let stmt = conn.prepare(query);
+        assert!(stmt.is_err());
+    }
+
+    #[test]
+    fn test_handle_execute_with_iter_params() {
+        let conn = setup_test_db();
+
+        conn.execute("INSERT INTO test (name) VALUES (?)", params!["John Doe"])
+            .unwrap();
+
+        let query = "UPDATE test SET name = ? WHERE id = ?";
+        let params = rusqlite::params_from_iter(vec![
+            rusqlite::types::Value::Text("Jane Doe".to_string()),
+            rusqlite::types::Value::Integer(1),
+        ]);
+        let mut stmt = conn.prepare(query).unwrap();
+        let result = handle_execute(&mut stmt, params).unwrap();
+        assert_eq!(result, "{\"data\":[{\"changes\":1,\"success\":true}]}");
+
+        let query = "UPDATE test SET name = ?";
+        let params = rusqlite::params_from_iter(vec![rusqlite::types::Value::Text(
+            "John Smith".to_string(),
+        )]);
+        let mut stmt = conn.prepare(query).unwrap();
+        let result = handle_execute(&mut stmt, params).unwrap();
+        assert_eq!(result, "{\"data\":[{\"changes\":1,\"success\":true}]}");
     }
 
     #[test]
@@ -347,105 +548,5 @@ mod tests {
 
         let query = "UPDATE test SET name = ? WHERE id = ?";
         assert!(!is_select(query));
-    }
-
-    #[test]
-    fn test_handle_select() {
-        let conn = Connection::open_in_memory().unwrap();
-
-        conn.execute(
-            "CREATE TABLE test (
-                id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL
-            )",
-            params![],
-        )
-        .unwrap();
-
-        conn.execute("INSERT INTO test (name) VALUES (?)", params!["John Doe"])
-            .unwrap();
-
-        let query = "SELECT * FROM test";
-        let params = rusqlite::params_from_iter(Vec::<rusqlite::types::Value>::new());
-        let stmt = conn.prepare(query).unwrap();
-        let result = handle_select(stmt, params).unwrap();
-        assert_eq!(result, "{\"data\":[{\"id\":1,\"name\":\"John Doe\"}]}");
-
-        let query = "SELECT * FROM nonexistent_table";
-        let stmt = conn.prepare(query);
-        assert!(stmt.is_err());
-    }
-
-    #[test]
-    fn test_handle_insert() {
-        let conn = Connection::open_in_memory().unwrap();
-
-        conn.execute(
-            "CREATE TABLE test (
-                id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL
-            )",
-            params![],
-        )
-        .unwrap();
-
-        let query = "INSERT INTO test (name) VALUES (?)";
-        let params =
-            rusqlite::params_from_iter(vec![rusqlite::types::Value::Text("John Doe".to_string())]);
-        let mut stmt = conn.prepare(query).unwrap();
-        let result = handle_insert(&mut stmt, params).unwrap();
-        assert_eq!(result, "{\"data\":[{\"rowid\":1,\"success\":true}]}");
-
-        let query = "INSERT INTO test (name) VALUES (?)";
-        let params = rusqlite::params_from_iter(vec![rusqlite::types::Value::Text(
-            "John Doe 2".to_string(),
-        )]);
-        let mut stmt = conn.prepare(query).unwrap();
-        let result = handle_insert(&mut stmt, params).unwrap();
-        assert_eq!(result, "{\"data\":[{\"rowid\":2,\"success\":true}]}");
-
-        let query = "INSERT INTO nonexistent_table (name) VALUES (?)";
-        let stmt = conn.prepare(query);
-        assert!(stmt.is_err());
-    }
-
-    #[test]
-    fn test_handle_execute() {
-        let conn = Connection::open_in_memory().unwrap();
-
-        conn.execute(
-            "CREATE TABLE test (
-                id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL
-            )",
-            params![],
-        )
-        .unwrap();
-
-        conn.execute("INSERT INTO test (name) VALUES (?)", params!["John Doe"])
-            .unwrap();
-
-        let query = "UPDATE test SET name = ? WHERE id = ?";
-        let params = rusqlite::params_from_iter(vec![
-            rusqlite::types::Value::Text("Jane Doe".to_string()),
-            rusqlite::types::Value::Integer(1),
-        ]);
-        let mut stmt = conn.prepare(query).unwrap();
-        let result = handle_execute(&mut stmt, params).unwrap();
-        assert_eq!(result, "{\"data\":[{\"changes\":1,\"success\":true}]}");
-
-        conn.execute("INSERT INTO test (name) VALUES (?)", params!["John Doe"])
-            .unwrap();
-
-        let query = "UPDATE test SET name = ?";
-        let params =
-            rusqlite::params_from_iter(vec![rusqlite::types::Value::Text("Jane Doe".to_string())]);
-        let mut stmt = conn.prepare(query).unwrap();
-        let result = handle_execute(&mut stmt, params).unwrap();
-        assert_eq!(result, "{\"data\":[{\"changes\":2,\"success\":true}]}");
-
-        let query = "UPDATE nonexistent_table SET name = ? WHERE id = ?";
-        let stmt = conn.prepare(query);
-        assert!(stmt.is_err());
     }
 }
