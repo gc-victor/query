@@ -105,7 +105,7 @@ impl JSXExtractor {
                                 && chars
                                     .next()
                                     .and_then(|_| chars.peek())
-                                    .map_or(false, |&(_, c)| c == CLOSE_ANGLE_BRACKET))
+                                    .is_some_and(|&(_, c)| c == CLOSE_ANGLE_BRACKET))
                         {
                             return Some(from + i);
                         }

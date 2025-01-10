@@ -314,6 +314,11 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
 
     let mut headers_map = HeaderMap::new();
     if let Some(headers) = res.headers {
+        let re = match Regex::new(r"max-age=(\d+)") {
+            Ok(r) => r,
+            Err(e) => return Err(internal_server_error(e.to_string()))
+        };
+
         for (key, value) in headers {
             let key = key.to_uppercase();
             let header_name = HeaderName::from_bytes(key.as_bytes())
@@ -324,10 +329,6 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
 
             if HEADER_CACHE_CONTROL.to_uppercase() == key {
                 let max_age = {
-                    let re = match Regex::new(r"max-age=(\d+)") {
-                        Ok(r) => r,
-                        Err(_) => continue,
-                    };
                     let captures = match re.captures(&value) {
                         Some(c) => c,
                         None => continue,

@@ -121,7 +121,7 @@ mod tests {
             "id": 1,
             "name": "test",
             "active": true,
-            "score": 3.14,
+            "score": 3.20,
             "data": null
         });
         let mut result = bind_named_params(json);
@@ -134,7 +134,7 @@ mod tests {
             ("data".to_string(), rusqlite::types::Value::Null),
             ("id".to_string(), rusqlite::types::Value::Integer(1)),
             ("name".to_string(), rusqlite::types::Value::Text("test".to_string())),
-            ("score".to_string(), rusqlite::types::Value::Real(3.14))
+            ("score".to_string(), rusqlite::types::Value::Real(3.20))
         ];
         expected.sort_by(|a, b| a.0.cmp(&b.0));
 

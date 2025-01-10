@@ -162,8 +162,7 @@ mod tests {
     #[test]
     fn test_cache_multiple_items() {
         let mut cache = Cache::new();
-        let items = vec![
-            CacheItem {
+        let items = [CacheItem {
                 key: "key1".to_string(),
                 value: "value1".to_string(),
             },
@@ -174,8 +173,7 @@ mod tests {
             CacheItem {
                 key: "key3".to_string(),
                 value: "value3".to_string(),
-            },
-        ];
+            }];
 
         for item in items.iter() {
             cache.set(item.clone()).unwrap();

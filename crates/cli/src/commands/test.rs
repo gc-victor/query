@@ -992,7 +992,7 @@ mod tests {
         let non_test_file =
             create_test_file(temp_dir.path(), "normal.js", "console.log('not a test');");
 
-        let filters = vec![temp_dir.path().to_string_lossy().to_string()];
+        let filters = [temp_dir.path().to_string_lossy().to_string()];
         let files =
             TestRunner::get_test_files(&filters.iter().map(PathBuf::from).collect::<Vec<_>>())
                 .unwrap();
