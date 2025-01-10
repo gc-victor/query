@@ -155,7 +155,7 @@ fn generate_migration(command: &GenerateArgs) -> Result<GenerateFiles> {
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')){foreign}
             );
 
-            CREATE TRIGGER IF NOT EXISTS trigger_{table_snake_case}_update 
+            CREATE TRIGGER IF NOT EXISTS trigger_{table_snake_case}_update
                 AFTER UPDATE ON {table_snake_case}
                 BEGIN
                     UPDATE {table_snake_case}
@@ -525,11 +525,12 @@ fn template_engine(template: &str, variables: &HashMap<String, Data>) -> Result<
             let mut repeated_code: Vec<String> = Vec::new();
 
             if let Data::Array(list) = &variables[object_name] {
+                let regex_if = Regex::new(r"\{%\s*if\s*(.*?)\s*%}").unwrap();
+
                 for item in list.iter() {
                     let mut replaced_code = code.to_string();
 
                     for (key, value) in item.iter() {
-                        let regex_if = Regex::new(r"\{%\s*if\s*(.*?)\s*%}").unwrap();
                         replaced_code = regex_if
                             .replace_all(&replaced_code, |caps: &Captures| {
                                 let capture = caps.get(1).unwrap().as_str().trim();
@@ -544,6 +545,7 @@ fn template_engine(template: &str, variables: &HashMap<String, Data>) -> Result<
                             })
                             .to_string();
 
+                        #[allow(clippy::regex_creation_in_loops)]
                         let regex_variable =
                             Regex::new(&format!(r"\{{\{{\s*{variable_name}\.{key}\s*\}}\}}",))
                                 .unwrap();
@@ -842,7 +844,7 @@ mod tests {
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             );
 
-            CREATE TRIGGER IF NOT EXISTS trigger_test_table_update 
+            CREATE TRIGGER IF NOT EXISTS trigger_test_table_update
                 AFTER UPDATE ON test_table
                 BEGIN
                     UPDATE test_table
@@ -904,7 +906,7 @@ mod tests {
                 FOREIGN KEY (parent_2_id) REFERENCES parent_2 (id)
             );
 
-            CREATE TRIGGER IF NOT EXISTS trigger_test_table_update 
+            CREATE TRIGGER IF NOT EXISTS trigger_test_table_update
                 AFTER UPDATE ON test_table
                 BEGIN
                     UPDATE test_table

@@ -528,7 +528,7 @@ mod tests {
         );
         asset_cache.sync();
 
-        assert!(asset_cache.len() > 0);
+        assert!(!asset_cache.is_empty());
 
         // Test Function cache
         function_cache.insert(
@@ -540,7 +540,7 @@ mod tests {
         );
         function_cache.sync();
 
-        assert!(function_cache.len() > 0);
+        assert!(!function_cache.is_empty());
 
         // Clear specific cache type
         clear_response_cache(CacheResponseType::Asset);
