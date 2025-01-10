@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.42] - 2025-01-10
+
+### 🐛 Bug Fixes
+
+- *(server)* Bind to params
+- *(runtime)* Bind to params
+- Clippy
+
 ## [0.12.41] - 2025-01-09
 
 ### 🐛 Bug Fixes
