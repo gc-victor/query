@@ -11,11 +11,15 @@ use crate::sqlite::functions::{
 pub fn connection(db_name: &str) -> Result<Connection> {
     let path = env::var("QUERY_SERVER_DBS_PATH").unwrap_or("/mnt/dbs".to_string());
 
-    if !Path::new(&path).exists() {
-        fs::create_dir_all(&path)?;
-    }
+    let conn = if db_name == ":memory:" {
+        Connection::open_in_memory()?
+    } else {
+        if !Path::new(&path).exists() {
+            fs::create_dir_all(&path)?;
+        }
 
-    let conn = Connection::open(format!("{}/{}", &path, db_name))?;
+        Connection::open(format!("{}/{}", &path, db_name))?
+    };
 
     conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0);
 
