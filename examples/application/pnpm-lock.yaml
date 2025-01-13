@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       valibot:
-        specifier: 1.0.0-beta.10
-        version: 1.0.0-beta.10(typescript@5.7.2)
+        specifier: 1.0.0-beta.11
+        version: 1.0.0-beta.11(typescript@5.7.2)
     devDependencies:
       '@biomejs/biome':
         specifier: ~1.9.4
@@ -1021,8 +1021,8 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  valibot@1.0.0-beta.10:
-    resolution: {integrity: sha512-nmo3nxvXRrxwDYZznK3aTgYv7ZA/SUZJ/s+pLY4Tqsex/fgwZ9XrrQ14jjozjUaeduQ9PhXHE2Xx1uMb0HePYw==}
+  valibot@1.0.0-beta.11:
+    resolution: {integrity: sha512-Ztl5Iks1Ql7Z6CwkS5oyqguN3G8tmUiNlsHpqbDt6DLMpm+eu+n8Q7f921gI3uHvNZ8xDVkd4cEJP5t+lELOfw==}
     peerDependencies:
       typescript: '>=5'
     peerDependenciesMeta:
@@ -1978,7 +1978,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  valibot@1.0.0-beta.10(typescript@5.7.2):
+  valibot@1.0.0-beta.11(typescript@5.7.2):
     optionalDependencies:
       typescript: 5.7.2
 
