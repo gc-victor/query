@@ -278,38 +278,8 @@ fn transform_element(
         return Ok(format!("<{}{}/>", tag, attrs_str));
     }
 
-    let mut children_parts = Vec::new();
-    let mut prev_was_expression = false;
+    let children_str = transform_jsx_children(children)?;
 
-    for child in children {
-        match child {
-            JSXNode::Text(text) => {
-                let mut text = text.to_string();
-                if prev_was_expression {
-                    text = format!(" {}", text);
-                }
-
-                children_parts.push(text.to_string());
-                prev_was_expression = false;
-            }
-            JSXNode::Expression(expr) => {
-                if expr.contains(OPENING_BRACKET) {
-                    let nested = jsx_precompile(expr)?;
-                    children_parts.push(format!("${{{}}}", nested));
-                } else {
-                    children_parts.push(format!("${{{}}}", expr));
-                }
-                prev_was_expression = true;
-            }
-            _ => {
-                let child_content = transform_to_template(child)?;
-                children_parts.push(child_content);
-                prev_was_expression = false;
-            }
-        }
-    }
-
-    let children_str = children_parts.join("").trim().to_string();
     Ok(format!("<{}{}>{}</{}>", tag, attrs_str, children_str, tag))
 }
 
@@ -342,12 +312,41 @@ fn transform_element_attributes(attributes: &[JSXAttribute]) -> Result<Vec<Strin
 
 #[inline]
 fn transform_fragment(children: &[JSXNode]) -> Result<String, JSXError> {
+    transform_jsx_children(children)
+}
+
+fn transform_jsx_children(children: &[JSXNode]) -> Result<String, JSXError> {
     let mut children_parts = Vec::new();
+    let mut prev_was_expression = false;
+
     for child in children {
-        let content = transform_to_template(child)?;
-        children_parts.push(content);
+        match child {
+            JSXNode::Text(text) => {
+                let mut text = text.to_string();
+                if prev_was_expression {
+                    text = format!(" {}", text);
+                }
+                children_parts.push(text);
+                prev_was_expression = false;
+            }
+            JSXNode::Expression(expr) => {
+                if expr.contains(OPENING_BRACKET) {
+                    let nested = jsx_precompile(expr)?;
+                    children_parts.push(format!("${{{}}}", nested.trim()));
+                } else {
+                    children_parts.push(format!("${{{}}}", expr));
+                }
+                prev_was_expression = true;
+            }
+            _ => {
+                let child_content = transform_to_template(child)?;
+                children_parts.push(child_content);
+                prev_was_expression = false;
+            }
+        }
     }
-    Ok(children_parts.join(""))
+
+    Ok(children_parts.join("").trim().to_string())
 }
 
 // @see: https://github.com/denoland/deno_ast/blob/3aba071b59d71802398c2fbcd2d01c99a51553cf/src/transpiling/jsx_precompile.rs#L89
@@ -562,10 +561,7 @@ mod tests {
     fn test_boolean_attribute_element() {
         let source = r#"const el = <input type="checkbox" disabled />;"#;
         let result = jsx_precompile(source).unwrap();
-        assert_eq!(
-            result,
-            r#"const el = `<input type="checkbox" disabled/>`;"#
-        );
+        assert_eq!(result, r#"const el = `<input type="checkbox" disabled/>`;"#);
     }
 
     #[test]
@@ -834,6 +830,40 @@ mod tests {
         let result = jsx_precompile(source).unwrap();
         let expected = r#"const el = `${__jsxComponent(A, [], `Head`)}${__jsxComponent(A, [{"class":"n"}], `${__jsxComponent(B, [], `<div>Inner</div>`)}`)}`;"#;
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_fragment_with_child_text() {
+        let source = r#"const el = <><div>First Element</div><span>Second Element</span></>;"#;
+        let result = jsx_precompile(source).unwrap();
+        assert_eq!(
+            result,
+            "const el = `<div>First Element</div><span>Second Element</span>`;"
+        );
+    }
+
+    #[test]
+    fn test_fragment_with_child_expresion() {
+        let source = r#"const el = <>
+            <label>After Image</label>
+
+            <input
+                type="text"
+            />
+
+            <span>After Input</span>
+
+            {description ? (
+                <span>{description}</span>
+            ) : (
+                ""
+            )}
+        </>;"#;
+        let result = jsx_precompile(source).unwrap();
+        assert_eq!(
+            result,
+            r#"const el = `<label>After Image</label><input type="text"/><span>After Input</span>${description ? ( `<span>${description}</span>` ) : ( "" )}`;"#
+        );
     }
 
     #[test]
