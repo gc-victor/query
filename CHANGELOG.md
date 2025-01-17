@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.43] - 2025-01-17
+
+### 🐛 Bug Fixes
+
+- *(jsx_parser)* Handle nested JSX in fragment expressions
+
+### Build
+
+- *(deps-dev)* Bump @qery/query-server in /examples/minimal
+- *(deps-dev)* Bump @qery/query in /examples/counter
+- *(deps-dev)* Bump @qery/query in /examples/application
+- *(deps-dev)* Bump typescript in /examples/minimal
+- *(deps)* Bump valibot in /examples/application
+- *(deps-dev)* Bump @qery/query in /examples/minimal
+- *(deps-dev)* Bump update-browserslist-db in /examples/application
+- *(deps-dev)* Bump typescript in /examples/counter
+- *(deps-dev)* Bump @qery/query-server in /examples/counter
+- *(deps-dev)* Bump @qery/query-server in /examples/application
+- *(deps-dev)* Bump update-browserslist-db in /examples/minimal
+- *(deps)* Bump rustls from 0.23.20 to 0.23.21
+- *(deps-dev)* Bump typescript in /examples/application
+- *(deps)* Bump clap from 4.5.23 to 4.5.26
+- *(deps)* Bump tempfile from 3.14.0 to 3.15.0
+- *(deps)* Bump tokio from 1.42.0 to 1.43.0
+- *(deps)* Bump colored from 2.2.0 to 3.0.0
+- *(deps)* Bump llrt version to 92a053f
+
 ## [0.12.42] - 2025-01-10
 
 ### 🐛 Bug Fixes
