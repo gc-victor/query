@@ -53,7 +53,7 @@ rquickjs = { git = "https://github.com/DelSkayn/rquickjs.git", version = "0.8.1"
     "parallel",
     "rust-alloc",
 ], default-features = false }
-rusqlite = { version = "0.32", features = [
+rusqlite = { version = "0.33", features = [
     "backup",
     "blob",
     "bundled",
