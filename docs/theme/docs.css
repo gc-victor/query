@@ -123,7 +123,7 @@ li.chapter-item [aria-hidden] {
 }
 
 .dark .logo {
-    fill: #4ade80;
+    fill: #fff;
 }
 
 .dark .hljs {
@@ -332,17 +332,17 @@ li.chapter-item [aria-hidden] {
 }
 
 .dark strong {
-    color: #4ade80;
+    color: #fff;
 }
 
 .dark .nav-chapters {
-    color: #4ade80;
+    color: #fff;
 }
 
 .dark .chapter li.part-title,
 .dark .content .header:link,
 .dark .content .header:visited {
-    color: #4ade80;
+    color: #fff;
 }
 
 .dark .ace_gutter {
@@ -363,11 +363,11 @@ html:not(.js).dark, .dark {
     --bg: #020617;
     --fg: #fff;
     --icons-hover: #fff;
-    --icons: #4ade80;
+    --icons: #fff;
     --inline-code-color: #fab387;
-    --links: #4ade80;
+    --links: #fff;
     --quote-bg: #414865;
-    --quote-border: #4ade80;
+    --quote-border: #fff;
     --scrollbar: #222844;
     --search-mark-bg: #fab387;
     --searchbar-bg: #020617;
@@ -377,7 +377,7 @@ html:not(.js).dark, .dark {
     --searchresults-border-color: #222844;
     --searchresults-header-fg: #fff;
     --searchresults-li-bg: #414865;
-    --sidebar-active: #4ade80;
+    --sidebar-active: #fff;
     --sidebar-bg: #020617;
     --sidebar-fg: #fff;
     --sidebar-non-existant: #6c7086;
