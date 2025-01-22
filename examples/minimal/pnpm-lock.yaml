@@ -12,8 +12,8 @@ importers:
         specifier: ~1.9.4
         version: 1.9.4
       '@qery/query':
-        specifier: ~0.12.42
-        version: 0.12.42
+        specifier: ~0.12.43
+        version: 0.12.43
       '@qery/query-server':
         specifier: ~0.12.43
         version: 0.12.43
@@ -282,8 +282,8 @@ packages:
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
-  '@qery/query@0.12.42':
-    resolution: {integrity: sha512-do6J4fH31XQbk7EubfxMQ1M58oA8qBxdKVE9QC13NTa2bqYiCnlznt3cG7mOrAjAx2MBMvrkK1bQnap1Ryd4yQ==}
+  '@qery/query@0.12.43':
+    resolution: {integrity: sha512-6arG5vrFW+OPsfx1TfnTigxC1WA9arXp/9DS9Gje//0Edo/04FarSVXf8Ppd88Y2BtpRzlGw+rokfowQ0GnHoQ==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
@@ -407,8 +407,8 @@ packages:
   easy-table@1.1.0:
     resolution: {integrity: sha512-oq33hWOSSnl2Hoh00tZWaIPi1ievrD9aFG82/IgjlycAnW9hHx5PkJiXpxPsgEE+H7BsbVQXFVFST8TEXS6/pA==}
 
-  electron-to-chromium@1.5.83:
-    resolution: {integrity: sha512-LcUDPqSt+V0QmI47XLzZrz5OqILSMGsPFkDYus22rIbgorSvBYEFqq854ltTmUdHkY92FSdAAvsh4jWEULMdfQ==}
+  electron-to-chromium@1.5.84:
+    resolution: {integrity: sha512-I+DQ8xgafao9Ha6y0qjHHvpZ9OfyA1qKlkHkjywxzniORU2awxyz7f/iVJcULmrF2yrM3nHQf+iDjJtbbexd/g==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -930,7 +930,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@qery/query@0.12.42':
+  '@qery/query@0.12.43':
     dependencies:
       axios: 1.7.9
       axios-proxy-builder: 0.1.2
@@ -988,7 +988,7 @@ snapshots:
   browserslist@4.24.2:
     dependencies:
       caniuse-lite: 1.0.30001695
-      electron-to-chromium: 1.5.83
+      electron-to-chromium: 1.5.84
       node-releases: 2.0.19
       update-browserslist-db: 1.1.2(browserslist@4.24.2)
 
@@ -1054,7 +1054,7 @@ snapshots:
     optionalDependencies:
       wcwidth: 1.0.1
 
-  electron-to-chromium@1.5.83: {}
+  electron-to-chromium@1.5.84: {}
 
   emoji-regex@8.0.0: {}
 
