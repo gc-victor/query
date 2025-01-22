@@ -21,7 +21,7 @@ pub fn connection(db_name: &str) -> Result<Connection> {
         Connection::open(format!("{}/{}", &path, db_name))?
     };
 
-    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0);
+    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0)?;
 
     // Core pragmas
     conn.pragma_update(None, "journal_mode", "WAL")?;
