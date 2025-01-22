@@ -152,7 +152,7 @@ fn create_branch(options: CreateBranchOptions) -> Result<(), HttpError> {
 
     let conn = connect_db(db_name)?;
 
-    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 1);
+    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 1)?;
 
     match conn.execute("VACUUM INTO ?;", [branch_name_path]) {
         Ok(_) => Ok(()),

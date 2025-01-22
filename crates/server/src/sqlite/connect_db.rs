@@ -1,7 +1,7 @@
 use std::{env, fs, path::Path};
 
 use anyhow::Result;
-use rusqlite::{limits::Limit, Connection};
+use rusqlite::{limits::Limit, trace::{TraceEvent, TraceEventCodes}, Connection};
 use tracing::info;
 
 use crate::{
@@ -19,7 +19,7 @@ use super::functions::{
 pub fn connect_config_db() -> Result<Connection> {
     let conn = connection(DB_CONFIG_NAME)?;
 
-    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0);
+    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0)?;
 
     Ok(conn)
 }
@@ -27,7 +27,7 @@ pub fn connect_config_db() -> Result<Connection> {
 pub fn connect_cache_invalidation_db() -> Result<Connection> {
     let conn = connection(DB_CACHE_INVALIDATION_NAME)?;
 
-    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0);
+    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0)?;
 
     Ok(conn)
 }
@@ -35,7 +35,7 @@ pub fn connect_cache_invalidation_db() -> Result<Connection> {
 pub(crate) fn connect_asset_db() -> Result<Connection> {
     let conn = connection(DB_ASSET_NAME)?;
 
-    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0);
+    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0)?;
 
     Ok(conn)
 }
@@ -43,7 +43,7 @@ pub(crate) fn connect_asset_db() -> Result<Connection> {
 pub fn connect_function_db() -> Result<Connection> {
     let conn = connection(DB_FUNCTION_NAME)?;
 
-    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0);
+    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0)?;
 
     Ok(conn)
 }
@@ -51,7 +51,7 @@ pub fn connect_function_db() -> Result<Connection> {
 pub fn connect_plugin_db() -> Result<Connection> {
     let conn = connection(DB_PLUGIN_NAME)?;
 
-    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0);
+    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 0)?;
 
     Ok(conn)
 }
@@ -59,7 +59,7 @@ pub fn connect_plugin_db() -> Result<Connection> {
 pub fn connect_db(db_name: &str) -> Result<Connection> {
     let conn = connection(db_name)?;
 
-    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 1);
+    conn.set_limit(Limit::SQLITE_LIMIT_ATTACHED, 1)?;
 
     Ok(conn)
 }
@@ -103,11 +103,14 @@ pub fn connection(db_name: &str) -> Result<Connection> {
 }
 
 pub fn enable_query_tracing(conn: &mut Connection) -> Result<()> {
-    conn.profile(Some(|statement, duration| {
+    conn.trace_v2(TraceEventCodes::SQLITE_TRACE_STMT, Some(|event| {
+        let TraceEvent::Stmt(stmt_info, _) = event else { return; };
+        let statement = stmt_info.expanded_sql().unwrap_or_else(|| stmt_info.sql().to_string());
+
         if statement.starts_with("PRAGMA") || statement.starts_with("SELECT version FROM cache_invalidation") {
             return;
         }
-        info!("Query executed in {}μs: {}", duration.as_micros(), statement);
+        info!("Statement: {}", statement);
     }));
 
     Ok(())
