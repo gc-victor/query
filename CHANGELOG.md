@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.44] - 2025-01-26
+
+### 🐛 Bug Fixes
+
+- Clippy
+- *(jsx_parser)* Jsx extract web components
+
+### 📚 Documentation
+
+- Replace #4ade80 by #fff
+
+### Build
+
+- *(deps)* Bump uuid from 1.11.0 to 1.12.0
+- *(deps)* Bump phf from 0.11.2 to 0.11.3
+- *(deps)* Bump rusqlite from 0.32.1 to 0.33.0
+- *(deps)* Bump serde_json from 1.0.134 to 1.0.137
+- *(deps-dev)* Bump @qery/query-server in /examples/minimal
+- *(deps-dev)* Bump @qery/query in /examples/counter
+- *(deps-dev)* Bump @qery/query in /examples/application
+- *(deps)* Bump valibot in /examples/application
+- *(deps-dev)* Bump @qery/query in /examples/minimal
+- *(deps-dev)* Bump @qery/query-server in /examples/counter
+- *(deps-dev)* Bump @qery/query-server in /examples/application
+- *(deps)* Bump rquickjs from `ff980e2` to `a39e7b9`
+
 ## [0.12.43] - 2025-01-17
 
 ### 🐛 Bug Fixes
