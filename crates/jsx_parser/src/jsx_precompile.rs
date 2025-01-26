@@ -754,6 +754,16 @@ mod tests {
     }
 
     #[test]
+    fn test_web_components() {
+        let source = r#"const el = <my-web-component attr="val" data-custom="5"><slot>Default</slot><h1 slot="header">Title</h1></my-web-component>;"#;
+        let result = jsx_precompile(source).unwrap();
+        assert_eq!(
+            result,
+            "const el = `<my-web-component attr=\"val\" data-custom=\"5\"><slot>Default</slot><h1 slot=\"header\">Title</h1></my-web-component>`;"
+        );
+    }
+
+    #[test]
     fn test_self_close_component() {
         let source = "const el = <Component/>;";
         let result = jsx_precompile(source).unwrap();

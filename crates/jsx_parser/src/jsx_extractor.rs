@@ -23,7 +23,8 @@ const OPEN_ANGLE_BRACKET: char = '<'; // Character to denote open angle bracket
 const CLOSE_ANGLE_BRACKET: char = '>'; // Character to denote close angle bracket
 const CLOSE_BRACKET_BYTE: u8 = b'>'; // Character to denote close bracket as byte
 const UNDERSCORE: char = '_'; // Character to denote underscore
-const DOLLAR_SIGN: char = '$'; // C
+const HYPHEN: char = '-'; // Character to denote hypen
+const DOLLAR_SIGN: char = '$'; // Character to denote dolar sign
 const OPEN_CURLY_BRACE: char = '{'; // Character to denote opening curly brace
 const SLASH: char = '/'; // Character to denote slash
 const SLASH_BYTE: u8 = b'/'; // Character to denote slash as bytes
@@ -109,8 +110,8 @@ impl JSXExtractor {
                         {
                             return Some(from + i);
                         }
-                        // Only continue if we find valid element name characters
-                        if !c.is_alphanumeric() && c != UNDERSCORE && c != DOLLAR_SIGN {
+
+                        if !c.is_alphanumeric() && c != UNDERSCORE && c != DOLLAR_SIGN && c != HYPHEN {
                             break;
                         }
                         chars.next();
@@ -331,7 +332,7 @@ mod tests {
     fn test_jsx_extractor_with_web_component() {
         let input = r#"
             function App() {
-                return <div><web-component><span>Hello World</span></web-component></div>;
+                return <web-component><span>Hello World</span></web-component>;
             }
         "#;
         let mut extractor = JSXExtractor::new(String::from(input));
@@ -341,7 +342,7 @@ mod tests {
 
         assert_eq!(
             locations,
-            vec!["<div><web-component><span>Hello World</span></web-component></div>".to_string()]
+            vec!["<web-component><span>Hello World</span></web-component>".to_string()]
         );
     }
 
