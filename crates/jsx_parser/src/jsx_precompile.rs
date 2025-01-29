@@ -228,8 +228,11 @@ fn transform_component_attributes(attributes: &[JSXAttribute]) -> Result<String,
             Some(JSXAttributeValue::Expression(expr)) => {
                 attr_parts.push(format!(r#"{{"{}":{}}}"#, &attr.name, expr));
             }
-            Some(JSXAttributeValue::String(value)) => {
+            Some(JSXAttributeValue::DoubleQuote(value)) => {
                 attr_parts.push(format!(r#"{{"{}":"{}"}}"#, &attr.name, value));
+            }
+            Some(JSXAttributeValue::SingleQuote(value)) => {
+                attr_parts.push(format!(r#"{{"{}":'{}'}}"#, &attr.name, value));
             }
             None => {
                 if attr.name.starts_with("...") {
@@ -292,8 +295,11 @@ fn transform_element_attributes(attributes: &[JSXAttribute]) -> Result<Vec<Strin
             Some(JSXAttributeValue::Expression(expr)) => {
                 attr_parts.push(format!(r#"{}="${{{}}}""#, name, expr));
             }
-            Some(JSXAttributeValue::String(value)) => {
+            Some(JSXAttributeValue::DoubleQuote(value)) => {
                 attr_parts.push(format!(r#"{}="{}""#, name, value));
+            }
+            Some(JSXAttributeValue::SingleQuote(value)) => {
+                attr_parts.push(format!("{}='{}'", name, value));
             }
             None => {
                 if attr.name.starts_with("...") {
@@ -731,6 +737,13 @@ mod tests {
             result,
             "const el = `<div class=\"${dynamicClass}\"${__jsxSpread(spread)} moto>Content</div>`;"
         );
+    }
+
+    #[test]
+    fn test_attribute_value_single_quotes() {
+        let source = r#"const el = <div class='single-quote'></div>;"#;
+        let result = jsx_precompile(source).unwrap();
+        assert_eq!(result, "const el = `<div class='single-quote'></div>`;");
     }
 
     #[test]
