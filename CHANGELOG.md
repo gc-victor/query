@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.45] - 2025-01-29
+
+### 🐛 Bug Fixes
+
+- *(jsx_parser)* Attribute single quote
+
+### Build
+
+- *(deps)* Bump openssl from 0.10.68 to 0.10.69
+- *(deps)* Bump rand from 0.8.5 to 0.9.0
+- *(deps)* Bump uuid from 1.12.0 to 1.12.1
+- *(deps)* Bump clap from 4.5.26 to 4.5.27
+
 ## [0.12.44] - 2025-01-26
 
 ### 🐛 Bug Fixes
