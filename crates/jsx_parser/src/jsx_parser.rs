@@ -23,7 +23,8 @@ pub struct JSXAttribute {
 
 #[derive(Debug, PartialEq)]
 pub enum JSXAttributeValue {
-    String(String),
+    DoubleQuote(String),
+    SingleQuote(String),
     Expression(String),
 }
 
@@ -35,6 +36,7 @@ const LEFT_BRACE: char = '{';
 const RIGHT_BRACE: char = '}';
 const EQUALS: char = '=';
 const DOUBLE_QUOTE: char = '"';
+const SINGLE_QUOTE: char = '\'';
 const UNDERSCORE: char = '_';
 const DOLLAR_SIGN: char = '$';
 const HYPHEN: char = '-';
@@ -304,20 +306,38 @@ impl<'a> Parser<'a> {
     fn parse_attribute_value(&mut self) -> Result<JSXAttributeValue, String> {
         match self.peek() {
             Some(DOUBLE_QUOTE) => {
+                let quote = self.peek().unwrap();
                 self.bump();
                 let mut value = String::new();
                 while let Some(c) = self.peek() {
-                    if c == DOUBLE_QUOTE {
+                    if c == quote {
                         break;
                     }
                     value.push(c);
                     self.bump();
                 }
-                if self.peek() != Some(DOUBLE_QUOTE) {
+                if self.peek() != Some(quote) {
                     return Err(ERR_UNTERMINATED_STRING.to_string());
                 }
                 self.bump();
-                Ok(JSXAttributeValue::String(value))
+                Ok(JSXAttributeValue::DoubleQuote(value))
+            }
+            Some(SINGLE_QUOTE) => {
+                let quote = self.peek().unwrap();
+                self.bump();
+                let mut value = String::new();
+                while let Some(c) = self.peek() {
+                    if c == quote {
+                        break;
+                    }
+                    value.push(c);
+                    self.bump();
+                }
+                if self.peek() != Some(quote) {
+                    return Err(ERR_UNTERMINATED_STRING.to_string());
+                }
+                self.bump();
+                Ok(JSXAttributeValue::SingleQuote(value))
             }
             Some(LEFT_BRACE) => {
                 self.bump();
@@ -466,17 +486,46 @@ mod tests {
                 assert_eq!(attributes[0].name, "className");
                 assert_eq!(
                     attributes[0].value,
-                    Some(JSXAttributeValue::String("container".to_string()))
+                    Some(JSXAttributeValue::DoubleQuote("container".to_string()))
                 );
                 assert_eq!(attributes[1].name, "id");
                 assert_eq!(
                     attributes[1].value,
-                    Some(JSXAttributeValue::String("main".to_string()))
+                    Some(JSXAttributeValue::DoubleQuote("main".to_string()))
                 );
             }
             _ => panic!("Expected Element"),
         }
     }
+    
+    #[test]
+    fn test_parse_attributes_with_quotes() {
+            let mut parser = Parser::new(r#"<div class='single' data-test="double"></div>"#);
+            let ast = parser.parse().unwrap();
+
+            match ast {
+                JSXNode::Element { attributes, .. } => {
+                    assert_eq!(attributes.len(), 2);
+
+                    // Check single quoted attribute
+                    match &attributes[0].value {
+                        Some(JSXAttributeValue::SingleQuote(value)) => {
+                            assert_eq!(value, "single");
+                        }
+                        _ => panic!("Expected single-quoted string attribute"),
+                    }
+
+                    // Check double quoted attribute
+                    match &attributes[1].value {
+                        Some(JSXAttributeValue::DoubleQuote(value)) => {
+                            assert_eq!(value, "double");
+                        }
+                        _ => panic!("Expected double-quoted string attribute"),
+                    }
+                }
+                _ => panic!("Expected Element"),
+            }
+        }
 
     #[test]
     fn test_parse_expression() {
@@ -576,7 +625,7 @@ mod tests {
                 assert_eq!(attributes[0].name, "type");
                 assert_eq!(
                     attributes[0].value,
-                    Some(JSXAttributeValue::String("text".to_string()))
+                    Some(JSXAttributeValue::DoubleQuote("text".to_string()))
                 );
                 assert_eq!(children.len(), 0);
             }
@@ -651,7 +700,7 @@ mod tests {
                 assert_eq!(attributes[0].name, "id");
                 assert_eq!(
                     attributes[0].value,
-                    Some(JSXAttributeValue::String("main".to_string()))
+                    Some(JSXAttributeValue::DoubleQuote("main".to_string()))
                 );
 
                 assert_eq!(attributes[1].name, "className");
@@ -663,7 +712,7 @@ mod tests {
                 assert_eq!(attributes[2].name, "data-test");
                 assert_eq!(
                     attributes[2].value,
-                    Some(JSXAttributeValue::String("value".to_string()))
+                    Some(JSXAttributeValue::DoubleQuote("value".to_string()))
                 );
 
                 assert_eq!(attributes[3].name, "disabled");
@@ -690,7 +739,7 @@ mod tests {
                 assert_eq!(attributes[0].name, "data-test");
                 assert_eq!(
                     attributes[0].value,
-                    Some(JSXAttributeValue::String("value".to_string()))
+                    Some(JSXAttributeValue::DoubleQuote("value".to_string()))
                 );
             }
             _ => panic!("Expected Element"),
@@ -769,7 +818,7 @@ mod tests {
                 assert_eq!(attributes[0].name, "data-test");
                 assert_eq!(
                     attributes[0].value,
-                    Some(JSXAttributeValue::String("value".to_string()))
+                    Some(JSXAttributeValue::DoubleQuote("value".to_string()))
                 );
                 assert_eq!(children.len(), 0);
             }
@@ -804,7 +853,7 @@ mod tests {
                 assert_eq!(attributes[0].name, "className");
                 assert_eq!(
                     attributes[0].value,
-                    Some(JSXAttributeValue::String("container".to_string()))
+                    Some(JSXAttributeValue::DoubleQuote("container".to_string()))
                 );
 
                 // Check header
@@ -838,7 +887,7 @@ mod tests {
                                         assert_eq!(attributes[0].name, "href");
                                         assert_eq!(
                                             attributes[0].value,
-                                            Some(JSXAttributeValue::String("/".to_string()))
+                                            Some(JSXAttributeValue::DoubleQuote("/".to_string()))
                                         );
                                         assert_eq!(children[0], JSXNode::Text("Home".to_string()));
                                     }
@@ -857,7 +906,7 @@ mod tests {
                                         assert_eq!(attributes[0].name, "href");
                                         assert_eq!(
                                             attributes[0].value,
-                                            Some(JSXAttributeValue::String("/about".to_string()))
+                                            Some(JSXAttributeValue::DoubleQuote("/about".to_string()))
                                         );
                                         assert_eq!(children[0], JSXNode::Text("About".to_string()));
                                     }
@@ -960,7 +1009,7 @@ mod tests {
                 assert_eq!(attributes[1].name, "data-test");
                 assert_eq!(
                     attributes[1].value,
-                    Some(JSXAttributeValue::String("value".to_string()))
+                    Some(JSXAttributeValue::DoubleQuote("value".to_string()))
                 );
             }
             _ => panic!("Expected Element"),
@@ -1022,7 +1071,7 @@ mod tests {
                 assert_eq!(attributes[0].name, "prop1");
                 assert_eq!(
                     attributes[0].value,
-                    Some(JSXAttributeValue::String("string".to_string()))
+                    Some(JSXAttributeValue::DoubleQuote("string".to_string()))
                 );
 
                 assert_eq!(attributes[1].name, "prop2");
@@ -1228,7 +1277,7 @@ console.error("Failed to copy: ", err);
                 assert_eq!(attributes[1].name, "data-test");
                 assert_eq!(
                     attributes[1].value,
-                    Some(JSXAttributeValue::String("value".to_string()))
+                    Some(JSXAttributeValue::DoubleQuote("value".to_string()))
                 );
 
                 // Check header element
@@ -1241,7 +1290,7 @@ console.error("Failed to copy: ", err);
                         assert_eq!(attributes[0].name, "id");
                         assert_eq!(
                             attributes[0].value,
-                            Some(JSXAttributeValue::String("main".to_string()))
+                            Some(JSXAttributeValue::DoubleQuote("main".to_string()))
                         );
                     }
                     _ => panic!("Expected header element"),
