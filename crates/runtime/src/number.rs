@@ -249,17 +249,17 @@ pub fn number_to_string(ctx: Ctx, this: This<Value>, radix: Opt<u8>) -> Result<S
 
 #[cfg(test)]
 mod test {
-    use rand::{thread_rng, Rng};
+    use rand::{rng, Rng};
 
     use crate::number::{float_to_string, i64_to_base_n};
 
     #[test]
     fn test_base_conversions() {
-        let mut rng = thread_rng();
+        let mut rng = rng();
 
         for _ in 0..1_000_000 {
             // Generate random i64 and radix values
-            let num: i64 = rng.gen_range(i64::MIN + 1..i64::MAX - 1);
+            let num: i64 = rng.random_range(i64::MIN + 1..i64::MAX - 1);
 
             let minus_str = if num < 0 { "-" } else { "" };
 
