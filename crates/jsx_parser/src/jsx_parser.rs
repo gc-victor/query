@@ -1628,7 +1628,7 @@ console.error("Failed to copy: ", err);
             // Header assertions
             if let JSXNode::Element { tag, attributes, children } = nodes[0] {
                 assert_eq!(tag, "header");
-                assert_class_name(&attributes, "styles.header");
+                assert_class_name(attributes, "styles.header");
 
                 let header_nodes = children.iter()
                     .filter(|n| !matches!(n, JSXNode::Text(t) if t.trim().is_empty()))
@@ -1648,7 +1648,7 @@ console.error("Failed to copy: ", err);
             // Main assertions  
             if let JSXNode::Element { tag, attributes, children } = nodes[1] {
                 assert_eq!(tag, "main");
-                assert_class_name(&attributes, "styles.main");
+                assert_class_name(attributes, "styles.main");
 
                 if let JSXNode::Expression(expr) = &children[0] {
                     assert!(expr.contains("loading ?"));
@@ -1659,7 +1659,7 @@ console.error("Failed to copy: ", err);
             // Footer assertions
             if let JSXNode::Element { tag, attributes, children } = nodes[2] {
                 assert_eq!(tag, "footer");
-                assert_class_name(&attributes, "styles.footer");
+                assert_class_name(attributes, "styles.footer");
 
                 if let JSXNode::Element { children, .. } = &children[0] {
                     assert_eq!(children[1], JSXNode::Expression("currentYear".to_string()));
