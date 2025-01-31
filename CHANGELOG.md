@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.46] - 2025-01-31
+
+### 🐛 Bug Fixes
+
+- *(jsx_parser)* Skip whitespace
+- Clippy
+
 ## [0.12.45] - 2025-01-29
 
 ### 🐛 Bug Fixes
