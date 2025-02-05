@@ -55,19 +55,19 @@ impl<'js> TextDecoder {
     }
 
     pub fn decode(&self, ctx: Ctx<'js>, bytes: ObjectBytes<'js>) -> Result<String> {
-        let bytes = bytes.as_bytes();
-        let start_pos = if !self.ignore_bom {
-            match bytes.get(..3) {
-                Some([0xFF, 0xFE, ..]) | Some([0xFE, 0xFF, ..]) => 2,
-                Some([0xEF, 0xBB, 0xBF]) => 3,
-                _ => 0,
-            }
-        } else {
-            0
-        };
+            let bytes = bytes.as_bytes(&ctx)?;
+            let start_pos = if !self.ignore_bom {
+                match bytes.get(..3) {
+                    Some([0xFF, 0xFE, ..]) | Some([0xFE, 0xFF, ..]) => 2,
+                    Some([0xEF, 0xBB, 0xBF]) => 3,
+                    _ => 0,
+                }
+            } else {
+                0
+            };
 
-        self.encoder
-            .encode_to_string(&bytes[start_pos..], !self.fatal)
-            .or_throw_type(&ctx, "")
-    }
+            self.encoder
+                .encode_to_string(&bytes[start_pos..], !self.fatal)
+                .or_throw_type(&ctx, "")
+        }
 }
