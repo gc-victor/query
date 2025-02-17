@@ -43,7 +43,7 @@ tabled = "0.18"
 tempfile = "3.16"
 tokio = { version = "1.43", features = ["full"] }
 toml = { version = "0.8", features = ["preserve_order"] }
-toml_edit = "0.22.23"
+toml_edit = "0.22.24"
 tracing = "0.1"
 tracing-subscriber = "0.3"
 walkdir = "2.5"
