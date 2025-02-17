@@ -2,7 +2,7 @@
     "name": "query-app",
     "type": "module",
     "dependencies": {
-        "valibot": "1.0.0-beta.12"
+        "valibot": "1.0.0-rc.1"
     },
     "devDependencies": {
         "@biomejs/biome": "~1.9.4",
