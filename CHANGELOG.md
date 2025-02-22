@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.47] - 2025-02-22
+
+### 🐛 Bug Fixes
+
+- *(jsx_parser)* Jsx children
+
+### Build
+
+- *(deps)* Bump tempfile from 3.15.0 to 3.16.0
+- *(deps)* Bump lettre from 0.11.11 to 0.11.12
+- *(deps)* Bump webpki-roots from 0.26.7 to 0.26.8
+- *(deps)* Bump ryu from 1.0.18 to 1.0.19
+- *(deps)* Bump toml_edit from 0.22.22 to 0.22.23
+- *(deps)* Bump openssl from 0.10.69 to 0.10.70
+- *(deps)* Update rquickjs & llrt
+- *(deps)* Bump watchexec from 5.0.0 to 6.0.0
+- *(deps)* Bump once_cell from 1.20.2 to 1.20.3
+- *(deps)* Bump tabled from 0.17.0 to 0.18.0
+- *(deps)* Bump jsonwebtoken from 9.3.0 to 9.3.1
+- *(deps)* Bump ring from 0.17.8 to 0.17.9
+- *(deps)* Bump toml_edit from 0.22.23 to 0.22.24
+- *(deps)* Bump extism from 1.9.1 to 1.10.0
+- *(deps)* Bump lettre from 0.11.12 to 0.11.13
+- Update dist 0.27.1 to 0.28.0
+- *(deps)* Bump esbuild to 0.25.0
+
 ## [0.12.46] - 2025-01-31
 
 ### 🐛 Bug Fixes
