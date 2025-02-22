@@ -88,18 +88,22 @@ mod tests {
     use super::*;
 
     fn before() {
-        env::set_var("QUERY_SERVER_PORT", "3000");
-        env::set_var("QUERY_SERVER_DBS_PATH", "path");
-        env::set_var("QUERY_SERVER_TOKEN_SECRET", "secret");
-        env::set_var("QUERY_SERVER_ADMIN_EMAIL", "email");
-        env::set_var("QUERY_SERVER_ADMIN_PASSWORD", "password");
+        unsafe {
+            env::set_var("QUERY_SERVER_PORT", "3000");
+            env::set_var("QUERY_SERVER_DBS_PATH", "path");
+            env::set_var("QUERY_SERVER_TOKEN_SECRET", "secret");
+            env::set_var("QUERY_SERVER_ADMIN_EMAIL", "email");
+            env::set_var("QUERY_SERVER_ADMIN_PASSWORD", "password");
+        }
     }
 
     #[test]
     fn test_port() {
         before();
 
-        env::set_var("QUERY_SERVER_PORT", "3000");
+        unsafe {
+            env::set_var("QUERY_SERVER_PORT", "3000");
+        }
 
         assert_eq!(Env::port(), 3000);
     }
@@ -108,14 +112,18 @@ mod tests {
     fn test_port_with_default() {
         before();
 
-        env::remove_var("QUERY_SERVER_PORT");
+        unsafe {
+            env::remove_var("QUERY_SERVER_PORT");
+        }
 
         assert_eq!(Env::port(), 3000);
     }
 
     #[test]
     fn test_dbs_path() {
-        env::set_var("QUERY_SERVER_DBS_PATH", "path");
+        unsafe {
+            env::set_var("QUERY_SERVER_DBS_PATH", "path");
+        }
 
         assert_eq!(Env::dbs_path(), "path");
     }
@@ -124,7 +132,9 @@ mod tests {
     fn test_dbs_path_without_dbs_path() {
         before();
 
-        env::remove_var("QUERY_SERVER_DBS_PATH");
+        unsafe {
+            env::remove_var("QUERY_SERVER_DBS_PATH");
+        }
 
         assert_eq!(Env::dbs_path(), "/mnt/dbs");
     }
@@ -133,7 +143,9 @@ mod tests {
     fn test_app() {
         before();
 
-        env::set_var("QUERY_SERVER_APP", "true");
+        unsafe {
+            env::set_var("QUERY_SERVER_APP", "true");
+        }
 
         assert_eq!(Env::app(), "true");
     }
@@ -142,7 +154,9 @@ mod tests {
     fn test_app_with_default() {
         before();
 
-        env::remove_var("QUERY_SERVER_APP");
+        unsafe {
+            env::remove_var("QUERY_SERVER_APP");
+        }
 
         assert_eq!(Env::app(), "false");
     }
@@ -151,7 +165,9 @@ mod tests {
     fn test_proxy() {
         before();
 
-        env::set_var("QUERY_SERVER_PROXY", "true");
+        unsafe {
+            env::set_var("QUERY_SERVER_PROXY", "true");
+        }
 
         assert_eq!(Env::proxy(), "true");
     }
@@ -160,7 +176,9 @@ mod tests {
     fn test_proxy_with_default() {
         before();
 
-        env::remove_var("QUERY_SERVER_PROXY");
+        unsafe {
+            env::remove_var("QUERY_SERVER_PROXY");
+        }
 
         assert_eq!(Env::proxy(), "false");
     }
@@ -169,7 +187,9 @@ mod tests {
     fn test_proxy_port() {
         before();
 
-        env::set_var("QUERY_SERVER_PROXY_PORT", "3002");
+        unsafe {
+            env::set_var("QUERY_SERVER_PROXY_PORT", "3002");
+        }
 
         assert_eq!(Env::proxy_port(), 3002);
     }
@@ -178,14 +198,18 @@ mod tests {
     fn test_proxy_port_with_default() {
         before();
 
-        env::remove_var("QUERY_SERVER_PROXY_PORT");
+        unsafe {
+            env::remove_var("QUERY_SERVER_PROXY_PORT");
+        }
 
         assert_eq!(Env::proxy_port(), 3001);
     }
 
     #[test]
     fn test_token_secret() {
-        env::set_var("QUERY_SERVER_TOKEN_SECRET", "secret");
+        unsafe {
+            env::set_var("QUERY_SERVER_TOKEN_SECRET", "secret");
+        }
 
         assert_eq!(Env::token_secret(), "secret");
     }
@@ -195,14 +219,18 @@ mod tests {
     fn test_token_secret_without_token_secret() {
         before();
 
-        env::remove_var("QUERY_SERVER_TOKEN_SECRET");
+        unsafe {
+            env::remove_var("QUERY_SERVER_TOKEN_SECRET");
+        }
 
         Env::token_secret();
     }
 
     #[test]
     fn test_admin_email() {
-        env::set_var("QUERY_SERVER_ADMIN_EMAIL", "email");
+        unsafe {
+            env::set_var("QUERY_SERVER_ADMIN_EMAIL", "email");
+        }
 
         assert_eq!(Env::admin_email(), "email");
     }
@@ -212,14 +240,18 @@ mod tests {
     fn test_admin_email_without_admin_email() {
         before();
 
-        env::remove_var("QUERY_SERVER_ADMIN_EMAIL");
+        unsafe {
+            env::remove_var("QUERY_SERVER_ADMIN_EMAIL");
+        }
 
         Env::admin_email();
     }
 
     #[test]
     fn test_admin_password() {
-        env::set_var("QUERY_SERVER_ADMIN_PASSWORD", "password");
+        unsafe {
+            env::set_var("QUERY_SERVER_ADMIN_PASSWORD", "password");
+        }
 
         assert_eq!(Env::admin_password(), "password");
     }
@@ -229,7 +261,9 @@ mod tests {
     fn test_admin_password_without_admin_password() {
         before();
 
-        env::remove_var("QUERY_SERVER_ADMIN_PASSWORD");
+        unsafe {
+            env::remove_var("QUERY_SERVER_ADMIN_PASSWORD");
+        }
 
         Env::admin_password();
     }
