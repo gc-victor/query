@@ -566,6 +566,29 @@ mod tests {
     }
 
     #[test]
+    fn test_component_children() {
+        let source = r#"
+            const Child = ({ children, ...props }) => <div><p>{ props.attr }</p>{children}</div>;
+            const Parent = (props) => (
+                <Child {...props}>
+                    <p>Parent Content</p>
+                    <p>Another Content</p>
+                </Child>
+            );
+            const GrandParent = () => (
+                <Parent attr="Test">
+                    <p>GrandParent Content</p>
+                </Parent>
+            );
+            const result = <GrandParent />;"#;
+        let result = jsx_precompile(source).unwrap();
+        assert_eq!(
+                result.replace('\n', "").split_whitespace().collect::<Vec<&str>>().join(" "),
+                "const Child = ({ children, ...props }) => `<div><p>${ props.attr }</p>${children}</div>`; const Parent = (props) => ( `${__jsxComponent(Child, [{...props}], `<p>Parent Content</p> <p>Another Content</p>`)}` ); const GrandParent = () => ( `${__jsxComponent(Parent, [{\"attr\":\"Test\"}], `<p>GrandParent Content</p>`)}` ); const result = `${__jsxComponent(GrandParent, [])}`;"
+            );
+    }
+
+    #[test]
     fn test_boolean_attribute_element() {
         let source = r#"const el = <input type="checkbox" disabled />;"#;
         let result = jsx_precompile(source).unwrap();

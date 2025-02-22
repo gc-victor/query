@@ -20,12 +20,14 @@ help:
 	@echo "Available commands:"
 	@echo
 	@echo "Build:"
-	@echo "  build-server            - Build the query server in release mode"
+	@echo "  build-server            - Build the query server in release mode" 
+	@echo "  debug-server            - Build the query server in debug mode"
 	@echo "  build-server-watch      - Watch and build the query server, with debug logging"
-	@echo "  build-cli               - Build the CLI with the dist profile"
+	@echo "  build-cli               - Build the CLI with release profile"
+	@echo "  debug-cli               - Build the CLI in debug mode"
 	@echo
 	@echo "Changelog:"
-	@echo "  update-changelog        - Update CHANGELOG.md with changes between the last two release commits"
+	@echo "  changelog               - Update CHANGELOG.md with changes between release commits"
 	@echo
 	@echo "Clean:"
 	@echo "  clean                   - Remove Cargo.lock and clean the build artifacts"
@@ -62,6 +64,9 @@ help:
 	@echo "  hurl                    - Run Hurl tests"
 	@echo "  hurl-test               - Run Hurl tests in test mode"
 	@echo "  hurl-test-all           - Run all Hurl tests in test mode"
+	@echo "  hurl-integration        - Run Hurl integration tests"
+	@echo "  hurl-function           - Update Hurl function test file"
+	@echo "  hurl-bytes              - Convert file to bytes for Hurl tests"
 	@echo
 	@echo "Linting:"
 	@echo "  lint                    - Run clippy on all targets"
@@ -70,6 +75,7 @@ help:
 	@echo "  npm-publish             - Publish npm packages"
 	@echo "  npm-prerelease          - Publish prerelease npm packages"
 	@echo "  npm-un-prerelease       - Unpublish prerelease npm packages"
+	@echo
 	@echo "Release:"
 	@echo "  release                 - Create a new release version"
 	@echo "  release-rollback        - Rollback a release version"
@@ -81,7 +87,7 @@ help:
 	@echo "  run-release             - Run the server in release mode"
 	@echo "  run-cli-release         - Run the CLI in release mode"
 	@echo "  dev                     - Run the server in development mode"
-	@echo "  dev-build               - Watch and build the server"
+	@echo "  dev-server              - Watch and build the server"
 	@echo "  dev-cli                 - Watch and run the CLI"
 	@echo "  dev-proxy               - Run the server with proxy enabled"
 	@echo "  dev-bun                 - Run the Bun development server"
@@ -94,6 +100,9 @@ help:
 	@echo "  nextest-query-server    - Run query-server tests with nextest"
 	@echo "  nextest-match           - Run specific tests with nextest"
 	@echo "  test-watch              - Watch and run tests"
+	@echo "  test-watch-js           - Watch and run JS tests"
+	@echo "  test-js                 - Run JS tests"
+	@echo "  test-release-js         - Run JS tests in release mode"
 	@echo
 	@echo "Tagging:"
 	@echo "  tag-delete              - Delete a version tag"

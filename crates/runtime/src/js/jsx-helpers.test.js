@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from "query:test";
+import { describe, expect, test } from "query:test";
 import "./jsx-helpers.js";
 
 describe("__jsxTemplate", () => {
@@ -43,6 +43,14 @@ describe("__jsxComponent", () => {
         const Component = ({ children, ...props }) => `<div id="${props.id}">${children}</div>`;
         const result = __jsxComponent(Component, [{ id: "test" }], "<span>Child Content</span>");
         expect(result.toString()).toBe('<div id="test"><span>Child Content</span></div>');
+    });
+
+    test("should handle nested component composition", () => {
+        const Child = ({ children, ...props }) => __jsxTemplate(`<div><p>${props.attr}</p>${children}</div>`);
+        const Parent = (props) => __jsxComponent(Child, [props], __jsxTemplate("<p>Parent Content</p><p>Another Content</p>"));
+        const GrandParent = () => __jsxComponent(Parent, [{ attr: "Test" }]);
+        const result = __jsxComponent(GrandParent, []);
+        expect(result.toString()).toBe("<div><p>Test</p><p>Parent Content</p><p>Another Content</p></div>");
     });
 });
 
