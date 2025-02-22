@@ -10,7 +10,7 @@ function __jsxTemplate(string) {
 function __jsxComponent(Component, props, children) {
     const finalProps = Array.isArray(props) ? props.reduce((acc, prop) => Object.assign(acc, prop), {}) : props;
 
-    return Component({ children, ...finalProps });
+    return Component({ ...finalProps, children });
 }
 
 function __jsxSpread(obj) {
