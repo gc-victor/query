@@ -281,7 +281,9 @@ mod tests {
 
     #[test]
     fn test_set_token() -> Result<(), rusqlite::Error> {
-        env::set_var("QUERY_SERVER_TOKEN_SECRET", "secret");
+        unsafe {
+            env::set_var("QUERY_SERVER_TOKEN_SECRET", "secret");
+        }
 
         let conn = Connection::open_in_memory()?;
 

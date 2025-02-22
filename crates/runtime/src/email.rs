@@ -690,7 +690,9 @@ mod tests {
             smtp_protocol: Some(Protocol::Smtps),
         };
 
-        std::env::remove_var("QUERY_SMTP_SERVER");
+        unsafe {
+            std::env::remove_var("QUERY_SMTP_SERVER");
+        }
 
         let result = smtp_config(options);
 
@@ -716,7 +718,9 @@ mod tests {
             smtp_protocol: Some(Protocol::Smtps),
         };
 
-        std::env::remove_var("QUERY_SMTP_USERNAME");
+        unsafe {
+            std::env::remove_var("QUERY_SMTP_USERNAME");
+        }
 
         let result = smtp_config(options);
 
@@ -742,7 +746,9 @@ mod tests {
             smtp_protocol: None,
         };
 
-        std::env::remove_var("QUERY_SMTP_PASSWORD");
+        unsafe {
+            std::env::remove_var("QUERY_SMTP_PASSWORD");
+        }
 
         let result = smtp_config(options);
 
