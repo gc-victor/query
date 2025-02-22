@@ -16,8 +16,8 @@ importers:
         specifier: ~1.9.4
         version: 1.9.4
       '@qery/query':
-        specifier: ~0.12.43
-        version: 0.12.43
+        specifier: ~0.12.46
+        version: 0.12.46
       '@qery/query-server':
         specifier: ~0.12.43
         version: 0.12.43
@@ -297,8 +297,8 @@ packages:
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
-  '@qery/query@0.12.43':
-    resolution: {integrity: sha512-6arG5vrFW+OPsfx1TfnTigxC1WA9arXp/9DS9Gje//0Edo/04FarSVXf8Ppd88Y2BtpRzlGw+rokfowQ0GnHoQ==}
+  '@qery/query@0.12.46':
+    resolution: {integrity: sha512-qRQiqc3KXSqIwCcQd0X96/9xoTVNrrbEeBKsCPIFQZefv7q+hvfkmkGu/yNu6mdAZHKYd9EP43OEnFJgBeAxhA==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
@@ -1234,7 +1234,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@qery/query@0.12.43':
+  '@qery/query@0.12.46':
     dependencies:
       axios: 1.7.9
       axios-proxy-builder: 0.1.2
