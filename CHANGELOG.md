@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.48] - 2025-02-22
+
+### Build
+
+- *(deps)* Rollback watchexec to v5.0
+
 ## [0.12.47] - 2025-02-22
 
 ### 🐛 Bug Fixes
