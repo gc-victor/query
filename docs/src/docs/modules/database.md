@@ -11,7 +11,7 @@ import { Database } from "query:database";
 const db = new Database("example.sql");
 
 // Execute a query
-const results = await db.query(
+const results = db.query(
     "SELECT * FROM users WHERE age > ?",
     [18]
 );
@@ -49,7 +49,7 @@ Returns: Promise resolving to query results
 Use `?` placeholders for array parameters:
 
 ```javascript
-const results = await db.query(
+const results = db.query(
     "SELECT * FROM users WHERE age > ? AND city = ?",
     [18, "New York"]
 );
@@ -60,7 +60,7 @@ const results = await db.query(
 Use `:name`, `$name`, or `@name` placeholders for object parameters:
 
 ```javascript
-const results = await db.query(
+const results = db.query(
     "SELECT * FROM users WHERE age > :age AND city = :city",
     { ":age": 18, ":city": "New York" }
 );
@@ -73,7 +73,7 @@ const results = await db.query(
 ```javascript
 const db = new Database("example.sql");
 
-await db.query(`
+db.query(`
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -88,13 +88,13 @@ await db.query(`
 
 ```javascript
 // Single insert
-await db.query(
+db.query(
     "INSERT INTO users (name, email, age) VALUES (?, ?, ?)",
     ["John Doe", "john@example.com", 25]
 );
 
 // Multiple inserts using named parameters
-await db.query(`
+db.query(`
     INSERT INTO users (name, email, age)
     VALUES (:name1, :email1, :age1),
            (:name2, :email2, :age2)
@@ -108,16 +108,16 @@ await db.query(`
 
 ```javascript
 // Basic select
-const allUsers = await db.query("SELECT * FROM users");
+const allUsers = db.query("SELECT * FROM users");
 
 // With conditions
-const activeUsers = await db.query(
+const activeUsers = db.query(
     "SELECT * FROM users WHERE active = ? AND age > ?",
     [true, 18]
 );
 
 // With joins
-const userPosts = await db.query(`
+const userPosts = db.query(`
     SELECT users.name, posts.title
     FROM users
     JOIN posts ON users.id = posts.user_id
@@ -128,7 +128,7 @@ const userPosts = await db.query(`
 ### Updating Data
 
 ```javascript
-await db.query(
+db.query(
     "UPDATE users SET age = :age WHERE id = :id",
     { ":age": 26, ":id": 1 }
 );
@@ -137,7 +137,7 @@ await db.query(
 ### Deleting Data
 
 ```javascript
-await db.query(
+db.query(
     "DELETE FROM users WHERE id = ?",
     [userId]
 );
@@ -149,17 +149,17 @@ await db.query(
 
 ```javascript
 // Good
-await db.query("SELECT * FROM users WHERE id = ?", [userId]);
+db.query("SELECT * FROM users WHERE id = ?", [userId]);
 
 // Bad - Don't do this!
-await db.query(`SELECT * FROM users WHERE id = ${userId}`);
+db.query(`SELECT * FROM users WHERE id = ${userId}`);
 ```
 
 1. **Error Handling**: Implement proper error handling for database operations:
 
 ```javascript
 try {
-    const result = await db.query("SELECT * FROM users");
+    const result = db.query("SELECT * FROM users");
 } catch (error) {
     console.error("Database error:", error);
     // Handle error appropriately

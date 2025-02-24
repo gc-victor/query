@@ -40,7 +40,7 @@ As Query uses [LiteFS proxy](https://fly.io/docs/litefs/config/#http-proxy-serve
 export async function handleRequest(req) {
   const db = new Database("example.sql");
 
-  const result = await db.query("SELECT * FROM example WHERE id = ?", [1]);
+  const result = db.query("SELECT * FROM example WHERE id = ?", [1]);
 
   return new Response(JSON.stringify({ data: result }), {
     status: 200,
@@ -82,7 +82,7 @@ The Query Server has a feature that helps avoid compiling functions that have no
 export async function handleRequest(req) {
   const db = new Database("example.sql");
 
-  const result = await db.query("SELECT * FROM example WHERE id = ?", [1]);
+  const result = db.query("SELECT * FROM example WHERE id = ?", [1]);
 
   return new Response(JSON.stringify({ data: result }), {
     status: 200,
