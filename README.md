@@ -63,7 +63,7 @@ That's it. In less than a minute, you will be able to see the project running at
 
 - Homepage: <https://qery.io>
 - Docs: <https://qery.io/docs>
-- Discord: <https://discord.gg/pXmHqTXv>
+- Discord: <https://qery.io/discord>
 
 ## License
 
