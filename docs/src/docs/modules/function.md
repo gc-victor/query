@@ -55,7 +55,7 @@ export async function handleRequest(req) {
   const userId = segments[segments.length - 1];
 
   const db = new Database("app.sql");
-  const user = await db.query("SELECT * FROM users WHERE id = ?", [userId]);
+  const user = db.query("SELECT * FROM users WHERE id = ?", [userId]);
 
   if (!user.length) {
     return new Response(JSON.stringify({ error: "User not found" }), {
@@ -166,7 +166,7 @@ export async function handleRequest(req) {
   const query = url.searchParams.get("q");
   const db = new Database("app.sql");
 
-  const results = await db.query("SELECT * FROM posts WHERE title LIKE ?", [`%${query}%`]);
+  const results = db.query("SELECT * FROM posts WHERE title LIKE ?", [`%${query}%`]);
 
   return new Response(JSON.stringify({ data: results }), {
     status: 200,
@@ -189,7 +189,7 @@ export async function handleRequest(req) {
   const content = formData.get("content");
 
   const db = new Database("blog.sql");
-  await db.query("INSERT INTO posts (title, content) VALUES (?, ?)", [title, content]);
+  db.query("INSERT INTO posts (title, content) VALUES (?, ?)", [title, content]);
 
   return new Response(JSON.stringify({ success: true }), {
     status: 201,
@@ -214,7 +214,7 @@ import { Database } from "query:database";
 
 export async function handleRequest(req) {
   const db = new Database("app.sql");
-  const users = await db.query("SELECT * FROM users WHERE active = ?", [true]);
+  const users = db.query("SELECT * FROM users WHERE active = ?", [true]);
 
   return new Response(JSON.stringify({ data: users }), {
     status: 200,
@@ -237,7 +237,7 @@ export async function handleRequest(req) {
   const { name, email } = await req.json();
   const db = new Database("app.sql");
 
-  await db.query("INSERT INTO users (name, email) VALUES (:name, :email)", { ":name": name, ":email": email });
+  db.query("INSERT INTO users (name, email) VALUES (:name, :email)", { ":name": name, ":email": email });
 
   return new Response(JSON.stringify({ success: true }), {
     status: 201,
@@ -256,7 +256,7 @@ Improve performance and reduce database load with Query's built-in caching syste
 // get.index.js
 export async function handleRequest(req) {
   const db = new Database("app.sql");
-  const data = await db.query("SELECT * FROM expensive_query");
+  const data = db.query("SELECT * FROM expensive_query");
 
   return new Response(JSON.stringify({ data }), {
     status: 200,
