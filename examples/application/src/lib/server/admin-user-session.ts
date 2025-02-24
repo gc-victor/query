@@ -20,19 +20,19 @@ export class AdminUserSession {
         const now = new Date();
         const expiresAt = +new Date(+now + 120 * 1000);
 
-        await this.#db.query("INSERT INTO session (session, token, expires_at) VALUES (?, ?, ?)", [session, outerToken, expiresAt]);
+        this.#db.query("INSERT INTO session (session, token, expires_at) VALUES (?, ?, ?)", [session, outerToken, expiresAt]);
 
         this.clearExpired();
     }
 
     async load(session: Session): Promise<AdminUserSessionLoad> {
-        const result = await this.#db.query("SELECT token, expires_at FROM session WHERE session = ?", [session]);
+        const result = this.#db.query("SELECT token, expires_at FROM session WHERE session = ?", [session]);
 
         return result[0] as unknown as AdminUserSessionLoad;
     }
 
     async clear(session: Session): Promise<void> {
-        await this.#db.query("DELETE FROM session WHERE session = ?", [session]);
+        this.#db.query("DELETE FROM session WHERE session = ?", [session]);
     }
 
     async isExpired(session: Session): Promise<boolean> {
@@ -49,7 +49,7 @@ export class AdminUserSession {
     async clearExpired(): Promise<void> {
         const now = new Date().getTime();
 
-        await this.#db.query("DELETE FROM session WHERE expires_at < ?", [now]);
+        this.#db.query("DELETE FROM session WHERE expires_at < ?", [now]);
     }
 
     async refresh(session: Session): Promise<void> {
@@ -59,7 +59,7 @@ export class AdminUserSession {
             const now = new Date();
             const expiresAt = new Date(+now + 60 * 1000).getTime();
 
-            await this.#db.query("UPDATE session SET expires_at = ? WHERE session = ?", [expiresAt, session]);
+            this.#db.query("UPDATE session SET expires_at = ? WHERE session = ?", [expiresAt, session]);
         }
     }
 }

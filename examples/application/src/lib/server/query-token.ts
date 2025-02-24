@@ -10,7 +10,7 @@ export class QueryToken {
     }
 
     async load(name: string): Promise<QueryTokenLoad> {
-        const result = await this.#db.query("SELECT token FROM _config_token WHERE active = 1 AND name = ?", [name]);
+        const result = this.#db.query("SELECT token FROM _config_token WHERE active = 1 AND name = ?", [name]);
 
         if (result.length === 0) {
             throw new TokenError("Token not found.");
