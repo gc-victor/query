@@ -77,7 +77,9 @@ pub async fn command_deploy(command: &DeployArgs) -> Result<()> {
             exit(1);
         });
 
-        env::set_var(QUERY_DEPLOY_URL, url);
+        unsafe {
+            env::set_var(QUERY_DEPLOY_URL, url);
+        }
     };
 
     if has_token {
@@ -85,8 +87,10 @@ pub async fn command_deploy(command: &DeployArgs) -> Result<()> {
             eprintln!("{} {}", String::from('●').red(), err);
             exit(1);
         });
-
-        env::set_var(QUERY_DEPLOY_TOKEN, token);
+        
+        unsafe {
+            env::set_var(QUERY_DEPLOY_TOKEN, token);
+        }
     };
 
     let url = env::var(QUERY_DEPLOY_URL).unwrap_or("".to_string());

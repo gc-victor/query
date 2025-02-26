@@ -385,7 +385,9 @@ mod tests {
 
     #[test]
     fn test_max_file_size_env_override() {
-        std::env::set_var("QUERY_CACHE_FILE_MAX_CAPACITY", "100");
+        unsafe {
+            std::env::set_var("QUERY_CACHE_FILE_MAX_CAPACITY", "100");
+        }
         let cache = CacheResponse::new(CacheResponseConfig::default());
         let key = "file".to_string();
 
@@ -404,7 +406,9 @@ mod tests {
         cache.insert(key.clone(), small_value);
         assert!(cache.contains(&key));
 
-        std::env::remove_var("QUERY_CACHE_FILE_MAX_CAPACITY");
+        unsafe {
+            std::env::remove_var("QUERY_CACHE_FILE_MAX_CAPACITY");
+        }
     }
 
     #[test]
