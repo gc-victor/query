@@ -25,7 +25,7 @@ export async function handleRequest(req: Request) {
 
         const html = new TextDecoder().decode((result404[0] as { data: AllowSharedBufferSource }).data);
 
-        return new Response(html.replace("__STYLES_CSS__", styles), {
+        return new Response(html.replace("__STYLES_CSS__", styles).replace("__BASE_URL__", url.origin), {
             status: 404,
             headers: { "Content-Type": "text/html; charset=utf-8", "Query-Cache-Control": "max-age=3600000" },
         });
