@@ -1,10 +1,9 @@
 export async function handleRequest(req: Request) {
     const url = new URL(req.url);
-    const dir = url.pathname.split("/").slice(0, -1).pop();
     const slug = url.pathname.split("/").pop();
 
     const db = new Database("query_asset.sql");
-    const result = db.query("SELECT data FROM asset WHERE name = $1", [`dist/${dir}/${slug}`]);
+    const result = db.query("SELECT data FROM asset WHERE name = $1", [`dist/docs/${slug}`]);
     
     const styles_result = db.query("SELECT name_hashed FROM asset WHERE name = ?", ["dist/docs/styles.css"]) as {
         name_hashed: string;
@@ -19,10 +18,10 @@ export async function handleRequest(req: Request) {
         }
 
         const html = new TextDecoder().decode((result404[0] as { data: AllowSharedBufferSource }).data);
-
-        return new Response(html.replace("__STYLES_CSS__", styles), {
+        
+        return new Response(html.replace("__STYLES_CSS__", styles).replace("__BASE_URL__", url.origin), {
             status: 404,
-            headers: { "Content-Type": "text/html; charset=utf-8", "Query-Cache-Control": "max-age=3600000" },
+            headers: { "Content-Type": "text/html; charset=utf-8" },
         });
     }
 
@@ -39,5 +38,5 @@ export async function handleRequest(req: Request) {
         headers["Query-Cache-Control"] = "max-age=3600000";
     }
 
-    return new Response(html.replace("__STYLES_CSS__", styles), { status: 200, headers });
+    return new Response(html.replace("__STYLES_CSS__", styles).replace("__BASE_URL__", url.origin), { status: 200, headers });
 }

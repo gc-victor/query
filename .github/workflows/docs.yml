@@ -1,4 +1,4 @@
-name: Q|ery. Web Docs
+name: Web Docs
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
       - "**[0-9]+.[0-9]+.[0-9]+*"
     paths:
       - examples/docs/**
+      - .github/workflows/docs.yml
 
 env:
   CARGO_TERM_COLOR: always
@@ -29,28 +30,19 @@ jobs:
       - name: Rust Cache Action
         uses: Swatinem/rust-cache@v2
 
-      - name: Assets Cache
+      - name: Cache
         id: query-cache
         uses: actions/cache@v4
         with:
-          path: .query/.cache
+          path: examples/docs/.query/.cache
           key: query-cache-${{ github.run_id }}
           restore-keys: query-cache
-
-      - name: Set token
-        env:
-          QUERY_WEB_PRIVATE_TOKEN: ${{ secrets.QUERY_WEB_PRIVATE_TOKEN }}
-        run: |
-          echo "[default] $QUERY_WEB_PRIVATE_TOKEN" > .query/.token
-
-      - name: Set remote URL
-        run: |
-          sed -i "s|http://localhost:3000|https://qery.io|" .query/Query.toml
 
       - name: Use pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10
+          run_install: false
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -59,18 +51,43 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          cd examples/docs
+          pnpm install
 
       - name: Create docs
         env:
           RUST_BACKTRACE: full
           RUST_LOG: info
         run: |
+          cargo run --package query-docs -- --input examples/docs/docs --output examples/docs/dist/docs
+
+      - name: Debug dist directory
+        run: |
+          find examples/docs/dist/docs -type f | sort
+
+      - name: Set token
+        env:
+          QUERY_WEB_PRIVATE_TOKEN: ${{ secrets.QUERY_WEB_PRIVATE_TOKEN }}
+        run: |
           cd examples/docs
-          pnpm query task docs
+          echo "[default] $QUERY_WEB_PRIVATE_TOKEN" > .query/.token
+
+      - name: Set remote URL
+        run: |
+          cd examples/docs
+          sed -i "s|http://localhost:3000|https://qery.io|" .query/Query.toml
 
       - name: Deploy to qery.io
         run: |
           cd examples/docs
-          pnpm query task deploy
-          pnpm query asset dist
+          ./node_modules/.bin/tailwindcss -i ./docs/styles.css -o ./dist/docs/styles.css
+          ./node_modules/.bin/query asset dist
+          ./node_modules/.bin/query function src/pages/docs/get.index.tsx
+          ./node_modules/.bin/query function src/pages/docs/\[slug\]/get.index.tsx
+          ./node_modules/.bin/query function src/pages/docs/\[slug\]/\[slug\]/get.index.tsx
+
+      - name: Cache content
+        run: |
+          cd examples/docs
+          cat .query/.cache

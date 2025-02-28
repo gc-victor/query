@@ -1,13 +1,12 @@
 export async function handleRequest(req: Request) {
     const url = new URL(req.url);
-    const dir = url.pathname.split("/").slice(0, -2).pop();
     const subdir = url.pathname.split("/").slice(0, -1).pop();
     const slug = url.pathname.split("/").pop();
 
     const db = new Database("query_asset.sql");
     const result: { data: AllowSharedBufferSource }[] = db.query_cache(
         "SELECT data FROM asset WHERE name = $1",
-        [`dist/${dir}/${subdir}/${slug}`],
+        [`dist/docs/${subdir}/${slug}`],
         10000,
     );
 
@@ -25,7 +24,7 @@ export async function handleRequest(req: Request) {
 
         const html = new TextDecoder().decode((result404[0] as { data: AllowSharedBufferSource }).data);
 
-        return new Response(html.replace("__STYLES_CSS__", styles), {
+        return new Response(html.replace("__STYLES_CSS__", styles).replace("__BASE_URL__", url.origin), {
             status: 404,
             headers: { "Content-Type": "text/html; charset=utf-8", "Query-Cache-Control": "max-age=3600000" },
         });
@@ -44,5 +43,5 @@ export async function handleRequest(req: Request) {
         headers["Query-Cache-Control"] = "max-age=3600000";
     }
 
-    return new Response(html.replace("__STYLES_CSS__", styles), { status: 200, headers });
+    return new Response(html.replace("__STYLES_CSS__", styles).replace("__BASE_URL__", url.origin), { status: 200, headers });
 }

@@ -16,7 +16,7 @@
                     <ul class="toc-list space-y-4 dark:text-white">
                     {% for group in toc.items %}
                         <li class="pb-4 border-b border-slate-200 space-y-2 dark:border-slate-700">
-                            <h3 class="font-cal text-sm">{{ group.group }}</h3>
+                            <h3 class="font-cal text-sm">{{ group.name }}</h3>
                             <ul class="border-l border-slate-400 pl-4">
                             {% for item in group.items %}
                                 <li class="toc-item{% if item.url == navigation.current.url %} active font-semibold{% endif %}">
