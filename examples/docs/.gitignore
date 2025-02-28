@@ -1,0 +1,8 @@
+node_modules/
+
+dist/
+.env
+.dbs/
+.query/.cache
+.query/.history
+.query/.token

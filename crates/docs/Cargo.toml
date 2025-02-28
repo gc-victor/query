@@ -1,0 +1,18 @@
+[package]
+name = "query-docs"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository = "https://github.com/gc-victor/query"
+homepage = "https://github.com/gc-victor/query/tree/main/crates/docs"
+
+[dependencies]
+clap = "4.5.31"
+minijinja = "2.7.0"
+pulldown-cmark = "0.13.0"
+regex = "1.11.1"
+serde = { version = "1.0.218", features = ["derive"] }
+serde_json = "1.0.139"
+tempfile = "3.17.1"
+walkdir = "2.5.0"

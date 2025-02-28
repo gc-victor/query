@@ -1,4 +1,4 @@
-name: Docs
+name: Q|ery. Web Docs
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     tags:
       - "**[0-9]+.[0-9]+.[0-9]+*"
     paths:
-      - docs/**
+      - examples/docs/**
 
 env:
   CARGO_TERM_COLOR: always
@@ -16,6 +16,9 @@ jobs:
   web-docs:
     name: Web Docs
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,28 +28,6 @@ jobs:
 
       - name: Rust Cache Action
         uses: Swatinem/rust-cache@v2
-      
-      - name: Install mdbook
-        env:
-          RUST_BACKTRACE: full
-          RUST_LOG: info
-        run: |
-          rustup update stable && rustup default stable
-          cargo install mdbook@0.4.42
-      
-      - name: Create book
-        env:
-          RUST_BACKTRACE: full
-          RUST_LOG: info
-        run: |
-          sed -i "s|{{ path_to_root }}|/_/asset/book/|" docs/theme/index.hbs
-          sed -i "s|{{ ../path_to_root }}|/_/asset/book/|" docs/theme/index.hbs
-          sed -i "s|{{ __path_to_root__ }}|{{ path_to_root }}|" docs/theme/index.hbs
-          mdbook build docs
-
-      - name: Make .query directory
-        run: |
-          mkdir -p .query
 
       - name: Assets Cache
         id: query-cache
@@ -55,29 +36,41 @@ jobs:
           path: .query/.cache
           key: query-cache-${{ github.run_id }}
           restore-keys: query-cache
-      
+
       - name: Set token
         env:
           QUERY_WEB_PRIVATE_TOKEN: ${{ secrets.QUERY_WEB_PRIVATE_TOKEN }}
         run: |
           echo "[default] $QUERY_WEB_PRIVATE_TOKEN" > .query/.token
 
-      - name: Set server url
+      - name: Set remote URL
         run: |
-            cat <<EOF > .query/Query.toml
-            [server]
-            url = "https://qery.io"
-            EOF
+          sed -i "s|http://localhost:3000|https://qery.io|" .query/Query.toml
 
-      - name: Install Query CLI
+      - name: Use pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Create docs
+        env:
+          RUST_BACKTRACE: full
+          RUST_LOG: info
         run: |
-          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/gc-victor/query/releases/latest/download/query-installer.sh | sh
-      
+          cd examples/docs
+          pnpm query task docs
+
       - name: Deploy to qery.io
         run: |
-          mv docs/book book
-          rm -rf docs
-          mv book/docs docs
-          query asset docs
-          sed -i "s|<a href=\"' + path_to_root|<a href=\"' + original_path_to_root|" book/searcher.js
-          query asset book
+          cd examples/docs
+          pnpm query task deploy
+          pnpm query asset dist

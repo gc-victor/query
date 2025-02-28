@@ -7,6 +7,7 @@ license.workspace = true
 description = "Server for SQLite databases."
 homepage = "https://github.com/gc-victor/query/tree/main/crates/server"
 repository = "https://github.com/gc-victor/query"
+documentation = "https://qery.io/docs"
 
 [features]
 vendored-openssl = ["openssl/vendored"]
