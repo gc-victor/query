@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "crates/cli",
+  "crates/docs",
   "crates/jsx_parser",
   "crates/runtime",
   "crates/server",

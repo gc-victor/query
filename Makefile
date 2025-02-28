@@ -307,6 +307,9 @@ run:
 
 run-cli:
 	RUST_LOG=info cargo run --package=query
+	
+run-docs:
+	RUST_LOG=info cargo run --package=query-docs -q -- --input ./docs --output ./output
 
 run-release:
 	RUST_LOG=info cargo run --package=query-server --release -q | bunyan
@@ -322,6 +325,9 @@ dev-server:
 
 dev-cli:
 	cargo watch --ignore .dbs -x check -x clippy --shell "make run-cli -s"
+	
+dev-docs:
+	cargo watch --ignore .dbs -x check -x clippy --shell "make run-docs -s"
 
 dev-proxy:
 	export QUERY_SERVER_PROXY=true && cargo watch --ignore .dbs --shell "make run -s" & make dev-bun

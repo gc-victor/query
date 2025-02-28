@@ -1,0 +1,22 @@
+[server]
+url = "http://localhost:3000"
+
+[structure]
+functions_folder = "src"
+
+[esbuild]
+"loader:.html" = "text"
+"jsx" = "preserve"
+
+[task]
+clean = ".query/tasks/clean.sh"
+deploy = ".query/tasks/deploy.sh"
+bundle = ".query/tasks/bundle.sh"
+tailwindcss = "node_modules/.bin/tailwindcss -i ./docs/styles.css -o ./dist/docs/styles.css"
+docs = "../../target/debug/query-docs --input docs --output dist/docs"
+
+[task.create]
+deploy = ".query/tasks/deploy.sh"
+
+[task.dev]
+bundle = "node_modules/.bin/query task & node_modules/.bin/query task docs & node_modules/.bin/query task tailwindcss"

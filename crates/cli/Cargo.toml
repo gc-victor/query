@@ -6,6 +6,7 @@ edition.workspace = true
 license.workspace = true
 homepage = "https://github.com/gc-victor/query/tree/main/crates/cli"
 repository = "https://github.com/gc-victor/query"
+documentation = "https://qery.io/docs"
 
 [features]
 default = ["reqwest/default-tls"]
