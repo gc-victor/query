@@ -16,18 +16,18 @@ vendored-openssl = ["openssl/vendored"]
 anyhow = { version = "1.0", default-features = false }
 argon2 = "0.5"
 chacha20poly1305 = "0.10"
-dotenv = "0.15"
+dotenv = "0.15.0"
 futures-util = "0.3.31"
 hyper = { version = "1.5", features = ["full"] }
 hyper-util = { version = "0.1", features = ["full"] }
-http-body-util = "0.1"
-jsonwebtoken = "9.3"
-mini-moka = "0.10"
+http-body-util = "0.1.2"
+jsonwebtoken = "9.3.1"
+mini-moka = "0.10.3"
 multer = "3.1.0"
 openssl = { version = "0.10", features = ["vendored"] }
 query-runtime = { path = "../runtime" }
 rbase64 = "2.0"
-regex = "1.11"
+regex = "1.11.1"
 rquickjs = { git = "https://github.com/DelSkayn/rquickjs.git", version = "0.9.0", features = [
     "full-async",
     "parallel",
@@ -43,13 +43,13 @@ rusqlite = { version = "0.33", features = [
     "trace",
     "uuid",
 ] }
-serde = { version = "1.0", features = ["derive"] }
-serde_bytes = "0.11"
-serde_json = "1.0"
+serde = { version = "1.0.218", features = ["derive"] }
+serde_bytes = "0.11.15"
+serde_json = "1.0.139"
 time = "0.3.37"
 tokio = { version = "1.43", features = ["full"] }
 tracing = { version = "0.1", features = ["log"] }
-tracing-bunyan-formatter = "0.3"
+tracing-bunyan-formatter = "0.3.10"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
-url = "2.5"
+url = "2.5.4"
 uuid = { version = "1.12", features = ["v4"] }
