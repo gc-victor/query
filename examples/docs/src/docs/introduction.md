@@ -1,3 +1,12 @@
+---
+tags:
+  - query
+  - web development
+  - database
+  - javascript
+  - backend
+---
+
 <div>
     <svg class="w-full text-slate-900 h-[140px] md:h-[245px] mb-8 dark:text-white" aria-hidden="true">
         <title>Q|ery.</title>

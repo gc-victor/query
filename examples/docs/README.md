@@ -1,137 +1,186 @@
-# Query Minimal
+# Query Docs
 
-"Query Minimal" is a project to start using Query on your local device.
+"Query Docs" is a lightning-fast markdown documentation generator that transforms your markdown files into beautiful, navigable documentation websites.
 
 ## Getting Started
 
-1. Create a new project:
+1. Install the package:
 
 ```sh
 # With pnpm
-pnpm dlx @qery/query create
-
-# With npm
-npx @qery/query create
+pnpm add @qery/docs
 ```
 
-> [!IMPORTANT]
-> Select the `minimal` project and follow the steps to create a new project.
-
-2. Start the development server:
+Or
 
 ```sh
-# With pnpm
-pnpm dev
-
 # With npm
-npm run dev
+npm install @qery/docs
 ```
 
-3. Open your browser and navigate to:
+2. Create a directory for your documentation:
 
+```sh
+mkdir src/docs
 ```
-http://localhost:3000
+
+3. Create a in the `src/docs` SUMMARY.md file that defines your documentation structure:
+
+```markdown
+# Summary
+
+## Getting Started
+
+- [Introduction](introduction.md) Description of the introduction
+- [Installation](installation.md) Description of the installation process
+
+## User Guide
+
+- [Basic Usage](usage/basic.md) Description of basic usage
+- [Advanced Features](usage/advanced.md) Description of advanced features
 ```
+
+4. Create the corresponding markdown files mentioned in your SUMMARY.md
+
+5. Generate your documentation:
+
+```sh
+pnpm query-docs --input ./src/docs --output ./dist/docs
+```
+
+6. Your documentation is now ready in the `./dist/docs` directory!
+
+> [!TIP]
+> Create a custom template.html in your docs directory to fully customize the look and feel of your documentation.
+
+## Key Features
+
+- **Effortless Documentation** - Convert markdown files to HTML with a single command
+- **Smart Navigation** - Automatically generates previous/next links between pages
+- **Hierarchical TOC** - Creates a structured table of contents from your SUMMARY.md
+- **Full-Text Search** - Built-in search functionality with JSON index
+- **Customizable Templates** - Use your own HTML templates for full control over styling
+- **Fast & Lightweight** - Built in Rust for exceptional performance
 
 ## Project Structure
 
-The minimal project includes:
+A typical Query Docs project includes:
 
-```
-src
-└── pages                  # Application pages
-    ├── get.index.tsx      # Main
-    ├── hot-reload         # Hot reload
-    │   ├── get.index.ts   # Hot reload server function
-    │   └── hot-reload.tsx # Hot reload client component
-    ├── no-dynamic         # No dynamic page
-    │   └── get.index.tsx  # No dynamic page server function
-    ├── render.ts          # Server-side page rendering
-    ├── [slug]             # Dynamic page
-    │   └── get.index.tsx  # Dynamic page server function
-    └── styles.css         # Global styles
+```sh
+docs/
+├── SUMMARY.md          # Documentation structure
+├── template.html       # Custom HTML template (optional)
+├── introduction.md     # Content pages
+├── installation.md
+└── usage/
+    ├── basic.md
+    └── advanced.md
 ```
 
-## Main Page Structure
+## Command Line Options
 
-The `src/pages/get.index.tsx` file serves as the main entry point for the application. It demonstrates several key Query features:
+```sh
+USAGE:
+    pnpm query-docs [OPTIONS] --input <INPUT_DIR> --output <OUTPUT_DIR>
 
-### File-Based Routing
+OPTIONS:
+    -i, --input <INPUT_DIR>           Directory containing markdown files
+    -o, --output <OUTPUT_DIR>
 
-The file structure follows Query's routing convention:
-
-- `pages/get.index.tsx` -> Handles GET requests at root ('/')
-- `pages/[slug]/get.index.tsx` -> Handles dynamic routing GET requests
-- `pages/no-dynamic/get.index.tsx` -> Handles GET requests at '/no-dynamic'
-
-For example:
-
-- `/dynamic` -> `[slug]` value is "dynamic"
-- `/test` -> `[slug]` value is "test"
-
-### Function Structure
-
-```tsx
-export async function handleRequest(req: Request) {
-  // ... implementation
-}
+Directory to output HTML files
+    -t, --template <TEMPLATE_FILE>    HTML template file to use (default: INPUT_DIR/template.html)
+        --no-search                   Disable search functionality
+    -h, --help                        Print help information
+    -V, --version                     Print version information
 ```
 
-The `handleRequest` function is the core building block that:
+## SUMMARY.md Format
 
-- Receives incoming HTTP requests
-- Processes the request
-- Returns a Response object with HTML content
+The SUMMARY.md file defines the structure of your documentation using a simple format:
 
-### Database Integration
+```markdown
+# Summary
 
-```tsx
-const db = new Database("query_asset.sql");
-const result = db.query("SELECT name_hashed FROM asset WHERE name = ?", ["dist/styles.css"]);
+## Section 1
+
+- [Page Title](path/to/page.md) Optional description
+  - [Nested Page](path/to/nested.md) Optional description
+
+## Section 2
+
+- [Another Page](another-page.md) Optional description
 ```
 
-Demonstrates Query's built-in SQLite database support with:
+- Use `##` headings to create sections
+- Use bullet points (`-`) followed by Markdown links to define pages
+- Indented bullet points create nested pages in the hierarchy
 
-- Simple database connections
-- SQL query execution with parameter binding
-- Asset management for styles and resources
+## Template Customization
 
-### Response Handling
+Your HTML template has access to these variables:
 
-```tsx
-return new Response(render(/* JSX Content */), {
-  status: 200,
-  headers: {
-    "Content-Type": "text/html; charset=utf-8",
-  },
-});
+- `title`: The page title
+- `description`: The page description
+- `content`: The HTML content
+- `navigation`: Previous/next page navigation
+    - `previous`: Previous page information
+    - `next`: Next page information
+- `toc`: Table of contents structure
+- `search_enabled`: Boolean for search feature
+
+Example template snippet:
+
+```html
+<main>
+  <article>{{ content }}</article>
+
+  <nav class="pagination">
+    {% if navigation.previous %}
+    <a href="{{ navigation.previous.url }}">← {{ navigation.previous.title }}</a>
+    {% endif %} {% if navigation.next %}
+    <a href="{{ navigation.next.url }}">{{ navigation.next.title }} →</a>
+    {% endif %}
+  </nav>
+</main>
 ```
-
-Shows proper response formatting with:
-
-- Status codes
-- Content-Type headers
-- Server-side rendered JSX content
-
-### Hot Reload Integration
-
-The page includes the `HotReload` component for development:
-
-```tsx
-<HotReload href={url.href} />
-```
-
-Enabling instant updates during development without full page refreshes.
-
-## Features
-
-- JSX server-side rendering
-- Hot module replacement
-- Dynamic pages
-- Tailwind CSS styling
 
 ## References
 
 - [Query Website](https://qery.io)
 - [Query - GitHub](https://github.com/gc-victor/query)
-- [Query Minimal - GitHub](https://github.com/gc-victor/query/tree/mainexamples/minimal)
+- [MiniJinja Syntax](https://docs.rs/minijinja/latest/minijinja/syntax/index.html)
+
+## Examples
+
+### Basic Documentation Site
+
+```bash
+# Project structure
+docs/
+├── SUMMARY.md
+├── template.html
+├── introduction.md
+├── getting-started.md
+└── api-reference.md
+
+# Generate documentation
+pnpm query-docs --input ./src/docs --output ./dist/docs
+```
+
+### Multi-section Documentation
+
+```markdown
+# Summary
+
+## Introduction
+
+- [Overview](index.md)
+- [Getting Started](getting-started.md)
+
+## API Reference
+
+- [Authentication](api/auth.md)
+- [Endpoints](api/endpoints.md)
+  - [Users API](api/endpoints/users.md)
+  - [Products API](api/endpoints/products.md)
+```

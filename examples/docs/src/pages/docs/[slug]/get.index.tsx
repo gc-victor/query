@@ -1,42 +1,54 @@
-export async function handleRequest(req: Request) {
+import { htmlResponse as response } from "@/pages/lib/html-response";
+import { assetPath } from "@/pages/lib/asset-path";
+import type { DocumentationPage, Navigation, Toc } from "@/pages/docs/types";
+import { DocumentTemplate } from "@/pages/docs/components/document";
+import { Scripts } from "@/pages/docs/components/scripts";
+import { Icons } from "@/pages/docs/components/icons";
+import { NotFoundResponse } from "@/pages/docs/404";
+import { InternalServerErrorResponse } from "@/pages/docs/500";
+import { getAssetData } from "@/pages/lib/asset-data";
+import { NotFoundError } from "@/pages/lib/types";
+import { withHtmlRequestErrorHandler } from "@/lib/server/with-html-request-error-handler";
+
+async function handleDocsRequest(req: Request) {
     const url = new URL(req.url);
     const slug = url.pathname.split("/").pop();
 
-    const db = new Database("query_asset.sql");
-    const result = db.query("SELECT data FROM asset WHERE name = $1", [`dist/docs/${slug}`]);
-    
-    const styles_result = db.query("SELECT name_hashed FROM asset WHERE name = ?", ["dist/docs/styles.css"]) as {
-        name_hashed: string;
-    }[];
-    const styles = `/_/asset/${styles_result[0].name_hashed}`;
+    const toc = getAssetData<Toc>("dist/docs/toc.json");
+    const page = getAssetData<DocumentationPage>(`dist/docs/${slug?.replace(/\.html$/, "")}.json`);
 
-    if (result.length === 0) {
-        const result404 = db.query("SELECT data FROM asset WHERE name = 'dist/docs/404.html'");
+    return response(
+        <html lang="en">
+            <head>
+                <meta charSet="UTF-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                <meta httpEquiv="Content-Type" content="text/html" />
+                <title>{page.title} - Documentation</title>
+                <meta name="description" content={page.description} />
+                <base href={`${url.origin}/docs/`} />
+                <link rel="stylesheet" href={assetPath("dist/docs/styles.css")} />
 
-        if (result404.length === 0) {
-            return new Response("Not Found", { status: 404, headers: { "Content-Type": "text/plain" } });
-        }
-
-        const html = new TextDecoder().decode((result404[0] as { data: AllowSharedBufferSource }).data);
-        
-        return new Response(html.replace("__STYLES_CSS__", styles).replace("__BASE_URL__", url.origin), {
-            status: 404,
-            headers: { "Content-Type": "text/html; charset=utf-8" },
-        });
-    }
-
-    const html = new TextDecoder().decode((result[0] as { data: AllowSharedBufferSource }).data);
-
-    const headers = {
-        "Content-Type": "text/html; charset=utf-8",
-    } as Record<string, string>;
-
-    if (process.env.QUERY_APP_ENV === "development") {
-        headers["Cache-Control"] = "no-cache";
-    } else {
-        headers["Cache-Control"] = "max-age=3600";
-        headers["Query-Cache-Control"] = "max-age=3600000";
-    }
-
-    return new Response(html.replace("__STYLES_CSS__", styles).replace("__BASE_URL__", url.origin), { status: 200, headers });
+                <link rel="apple-touch-icon" type="image/svg" href="/_/asset/public/images/cache/favicon/favicon.svg" />
+                <link rel="icon" type="image/svg" href="/_/asset/public/images/cache/favicon/favicon.svg" sizes="any" />
+                <link rel="mask-icon" type="image/svg" href="/_/asset/public/images/cache/favicon/favicon-black.svg" />
+            </head>
+            
+            <body class="flex min-h-full bg-white antialiased dark:bg-slate-900">
+                <DocumentTemplate content={page.content} navigation={page.navigation as Navigation} toc={toc} />
+                <Icons />
+                <Scripts />
+            </body>
+        </html>,
+    );
 }
+
+export const handleRequest = withHtmlRequestErrorHandler(handleDocsRequest, (req, error) => {
+    const url = new URL(req.url);
+    const toc = getAssetData<Toc>("dist/docs/toc.json");
+
+    if (error instanceof NotFoundError) {
+        return NotFoundResponse({ origin: url.origin, toc });
+    }
+
+    return InternalServerErrorResponse({ origin: url.origin, toc });
+});
