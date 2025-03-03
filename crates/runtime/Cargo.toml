@@ -7,7 +7,7 @@ license.workspace = true
 publish = false
 
 [dependencies]
-anyhow = "1.0.96"
+anyhow = "1.0.97"
 base64-simd = "0.8"
 bytes = "1.10.0"
 extism = "1.10.0"
