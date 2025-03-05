@@ -50,8 +50,17 @@ struct HandleResponse {
 pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, HttpError> {
     let method = req.method().as_str().to_string();
     let mut path = req.uri().path().to_string();
-    let function_cache_key = format!("{}{}", method, path);
-    let function_response_cache_key = format!("res-{}{}", method, path);
+    let path_and_query = match req.uri().path_and_query() {
+        Some(path_and_query) => path_and_query.to_string(),
+        None => "".to_string(),
+    };
+    let path_and_query = if path_and_query.is_empty() {
+        path.to_string()
+    } else {
+        path_and_query
+    };
+    let function_cache_key = format!("{}{}", method, path_and_query);
+    let function_response_cache_key = format!("res-{}{}", method, path_and_query);
 
     if Env::app() == "true" && !path.starts_with("/api") && !path.starts_with("/_/") {
         path.insert_str(0, "/pages");
@@ -316,7 +325,7 @@ pub async fn function(req: &mut Request<Incoming>) -> Result<Response<BoxBody>, 
     if let Some(headers) = res.headers {
         let re = match Regex::new(r"max-age=(\d+)") {
             Ok(r) => r,
-            Err(e) => return Err(internal_server_error(e.to_string()))
+            Err(e) => return Err(internal_server_error(e.to_string())),
         };
 
         for (key, value) in headers {
