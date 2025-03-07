@@ -1,4 +1,4 @@
-# ![Query](/docs/images/query-logo.svg)
+# ![Query](/query-logo.svg)
 
 ## Introduction
 
