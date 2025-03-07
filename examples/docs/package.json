@@ -3,6 +3,7 @@
     "type": "module",
     "devDependencies": {
         "@biomejs/biome": "~1.9.4",
+        "@qery/docs": "^0.12.49",
         "@qery/query": "~0.12.48",
         "@qery/query-server": "~0.12.48",
         "@tailwindcss/cli": "^4.0.11",
