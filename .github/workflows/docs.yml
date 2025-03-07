@@ -78,7 +78,7 @@ jobs:
           cd examples/docs
           sed -i "s|http://localhost:3000|https://qery.io|" .query/Query.toml
 
-      - name: Deploy to qery.io
+      - name: Deploy Assets to qery.io
         env:
           PROD: true
         run: |
@@ -86,6 +86,12 @@ jobs:
           .query/tasks/bundle.sh
           ./node_modules/.bin/tailwindcss -i ./src/pages/docs/styles.css -o ./dist/docs/styles.css
           ./node_modules/.bin/query asset dist
+      
+      - name: Deploy Functions to qery.io
+        run: |
+          cd examples/docs
+          ./node_modules/.bin/query function src/api/search/get.index.ts
+          ./node_modules/.bin/query function src/pages/sitemap.xml/get.index.ts
           ./node_modules/.bin/query function src/pages/docs/get.index.tsx
           ./node_modules/.bin/query function src/pages/docs/\[slug\]/get.index.tsx
           ./node_modules/.bin/query function src/pages/docs/\[slug\]/\[slug\]/get.index.tsx
