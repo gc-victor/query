@@ -60,7 +60,7 @@ jobs:
           RUST_BACKTRACE: full
           RUST_LOG: info
         run: |
-          cargo run --package query-docs -- --input examples/docs/docs --output examples/docs/dist/docs
+          cargo run --package query-docs -- --input examples/docs/src/docs --output examples/docs/dist/docs
 
       - name: Debug dist directory
         run: |
@@ -79,9 +79,12 @@ jobs:
           sed -i "s|http://localhost:3000|https://qery.io|" .query/Query.toml
 
       - name: Deploy to qery.io
+        env:
+          PROD: true
         run: |
           cd examples/docs
-          ./node_modules/.bin/tailwindcss -i ./docs/styles.css -o ./dist/docs/styles.css
+          .query/tasks/bundle.sh
+          ./node_modules/.bin/tailwindcss -i ./src/pages/docs/styles.css -o ./dist/docs/styles.css
           ./node_modules/.bin/query asset dist
           ./node_modules/.bin/query function src/pages/docs/get.index.tsx
           ./node_modules/.bin/query function src/pages/docs/\[slug\]/get.index.tsx

@@ -6,17 +6,23 @@ functions_folder = "src"
 
 [esbuild]
 "loader:.html" = "text"
+"loader:.svg" = "text"
 "jsx" = "preserve"
 
 [task]
 clean = ".query/tasks/clean.sh"
 deploy = ".query/tasks/deploy.sh"
 bundle = ".query/tasks/bundle.sh"
-tailwindcss = "node_modules/.bin/tailwindcss -i ./docs/styles.css -o ./dist/docs/styles.css"
-docs = "../../target/debug/query-docs --input docs --output dist/docs"
+tailwindcss = "node_modules/.bin/tailwindcss -i src/pages/docs/styles.css -o dist/docs/styles.css"
+docs = "../../target/debug/query-docs --input src/docs --output dist/docs"
 
 [task.create]
 deploy = ".query/tasks/deploy.sh"
 
 [task.dev]
-bundle = "node_modules/.bin/query task & node_modules/.bin/query task docs & node_modules/.bin/query task tailwindcss"
+bundle = ".query/tasks/bundle.sh & node_modules/.bin/query task docs & node_modules/.bin/query task tailwindcss"
+
+[task.migration]
+20241229152154 = "node_modules/.bin/query migration query_config.sql migrations/query_config.sql/20241229152154-insert-app-token-up.sql"
+20250303225318 = "node_modules/.bin/query migration query_asset.sql migrations/query_asset.sql/20250303225318-query_asset.up.sql"
+20250220100224 = "node_modules/.bin/query migration rate_limit.sql migrations/rate_limit.sql/20250220100224-rate_limit-up.sql"
