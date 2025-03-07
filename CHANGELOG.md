@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.49] - 2025-03-07
+
+### 🚀 Features
+
+- Create docs crate
+- *(example)* Docs to json
+
+### 🐛 Bug Fixes
+
+- *(example)* Remove await db
+- *(ci)* Github workflows docs
+- *(server)* Query cache control path query
+
+### 📚 Documentation
+
+- Remove await db
+- Change discord link
+
+### Build
+
+- *(deps)* Bump openssl from 0.10.70 to 0.10.71
+- *(deps)* Bump clap from 4.5.28 to 4.5.31
+- *(deps)* Bump rustls from 0.23.22 to 0.23.23
+- *(deps)* Bump ring from 0.17.9 to 0.17.11
+- *(deps)* Bump serde_json from 1.0.138 to 1.0.139
+- *(deps-dev)* Bump @qery/query-server in /examples/minimal
+- *(deps-dev)* Bump @qery/query in /examples/counter
+- *(deps-dev)* Bump @qery/query in /examples/application
+- *(deps-dev)* Bump @qery/query in /examples/minimal
+- *(deps-dev)* Bump @qery/query-server in /examples/counter
+- *(deps-dev)* Bump @qery/query-server in /examples/application
+- *(deps)* Update dependencies
+- *(deps)* Bump llrt_modules from `0ecad3b` to `c211445`
+- *(deps)* Bump anyhow from 1.0.96 to 1.0.97
+- *(deps)* Bump minijinja from 2.7.0 to 2.8.0
+- *(deps)* Bump serde_json from 1.0.139 to 1.0.140
+
 ## [0.12.48] - 2025-02-22
 
 ### Build
