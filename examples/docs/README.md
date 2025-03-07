@@ -1,137 +1,311 @@
-# Query Minimal
+# Query Docs
 
-"Query Minimal" is a project to start using Query on your local device.
+"Query Docs" is a lightning-fast markdown documentation generator that transforms your markdown files into beautiful, navigable documentation websites.
 
 ## Getting Started
 
-1. Create a new project:
+1. Install the package:
 
 ```sh
 # With pnpm
-pnpm dlx @qery/query create
-
-# With npm
-npx @qery/query create
+pnpm add @qery/docs
 ```
 
-> [!IMPORTANT]
-> Select the `minimal` project and follow the steps to create a new project.
-
-2. Start the development server:
+Or
 
 ```sh
-# With pnpm
-pnpm dev
-
 # With npm
-npm run dev
+npm install @qery/docs
 ```
 
-3. Open your browser and navigate to:
+2. Create a directory for your documentation:
 
+```sh
+mkdir src/docs
 ```
-http://localhost:3000
+
+3. Create a in the `src/docs` SUMMARY.md file that defines your documentation structure:
+
+```markdown
+# Summary
+
+## Getting Started
+
+- [Introduction](introduction.md) Description of the introduction
+- [Installation](installation.md) Description of the installation process
+
+## User Guide
+
+- [Basic Usage](usage/basic.md) Description of basic usage
+- [Advanced Features](usage/advanced.md) Description of advanced features
 ```
+
+4. Create the corresponding markdown files mentioned in your SUMMARY.md
+
+5. Generate your documentation:
+
+There are two formats of output:
+
+- **JSON** - Convert markdown files to JSON with a single command (Default)
+
+```sh
+pnpm query-docs --input ./src/docs --output ./dist/docs
+```
+
+It will generate a JSON file in the `./dist/docs` directory. With this JSON file, you can easily integrate your documentation into your application or website.
+
+Or
+
+- **HTML** - Convert markdown files to HTML with a single command
+
+```sh
+pnpm query-docs --input ./src/docs --output ./dist/docs --html
+```
+
+6. Your documentation is now ready in the `./dist/docs` directory!
+
+## Key Features
+
+- **Effortless Documentation** - Convert markdown files to HTML with a single command
+- **Smart Navigation** - Automatically generates previous/next links between pages
+- **Hierarchical TOC** - Creates a structured table of contents from your SUMMARY.md
+- **Full-Text Search** - Built-in search functionality with JSON index
+- **Customizable Templates** - Use your own HTML templates for full control over styling
+- **Fast & Lightweight** - Built in Rust for exceptional performance
 
 ## Project Structure
 
-The minimal project includes:
+A typical Query Docs project includes:
 
-```
-src
-└── pages                  # Application pages
-    ├── get.index.tsx      # Main
-    ├── hot-reload         # Hot reload
-    │   ├── get.index.ts   # Hot reload server function
-    │   └── hot-reload.tsx # Hot reload client component
-    ├── no-dynamic         # No dynamic page
-    │   └── get.index.tsx  # No dynamic page server function
-    ├── render.ts          # Server-side page rendering
-    ├── [slug]             # Dynamic page
-    │   └── get.index.tsx  # Dynamic page server function
-    └── styles.css         # Global styles
+```sh
+docs/
+├── SUMMARY.md          # Documentation structure
+├── template.html       # Custom HTML template (optional)
+├── introduction.md     # Content pages
+├── installation.md
+└── usage/
+    ├── basic.md
+    └── advanced.md
 ```
 
-## Main Page Structure
+## Command Line Options
 
-The `src/pages/get.index.tsx` file serves as the main entry point for the application. It demonstrates several key Query features:
+```sh
+USAGE:
+    pnpm query-docs [OPTIONS] --input <INPUT_DIR> --output <OUTPUT_DIR>
 
-### File-Based Routing
+OPTIONS:
+    -i, --input <INPUT_DIR>           Directory containing markdown files
+    -o, --output <OUTPUT_DIR>         Directory to output HTML files
+        --template <TEMPLATE_FILE>    HTML template file to use for generating pages (defaults to INPUT_DIR/template.html)
+        --html                        Generate HTML files
+        --search                      Generate search JSON file (Only works along with --html)
+    -h, --help                        Print help information
+    -V, --version                     Print version information
+```
 
-The file structure follows Query's routing convention:
+## SUMMARY.md Format
 
-- `pages/get.index.tsx` -> Handles GET requests at root ('/')
-- `pages/[slug]/get.index.tsx` -> Handles dynamic routing GET requests
-- `pages/no-dynamic/get.index.tsx` -> Handles GET requests at '/no-dynamic'
+The SUMMARY.md file defines the structure of your documentation using a simple format:
 
-For example:
+```markdown
+# Summary
 
-- `/dynamic` -> `[slug]` value is "dynamic"
-- `/test` -> `[slug]` value is "test"
+## Section 1
 
-### Function Structure
+- [Page Title](path/to/page.md) Optional description
+  - [Nested Page](path/to/nested.md) Optional description
 
-```tsx
-export async function handleRequest(req: Request) {
-  // ... implementation
+## Section 2
+
+- [Another Page](another-page.md) Optional description
+```
+
+- Use `##` headings to create sections
+- Use bullet points (`-`) followed by Markdown links to define pages
+- Indented bullet points create nested pages in the hierarchy
+
+## Markdown to JSON
+
+The markdowns will generate a set of JSON files representing the documentation structure.
+
+The pages JSON schema is defined as follows:
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["content", "description", "markdown", "metadata", "navigation", "path", "plain_text", "title"],
+  "properties": {
+    "content": {
+      "type": "string",
+      "description": "HTML content of the page"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the page content"
+    },
+    "markdown": {
+      "type": "string",
+      "description": "Raw markdown content of the page"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+          "description": {
+            "type": "string",
+            "description": "Generates an object containing metadata from the markdown content"
+          }
+      }
+    },
+    "navigation": {
+      "type": "object",
+      "required": ["current"],
+      "properties": {
+        "current": {
+          "type": "object",
+          "required": ["title", "url"],
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "Title of the current page"
+            },
+            "url": {
+              "type": "string",
+              "description": "URL of the current page",
+              "pattern": "^\\.\\/.*\\.html$"
+            }
+          }
+        },
+        "next": {
+          "type": ["object", "null"],
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "Title of the next page"
+            },
+            "url": {
+              "type": "string",
+              "description": "URL of the next page",
+              "pattern": "^\\.\\/.*\\.html$"
+            }
+          },
+          "required": ["title", "url"]
+        },
+        "previous": {
+          "type": ["object", "null"],
+          "description": "Information about the previous page, null if this is the first page"
+        }
+      }
+    },
+    "path": {
+      "type": "string",
+      "description": "Path to the current page",
+      "pattern": "^\\.\\/.*\\.html$"
+    },
+    "plain_text": {
+      "type": "string",
+      "description": "Plain text version of the content"
+    },
+    "title": {
+      "type": "string",
+      "description": "Title of the page"
+    }
+  },
+  "additionalProperties": false
 }
 ```
 
-The `handleRequest` function is the core building block that:
+Alongside of the pages, will be generated a `toc.json` file containing the table of contents structure.
 
-- Receives incoming HTTP requests
-- Processes the request
-- Returns a Response object with HTML content
+The `toc.json` JSON schema is defined as follows:
 
-### Database Integration
-
-```tsx
-const db = new Database("query_asset.sql");
-const result = db.query("SELECT name_hashed FROM asset WHERE name = ?", ["dist/styles.css"]);
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "items"],
+        "properties": {
+          "name": {
+            "type": "string",
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["group", "title", "url", "level", "children"],
+              "properties": {
+                "group": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string",
+                  "pattern": "^\\.\\/.*\\.html$"
+                },
+                "level": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2
+                },
+                "children": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/properties/items/items/properties/items/items"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
 ```
 
-Demonstrates Query's built-in SQLite database support with:
+You can find a fully working example on [examples/docs](https://github.com/gc-victor/query/tree/main/examples/docs) directory.
 
-- Simple database connections
-- SQL query execution with parameter binding
-- Asset management for styles and resources
+## Template Customization
 
-### Response Handling
+Your HTML template has access to these variables:
 
-```tsx
-return new Response(render(/* JSX Content */), {
-  status: 200,
-  headers: {
-    "Content-Type": "text/html; charset=utf-8",
-  },
-});
+- `title`: The page title
+- `description`: The page description
+- `content`: The HTML content
+- `navigation`: Previous/next page navigation
+    - `previous`: Previous page information
+    - `next`: Next page information
+- `toc`: Table of contents structure
+- `search_enabled`: Boolean for search feature
+
+Example template snippet:
+
+```html
+<main>
+  <article>{{ content }}</article>
+
+  <nav class="pagination">
+    {% if navigation.previous %}
+    <a href="{{ navigation.previous.url }}">← {{ navigation.previous.title }}</a>
+    {% endif %} {% if navigation.next %}
+    <a href="{{ navigation.next.url }}">{{ navigation.next.title }} →</a>
+    {% endif %}
+  </nav>
+</main>
 ```
-
-Shows proper response formatting with:
-
-- Status codes
-- Content-Type headers
-- Server-side rendered JSX content
-
-### Hot Reload Integration
-
-The page includes the `HotReload` component for development:
-
-```tsx
-<HotReload href={url.href} />
-```
-
-Enabling instant updates during development without full page refreshes.
-
-## Features
-
-- JSX server-side rendering
-- Hot module replacement
-- Dynamic pages
-- Tailwind CSS styling
 
 ## References
 
 - [Query Website](https://qery.io)
 - [Query - GitHub](https://github.com/gc-victor/query)
-- [Query Minimal - GitHub](https://github.com/gc-victor/query/tree/mainexamples/minimal)
+- [Query Docs Example - GitHub](https://github.com/gc-victor/query/tree/main/examples/docs)
+- [MiniJinja Syntax](https://docs.rs/minijinja/latest/minijinja/syntax/index.html)

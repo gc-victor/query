@@ -67,7 +67,7 @@ Please, change `__START_YOUR_APP__` with the command to start your App.
 
 litefs.yml:
 
-```yml
+```yaml
 ...
 exec:
   - cmd: "./process.sh"

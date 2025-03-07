@@ -15,8 +15,6 @@ bundle_public() {
         --bundle \
         --target=es2020 \
         --format=esm \
-        --jsx-factory=h \
-        --jsx-fragment=Fragment \
         --minify=true \
         --legal-comments=none \
         --splitting \
@@ -25,7 +23,6 @@ bundle_public() {
         --public-path=/_/asset/dist/ \
         --outdir=dist \
         --log-level=error \
-        --loader:.html=text \
         $sourcemap_value
 }
 

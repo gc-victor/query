@@ -1,4 +1,4 @@
-const IS_DEVELOPMENT = process.env.QUERY_APP_ENV === "development";
+import { IS_DEVELOPMENT } from "@/config";
 
 const js = String.raw;
 
