@@ -14,7 +14,7 @@ clean = ".query/tasks/clean.sh"
 deploy = ".query/tasks/deploy.sh"
 bundle = ".query/tasks/bundle.sh"
 tailwindcss = "node_modules/.bin/tailwindcss -i src/pages/docs/styles.css -o dist/docs/styles.css"
-docs = "../../target/debug/query-docs --input src/docs --output dist/docs"
+docs = "node_modules/.bin/query-docs --input src/docs --output dist/docs"
 
 [task.create]
 deploy = ".query/tasks/deploy.sh"
