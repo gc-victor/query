@@ -79,10 +79,10 @@ class SearchModal extends ReactiveComponent {
         // Add click listener for search results
         this.addEventListener("click", (e: Event) => {
             const target = e.target as HTMLElement;
-            const optionElement = target.closest('a[role="option"]');
+            const optionElement = target.closest('[role="option"]');
             if (optionElement) {
                 e.preventDefault();
-                const allOptions = Array.from(this.querySelectorAll('a[role="option"]'));
+                const allOptions = Array.from(this.querySelectorAll('[role="option"]'));
                 const clickedIndex = allOptions.indexOf(optionElement as HTMLElement);
                 if (clickedIndex !== -1) {
                     this.setState("selectedIndex", clickedIndex);
@@ -159,19 +159,13 @@ class SearchModal extends ReactiveComponent {
             } else if (key === "Enter" && this.selectedIndex >= 0) {
                 event.preventDefault();
                 this.selectResult(this.selectedIndex);
-            } else if (key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
-                const searchInput = this.refs.searchInput as HTMLInputElement;
-                if (searchInput !== document.activeElement) {
-                    event.preventDefault();
-                    this.handleTypeahead(key);
-                }
             }
         }
     }
 
     private attachSearchHandlers(): void {
         const searchInput = this.refs.searchInput as HTMLInputElement;
-        searchInput?.addEventListener("input", this.debounce(this.handleInput, 300));
+        searchInput?.addEventListener("input", this.debounce(this.handleInput, 500));
     }
 
     private async handleInput(e: unknown) {
@@ -203,36 +197,15 @@ class SearchModal extends ReactiveComponent {
         if (selectedElement) {
             for (const el of resultElements) {
                 el.setAttribute("aria-selected", "false");
-                el.setAttribute("tabindex", "-1"); 
+                el.setAttribute("tabindex", "-1");
             }
             selectedElement.setAttribute("aria-selected", "true");
             selectedElement.setAttribute("tabindex", "0");
-            selectedElement.focus();
             selectedElement.scrollIntoView({
                 block: "nearest",
                 behavior: "smooth",
             });
         }
-    }
-
-    private handleTypeahead(char: string): void {
-        if (this.typeaheadTimeout) {
-            clearTimeout(this.typeaheadTimeout);
-        }
-
-        this.typeaheadBuffer += char.toLowerCase();
-
-        const matchIndex = this.searchResults.findIndex((result) => result.title.toLowerCase().startsWith(this.typeaheadBuffer));
-
-        if (matchIndex !== -1) {
-            this.setState("selectedIndex", matchIndex);
-            this.scrollSelectedIntoView(matchIndex);
-        }
-
-        this.typeaheadTimeout = window.setTimeout(() => {
-            this.typeaheadBuffer = "";
-            this.typeaheadTimeout = null;
-        }, 500) as unknown as number;
     }
 
     private selectResult(index: number): void {
