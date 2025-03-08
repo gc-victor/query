@@ -1,23 +1,6 @@
-import { createHighlighter } from "https://esm.sh/shiki@3.1.0/bundle/web";
+import { codeToHtml } from "./shiki.bundle";
 
 async function highlightCode() {
-    const highlighter = await createHighlighter({
-        langs: [
-            import("@shikijs/langs/toml"),
-            "sh",
-            "bash",
-            "js",
-            "javascript",
-            "typescript",
-            "html",
-            import("@shikijs/langs/docker"),
-            "json",
-            "http",
-            "yaml",
-        ],
-        themes: ["catppuccin-frappe"],
-    });
-
     for (const el of Array.from(document.querySelectorAll("pre") || [])) {
         const code = el.querySelector("code");
         const lang =
@@ -26,7 +9,7 @@ async function highlightCode() {
                 ?.replace("language-", "") || "js";
 
         if (el.textContent) {
-            el.outerHTML = highlighter.codeToHtml(el.textContent, {
+            el.outerHTML = await codeToHtml(el.textContent, {
                 lang,
                 theme: "catppuccin-frappe",
             });
@@ -35,3 +18,9 @@ async function highlightCode() {
 }
 
 highlightCode();
+
+// npx shiki-codegen \
+//   --langs toml,sh,bash,js,jsx,tsx,javascript,typescript,html,docker,json,http,yaml,markdown \
+//   --themes catppuccin-frappe \
+//   --engine javascript \
+//   ./src/pages/docs/island/shiki.bundle.ts
