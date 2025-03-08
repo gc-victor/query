@@ -57,16 +57,18 @@ export function Search() {
                         id="search-results-list"
                         $bind-html="searchResultsHtml"
                         tabindex="0"
+                        // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: <explanation>
                         role="listbox"
                         aria-label="Search Results"
                     />
                     <template id="search-result-template">
-                        <li class="m-2">
-                            <a
-                                href="/"
-                                role="option"
-                                aria-selected="false"
-                                tabindex="-1"
+                        <li
+                            class="m-2"
+                            // biome-ignore lint/a11y/useAriaPropsForRole: <explanation>
+                            // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: <explanation>
+                            role="option"
+                        >
+                            <span
                                 class="
                                     js-doc-link
                                     cursor-pointer
@@ -98,7 +100,7 @@ export function Search() {
                                     <span class="js-doc-title text-base font-cal" />
                                     <span class="js-doc-section text-sm truncate" />
                                 </span>
-                            </a>
+                            </span>
                         </li>
                     </template>
                 </div>
