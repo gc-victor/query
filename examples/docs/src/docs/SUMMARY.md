@@ -12,6 +12,7 @@
 - [Local Server](./server/local-server.md) Set up and run Query Server locally for development. Configure environment variables and project settings to create a development environment with hot reloading.
 - [Server On Fly.io](./server/run-server-on-fly.md) Deploy Query Server to Fly.io with global database replication. Configure LiteFS for distributed SQLite databases with high availability across multiple regions.
 - [Server App](./server/server-app.md) Configure Query Server as a standalone application server. Remove function prefixes from URLs to create cleaner routes for pages and API endpoints.
+- [Server Docs](./server/server-docs.md) Configure Query Server as a standalone documentation server. Serve static files and generate documentation from Markdown files.
 - [Server Proxy](./server/server-proxy.md) Set up Query Server as a proxy to your application. Access SQLite databases directly while benefiting from Query's authentication, CLI, and management features.
 - [JavaScript Runtime](./server/runtime.md) Explore Query's JavaScript runtime built on QuickJS. Discover supported APIs, Web Platform features, and compatibility with the WinterCG specification.
 - [Plugin System](./server/plugin-system.md) Extend Query functionality with WebAssembly plugins written in multiple languages. Learn about the plugin architecture and how to create custom plugins.
@@ -22,6 +23,7 @@
 - [Database](./modules/database.md) Interface with SQLite databases using Query's Database module. Execute SQL queries with parameter binding, handle transactions, and manage database connections in your functions.
 - [Email](./modules/email.md) Send emails with attachments and inline content using Query's email module. Configure SMTP servers or use the built-in service with simple JavaScript API calls.
 - [Plugin](./modules/plugin.md) Extend Query with WebAssembly plugins using the plugin module. Execute functions from WASM files with configurable memory, permissions, and timeouts.
+- [Docs](./modules/documentation.md) A lightweight, fast markdown documentation generator that converts your markdown files into a beautifully navigable static site with smart navigation, a hierarchical table of contents, customizable templates, and built-in search functionality.
 
 ## Command Line
 
