@@ -141,6 +141,11 @@ class SearchModal extends ReactiveComponent {
 
     private handleKeyNavigation(event: KeyboardEvent): void {
         const { key } = event;
+        
+        if ((event.key === "k" || event.key === "K") && (event.metaKey || event.ctrlKey)) {
+            event.preventDefault();
+            this.handleOpen();
+        }
 
         if (this.searchResults.length > 0) {
             const keyHandlers: Record<string, () => number> = {
