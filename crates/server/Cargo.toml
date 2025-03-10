@@ -43,7 +43,7 @@ rusqlite = { version = "0.33", features = [
     "trace",
     "uuid",
 ] }
-serde = { version = "1.0.218", features = ["derive"] }
+serde = { version = "1.0.219", features = ["derive"] }
 serde_bytes = "0.11.15"
 serde_json = "1.0.140"
 time = "0.3.37"
