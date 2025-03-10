@@ -14,7 +14,7 @@ indicatif = "0.17.11"
 minijinja = { version = "2.8.0", features = ["loader"] }
 pulldown-cmark = "0.13.0"
 regex = "1.11.1"
-serde = { version = "1.0.218", features = ["derive"] }
+serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 tempfile = "3.17.1"
 walkdir = "2.5.0"
