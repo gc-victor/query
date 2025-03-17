@@ -6,7 +6,7 @@
         "@qery/query": "~0.12.48",
         "@qery/query-server": "~0.12.48",
         "esbuild": "0.25.0",
-        "tailwindcss": "^3.4.17",
+        "tailwindcss": "^4.0.14",
         "typescript": "~5.7.3",
         "update-browserslist-db": "^1.1.2"
     },
