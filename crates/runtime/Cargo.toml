@@ -71,7 +71,7 @@ rustls = { version = "0.23", default-features = false, features = [
 ryu = "1.0.19"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
-simd-json = { version = "0.14", default-features = false, features = [
+simd-json = { version = "0.15", default-features = false, features = [
     "big-int-as-float",
 ] }
 tokio = { version = "1", features = ["full"] }
