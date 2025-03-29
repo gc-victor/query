@@ -379,7 +379,9 @@ mod tests {
         let permit = PERMIT.acquire().await.unwrap();
 
         const TEST_DATABASE_PATH: &str = "../../.tests/test_cache_invalidation";
-        std::env::set_var("QUERY_SERVER_DBS_PATH", TEST_DATABASE_PATH);
+        unsafe {
+            std::env::set_var("QUERY_SERVER_DBS_PATH", TEST_DATABASE_PATH);
+        }
         fs::create_dir_all(TEST_DATABASE_PATH).unwrap();
 
         struct Cleanup;
@@ -419,7 +421,9 @@ mod tests {
 
     #[test]
     fn test_interval_duration_default() {
-        env::remove_var("QUERY_CACHE_CHECK_INTERVAL");
+        unsafe {
+            env::remove_var("QUERY_CACHE_CHECK_INTERVAL");
+        }
         let duration = interval_duration();
         // In test mode, duration should be in milliseconds
         assert_eq!(duration, Duration::from_millis(DEFAULT_CHECK_INTERVAL));
@@ -427,11 +431,15 @@ mod tests {
 
     #[test]
     fn test_interval_duration_custom() {
-        env::set_var("QUERY_CACHE_CHECK_INTERVAL", "120");
+        unsafe {
+            env::set_var("QUERY_CACHE_CHECK_INTERVAL", "120");
+        }
         let duration = interval_duration();
         // In test mode, duration should be in milliseconds
         assert_eq!(duration, Duration::from_millis(120));
-        env::remove_var("QUERY_CACHE_CHECK_INTERVAL");
+        unsafe {
+            env::remove_var("QUERY_CACHE_CHECK_INTERVAL");
+        }
     }
 
     #[tokio::test]
@@ -556,9 +564,11 @@ mod tests {
     #[test]
     fn test_env_override_function_response_cache_config() {
         // Test that environment variables can override defaults
-        env::set_var("QUERY_FUNCTION_CACHE_MAX_CAPACITY", "5000000"); // 5MB
-        env::set_var("QUERY_FUNCTION_CACHE_TIME_TO_IDLE", "1800"); // 30 minutes
-        env::set_var("QUERY_FUNCTION_CACHE_TIME_TO_LIVE", "43200"); // 12 hours
+        unsafe {
+            env::set_var("QUERY_FUNCTION_CACHE_MAX_CAPACITY", "5000000"); // 5MB
+            env::set_var("QUERY_FUNCTION_CACHE_TIME_TO_IDLE", "1800"); // 30 minutes
+            env::set_var("QUERY_FUNCTION_CACHE_TIME_TO_LIVE", "43200"); // 12 hours
+        }
 
         let config = function_response_cache_config();
         assert_eq!(config.max_capacity, 5000000);
@@ -566,17 +576,21 @@ mod tests {
         assert_eq!(config.time_to_live, Duration::from_secs(43200));
 
         // Clean up environment variables
-        env::remove_var("QUERY_FUNCTION_CACHE_MAX_CAPACITY");
-        env::remove_var("QUERY_FUNCTION_CACHE_TIME_TO_IDLE");
-        env::remove_var("QUERY_FUNCTION_CACHE_TIME_TO_LIVE");
+        unsafe {
+            env::remove_var("QUERY_FUNCTION_CACHE_MAX_CAPACITY");
+            env::remove_var("QUERY_FUNCTION_CACHE_TIME_TO_IDLE");
+            env::remove_var("QUERY_FUNCTION_CACHE_TIME_TO_LIVE");
+        }
     }
 
     #[test]
     fn test_env_override_asset_response_cache_config() {
         // Test that environment variables can override defaults
-        env::set_var("QUERY_ASSET_CACHE_MAX_CAPACITY", "5000000"); // 5MB
-        env::set_var("QUERY_ASSET_CACHE_TIME_TO_IDLE", "1800"); // 30 minutes
-        env::set_var("QUERY_ASSET_CACHE_TIME_TO_LIVE", "43200"); // 12 hours
+        unsafe {
+            env::set_var("QUERY_ASSET_CACHE_MAX_CAPACITY", "5000000"); // 5MB
+            env::set_var("QUERY_ASSET_CACHE_TIME_TO_IDLE", "1800"); // 30 minutes
+            env::set_var("QUERY_ASSET_CACHE_TIME_TO_LIVE", "43200"); // 12 hours
+        }
 
         let config = asset_response_cache_config();
         assert_eq!(config.max_capacity, 5000000);
@@ -584,17 +598,21 @@ mod tests {
         assert_eq!(config.time_to_live, Duration::from_secs(43200));
 
         // Clean up environment variables
-        env::remove_var("QUERY_ASSET_CACHE_MAX_CAPACITY");
-        env::remove_var("QUERY_ASSET_CACHE_TIME_TO_IDLE");
-        env::remove_var("QUERY_ASSET_CACHE_TIME_TO_LIVE");
+        unsafe {
+            env::remove_var("QUERY_ASSET_CACHE_MAX_CAPACITY");
+            env::remove_var("QUERY_ASSET_CACHE_TIME_TO_IDLE");
+            env::remove_var("QUERY_ASSET_CACHE_TIME_TO_LIVE");
+        }
     }
 
     #[test]
     fn test_env_override_path_cache_config() {
         // Set environment variables before initializing cache
-        env::set_var("QUERY_PATH_CACHE_MAX_CAPACITY", "1000");
-        env::set_var("QUERY_PATH_CACHE_TIME_TO_IDLE", "300");
-        env::set_var("QUERY_PATH_CACHE_TIME_TO_LIVE", "600");
+        unsafe {
+            env::set_var("QUERY_PATH_CACHE_MAX_CAPACITY", "1000");
+            env::set_var("QUERY_PATH_CACHE_TIME_TO_IDLE", "300");
+            env::set_var("QUERY_PATH_CACHE_TIME_TO_LIVE", "600");
+        }
 
         // Get a fresh config directly (not through cache())
         let config = path_cache_config();
@@ -603,17 +621,21 @@ mod tests {
         assert_eq!(config.time_to_live.as_secs(), 600);
 
         // Clean up environment variables
-        env::remove_var("QUERY_PATH_CACHE_MAX_CAPACITY");
-        env::remove_var("QUERY_PATH_CACHE_TIME_TO_IDLE");
-        env::remove_var("QUERY_PATH_CACHE_TIME_TO_LIVE");
+        unsafe {
+            env::remove_var("QUERY_PATH_CACHE_MAX_CAPACITY");
+            env::remove_var("QUERY_PATH_CACHE_TIME_TO_IDLE");
+            env::remove_var("QUERY_PATH_CACHE_TIME_TO_LIVE");
+        }
     }
 
     #[test]
     fn test_env_override_function_cache_config() {
         // Set environment variables before initializing cache
-        env::set_var("QUERY_FUNCTION_CACHE_MAX_CAPACITY", "1000");
-        env::set_var("QUERY_FUNCTION_CACHE_TIME_TO_IDLE", "300");
-        env::set_var("QUERY_FUNCTION_CACHE_TIME_TO_LIVE", "600");
+        unsafe {
+            env::set_var("QUERY_FUNCTION_CACHE_MAX_CAPACITY", "1000");
+            env::set_var("QUERY_FUNCTION_CACHE_TIME_TO_IDLE", "300");
+            env::set_var("QUERY_FUNCTION_CACHE_TIME_TO_LIVE", "600");
+        }
 
         // Get a fresh config directly (not through cache())
         let config = function_cache_config();
@@ -622,8 +644,10 @@ mod tests {
         assert_eq!(config.time_to_live.as_secs(), 600);
 
         // Clean up environment variables
-        env::remove_var("QUERY_FUNCTION_CACHE_MAX_CAPACITY");
-        env::remove_var("QUERY_FUNCTION_CACHE_TIME_TO_IDLE");
-        env::remove_var("QUERY_FUNCTION_CACHE_TIME_TO_LIVE");
+        unsafe {
+            env::remove_var("QUERY_FUNCTION_CACHE_MAX_CAPACITY");
+            env::remove_var("QUERY_FUNCTION_CACHE_TIME_TO_IDLE");
+            env::remove_var("QUERY_FUNCTION_CACHE_TIME_TO_LIVE");
+        }
     }
 }
