@@ -25,7 +25,7 @@ hyper-rustls = { version = "0.27", default-features = false, features = [
 hyper-util = "0.1.10"
 itoa = "1.0.15"
 jsonwebtoken = "9.3.1"
-lettre = { version = "0.11.13", default-features = false, features = [
+lettre = { version = "0.11.15", default-features = false, features = [
     "smtp-transport",
     "builder",
     "tokio1",
