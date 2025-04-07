@@ -9,7 +9,7 @@ homepage = "https://github.com/gc-victor/query/tree/main/crates/docs"
 
 [dependencies]
 anyhow = "1.0.97"
-clap = "4.5.31"
+clap = "4.5.35"
 indicatif = "0.17.11"
 minijinja = { version = "2.8.0", features = ["loader"] }
 pulldown-cmark = "0.13.0"
