@@ -17,7 +17,7 @@ rustls = ["reqwest/rustls-tls"]
 anyhow = "1.0.97"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.5", features = ["derive"] }
-cliclack = "0.3.5"
+cliclack = "0.3.6"
 colored = "3.0.0"
 dotenv = "0.15.0"
 inquire = "0.7.5"
