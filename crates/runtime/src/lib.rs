@@ -10,7 +10,7 @@ use llrt_modules::{
     crypto::{self, CryptoModule, SYSTEM_RANDOM},
     events, exceptions, timers, url,
 };
-use llrt_utils::class::get_class_name;
+use llrt_utils::{class::get_class_name, time};
 use once_cell::sync::Lazy;
 use ring::rand::{SecureRandom, SystemRandom};
 use rquickjs::{
@@ -108,7 +108,7 @@ impl Runtime {
     pub const ENV_TASK_ROOT: &'static str = "TASK_ROOT";
 
     pub async fn new() -> StdResult<Self, Box<dyn std::error::Error + Send + Sync>> {
-        llrt_modules::time::init();
+        time::init();
 
         if let Some(rng) = Lazy::<SystemRandom>::get(&SYSTEM_RANDOM) {
             let mut buf = [0u8; 8];
