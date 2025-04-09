@@ -2080,15 +2080,6 @@ dependencies = [
 
 [[package]]
 name = "halfbrown"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8588661a8607108a5ca69cab034063441a0413a0b041c13618a7dd348021ef6f"
-dependencies = [
- "hashbrown 0.14.5",
-]
-
-[[package]]
-name = "halfbrown"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aa2c385c6df70fd180bbb673d93039dbd2cd34e41d782600bdf6e1ca7bce39aa"
@@ -2884,7 +2875,7 @@ checksum = "23fb14cb19457329c82206317a5663005a4d404783dc74f4252769b0d5f42856"
 [[package]]
 name = "llrt_abort"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "llrt_events",
  "llrt_exceptions",
@@ -2896,7 +2887,7 @@ dependencies = [
 [[package]]
 name = "llrt_assert"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "llrt_utils",
  "rquickjs",
@@ -2905,7 +2896,7 @@ dependencies = [
 [[package]]
 name = "llrt_buffer"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "llrt_encoding",
  "llrt_utils",
@@ -2915,7 +2906,7 @@ dependencies = [
 [[package]]
 name = "llrt_build"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "rustc_version",
 ]
@@ -2923,7 +2914,7 @@ dependencies = [
 [[package]]
 name = "llrt_context"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "llrt_build",
  "llrt_utils",
@@ -2935,7 +2926,7 @@ dependencies = [
 [[package]]
 name = "llrt_crypto"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -2973,7 +2964,7 @@ dependencies = [
 [[package]]
 name = "llrt_encoding"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "base64-simd",
  "hex-simd",
@@ -2985,7 +2976,7 @@ dependencies = [
 [[package]]
 name = "llrt_events"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "llrt_utils",
  "rquickjs",
@@ -2995,7 +2986,7 @@ dependencies = [
 [[package]]
 name = "llrt_exceptions"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "llrt_utils",
  "rquickjs",
@@ -3004,20 +2995,20 @@ dependencies = [
 [[package]]
 name = "llrt_json"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "itoa",
  "llrt_build",
  "llrt_utils",
  "rquickjs",
  "ryu",
- "simd-json 0.14.3",
+ "simd-json",
 ]
 
 [[package]]
 name = "llrt_modules"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "llrt_abort",
  "llrt_assert",
@@ -3027,13 +3018,12 @@ dependencies = [
  "llrt_exceptions",
  "llrt_timers",
  "llrt_url",
- "llrt_utils",
 ]
 
 [[package]]
 name = "llrt_timers"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "llrt_context",
  "llrt_utils",
@@ -3045,7 +3035,7 @@ dependencies = [
 [[package]]
 name = "llrt_url"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "llrt_utils",
  "rquickjs",
@@ -3055,7 +3045,7 @@ dependencies = [
 [[package]]
 name = "llrt_utils"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#3a6dbb6d743b7110a1d455534a73671385f318b8"
+source = "git+https://github.com/awslabs/llrt#48b4b4b0b3e2072b1f1c6a38603575e8db4ab044"
 dependencies = [
  "llrt_build",
  "rquickjs",
@@ -4124,7 +4114,7 @@ dependencies = [
  "ryu",
  "serde",
  "serde_json",
- "simd-json 0.15.0",
+ "simd-json",
  "tokio",
  "tracing",
  "url",
@@ -4544,7 +4534,7 @@ dependencies = [
 [[package]]
 name = "rquickjs"
 version = "0.9.0"
-source = "git+https://github.com/DelSkayn/rquickjs.git#504f25921864f505970ee74cc623ba3138953079"
+source = "git+https://github.com/DelSkayn/rquickjs.git#36364c013877b13e64c29e20ee57a1d24467ae0c"
 dependencies = [
  "either",
  "indexmap",
@@ -4555,7 +4545,7 @@ dependencies = [
 [[package]]
 name = "rquickjs-core"
 version = "0.9.0"
-source = "git+https://github.com/DelSkayn/rquickjs.git#504f25921864f505970ee74cc623ba3138953079"
+source = "git+https://github.com/DelSkayn/rquickjs.git#36364c013877b13e64c29e20ee57a1d24467ae0c"
 dependencies = [
  "async-lock",
  "chrono",
@@ -4570,7 +4560,7 @@ dependencies = [
 [[package]]
 name = "rquickjs-macro"
 version = "0.9.0"
-source = "git+https://github.com/DelSkayn/rquickjs.git#504f25921864f505970ee74cc623ba3138953079"
+source = "git+https://github.com/DelSkayn/rquickjs.git#36364c013877b13e64c29e20ee57a1d24467ae0c"
 dependencies = [
  "convert_case",
  "fnv",
@@ -4588,7 +4578,7 @@ dependencies = [
 [[package]]
 name = "rquickjs-sys"
 version = "0.9.0"
-source = "git+https://github.com/DelSkayn/rquickjs.git#504f25921864f505970ee74cc623ba3138953079"
+source = "git+https://github.com/DelSkayn/rquickjs.git#36364c013877b13e64c29e20ee57a1d24467ae0c"
 dependencies = [
  "cc",
 ]
@@ -4978,28 +4968,15 @@ dependencies = [
 
 [[package]]
 name = "simd-json"
-version = "0.14.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa2bcf6c6e164e81bc7a5d49fc6988b3d515d9e8c07457d7b74ffb9324b9cd40"
-dependencies = [
- "getrandom 0.2.15",
- "halfbrown 0.2.5",
- "ref-cast",
- "simdutf8",
- "value-trait 0.10.1",
-]
-
-[[package]]
-name = "simd-json"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "10b5602e4f1f7d358956f94cac1eff59220f34cf9e26d49f5fde5acef851cbed"
 dependencies = [
  "getrandom 0.3.1",
- "halfbrown 0.3.0",
+ "halfbrown",
  "ref-cast",
  "simdutf8",
- "value-trait 0.11.0",
+ "value-trait",
 ]
 
 [[package]]
@@ -5832,24 +5809,12 @@ checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 
 [[package]]
 name = "value-trait"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9170e001f458781e92711d2ad666110f153e4e50bfd5cbd02db6547625714187"
-dependencies = [
- "float-cmp",
- "halfbrown 0.2.5",
- "itoa",
- "ryu",
-]
-
-[[package]]
-name = "value-trait"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0508fce11ad19e0aab49ce20b6bec7f8f82902ded31df1c9fc61b90f0eb396b8"
 dependencies = [
  "float-cmp",
- "halfbrown 0.3.0",
+ "halfbrown",
  "itoa",
  "ryu",
 ]
