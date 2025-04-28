@@ -15,8 +15,8 @@ importers:
         specifier: ~0.12.48
         version: 0.12.48
       '@qery/query-server':
-        specifier: ~0.12.48
-        version: 0.12.48
+        specifier: ~0.12.49
+        version: 0.12.49
       esbuild:
         specifier: 0.25.0
         version: 0.25.0
@@ -285,8 +285,8 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
-  '@qery/query-server@0.12.48':
-    resolution: {integrity: sha512-MY4aSO1XJ7iupQ19fzSzrRuqJL8Hc/Ww4kn0A3fCHl9XbcnzqW441JVVId0GZ6nff3rGcUe3pjAkBccglfdWoQ==}
+  '@qery/query-server@0.12.49':
+    resolution: {integrity: sha512-murQyAeAUu2++Hsst8T6906atPeBXcLhYGi98FLKlmXGldfvRrhN6AFb1BD4NLc3l87eazok6fpSyVOHVR78WQ==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
@@ -352,8 +352,8 @@ packages:
   axios@1.7.9:
     resolution: {integrity: sha512-LhLcE7Hbiryz8oMDdDptSrWowmB4Bl6RCt6sIJKpRB4XtVf0iEgewX3au/pJqm+Py1kCASkb/FFKjxQaLtxJvw==}
 
-  axios@1.8.1:
-    resolution: {integrity: sha512-NN+fvwH/kV01dYUQ3PTOZns4LWtWhOFCAhQ/pHb88WQ1hNe5V/dvFwc4VJcDL11LT9xSX0QtsR8sWUuyOuOq7g==}
+  axios@1.9.0:
+    resolution: {integrity: sha512-re4CqKTJaURpzbLHtIi6XpDv20/CnpXOtjRY5/CU32L8gU8ek9UIivcfvSWvmKEngmVbrUtPpdDwWDWL7DNHvg==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -472,6 +472,10 @@ packages:
 
   detect-libc@2.0.3:
     resolution: {integrity: sha512-bwy0MGW55bG41VqxxypOsdSdGqLwXPI/focwgTYCFMbdUiBAxLg9CFzG08sz2aqzknwiX7Hkl0bQENjg8iLByw==}
+    engines: {node: '>=8'}
+
+  detect-libc@2.0.4:
+    resolution: {integrity: sha512-3UDv+G9CsCKO1WKMGw9fwq/SWJYbI0c5Y7LU1AXYoDdbhE2AHQ6N6Nb34sG8Fj7T5APy8qXDCKuuIHd1BR0tVA==}
     engines: {node: '>=8'}
 
   detective@5.2.1:
@@ -1264,12 +1268,12 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
-  '@qery/query-server@0.12.48':
+  '@qery/query-server@0.12.49':
     dependencies:
-      axios: 1.8.1
+      axios: 1.9.0
       axios-proxy-builder: 0.1.2
       console.table: 0.10.0
-      detect-libc: 2.0.3
+      detect-libc: 2.0.4
       rimraf: 5.0.10
     transitivePeerDependencies:
       - debug
@@ -1339,7 +1343,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  axios@1.8.1:
+  axios@1.9.0:
     dependencies:
       follow-redirects: 1.15.9
       form-data: 4.0.2
@@ -1464,6 +1468,8 @@ snapshots:
   delayed-stream@1.0.0: {}
 
   detect-libc@2.0.3: {}
+
+  detect-libc@2.0.4: {}
 
   detective@5.2.1:
     dependencies:
