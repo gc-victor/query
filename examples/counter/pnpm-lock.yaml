@@ -12,8 +12,8 @@ importers:
         specifier: ~1.9.4
         version: 1.9.4
       '@qery/query':
-        specifier: ~0.12.48
-        version: 0.12.48
+        specifier: ~0.12.49
+        version: 0.12.49
       '@qery/query-server':
         specifier: ~0.12.48
         version: 0.12.48
@@ -290,8 +290,8 @@ packages:
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
-  '@qery/query@0.12.48':
-    resolution: {integrity: sha512-Vi83znyIusfG0C/0tjEsiq1LiOauw9jwZ3dXqQyJGk+LMvyG5N1+zE0R/lKrVueNd8YKhvvceeY1ekZ4YI4cPQ==}
+  '@qery/query@0.12.49':
+    resolution: {integrity: sha512-ieJswFBFprS514zNpA+zgj5teVuXA8flynKxgj+yYOQgZLlXzNv8VfXc+TNjBJcKLOCxT21Yf95oTKxF1sUzhg==}
     engines: {node: '>=14', npm: '>=6'}
     hasBin: true
 
@@ -349,11 +349,11 @@ packages:
   axios-proxy-builder@0.1.2:
     resolution: {integrity: sha512-6uBVsBZzkB3tCC8iyx59mCjQckhB8+GQrI9Cop8eC7ybIsvs/KtnNgEBfRMSEa7GqK2VBGUzgjNYMdPIfotyPA==}
 
-  axios@1.7.9:
-    resolution: {integrity: sha512-LhLcE7Hbiryz8oMDdDptSrWowmB4Bl6RCt6sIJKpRB4XtVf0iEgewX3au/pJqm+Py1kCASkb/FFKjxQaLtxJvw==}
-
   axios@1.8.1:
     resolution: {integrity: sha512-NN+fvwH/kV01dYUQ3PTOZns4LWtWhOFCAhQ/pHb88WQ1hNe5V/dvFwc4VJcDL11LT9xSX0QtsR8sWUuyOuOq7g==}
+
+  axios@1.9.0:
+    resolution: {integrity: sha512-re4CqKTJaURpzbLHtIi6XpDv20/CnpXOtjRY5/CU32L8gU8ek9UIivcfvSWvmKEngmVbrUtPpdDwWDWL7DNHvg==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -474,6 +474,10 @@ packages:
     resolution: {integrity: sha512-bwy0MGW55bG41VqxxypOsdSdGqLwXPI/focwgTYCFMbdUiBAxLg9CFzG08sz2aqzknwiX7Hkl0bQENjg8iLByw==}
     engines: {node: '>=8'}
 
+  detect-libc@2.0.4:
+    resolution: {integrity: sha512-3UDv+G9CsCKO1WKMGw9fwq/SWJYbI0c5Y7LU1AXYoDdbhE2AHQ6N6Nb34sG8Fj7T5APy8qXDCKuuIHd1BR0tVA==}
+    engines: {node: '>=8'}
+
   detective@5.2.1:
     resolution: {integrity: sha512-v9XE1zRnz1wRtgurGu0Bs8uHKFSTdteYZNbIPFVhUZ39L/S79ppMpdmVOZAnoz1jfEFodc48n6MX483Xo3t1yw==}
     engines: {node: '>=0.8.0'}
@@ -555,10 +559,6 @@ packages:
   foreground-child@3.3.1:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
     engines: {node: '>=14'}
-
-  form-data@4.0.1:
-    resolution: {integrity: sha512-tzN8e4TX8+kkxGPK8D5u0FNmjPUjw3lwC9lSLxxoB/+GtsJG91CO8bSWy73APlgAZzZbXEYZJuxjkHH2w+Ezhw==}
-    engines: {node: '>= 6'}
 
   form-data@4.0.2:
     resolution: {integrity: sha512-hGfm/slu0ZabnNt4oaRZ6uREyfCj6P4fT/n6A1rGV+Z0VdGXjfOhVUpkn6qVQONHGIFwmveGXyDs75+nr6FM8w==}
@@ -1274,12 +1274,12 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@qery/query@0.12.48':
+  '@qery/query@0.12.49':
     dependencies:
-      axios: 1.7.9
+      axios: 1.9.0
       axios-proxy-builder: 0.1.2
       console.table: 0.10.0
-      detect-libc: 2.0.3
+      detect-libc: 2.0.4
       rimraf: 5.0.10
     transitivePeerDependencies:
       - debug
@@ -1331,15 +1331,15 @@ snapshots:
     dependencies:
       tunnel: 0.0.6
 
-  axios@1.7.9:
+  axios@1.8.1:
     dependencies:
       follow-redirects: 1.15.9
-      form-data: 4.0.1
+      form-data: 4.0.2
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
 
-  axios@1.8.1:
+  axios@1.9.0:
     dependencies:
       follow-redirects: 1.15.9
       form-data: 4.0.2
@@ -1465,6 +1465,8 @@ snapshots:
 
   detect-libc@2.0.3: {}
 
+  detect-libc@2.0.4: {}
+
   detective@5.2.1:
     dependencies:
       acorn-node: 1.8.2
@@ -1564,12 +1566,6 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.6
       signal-exit: 4.1.0
-
-  form-data@4.0.1:
-    dependencies:
-      asynckit: 0.4.0
-      combined-stream: 1.0.8
-      mime-types: 2.1.35
 
   form-data@4.0.2:
     dependencies:

@@ -3,7 +3,7 @@
     "type": "module",
     "devDependencies": {
         "@biomejs/biome": "~1.9.4",
-        "@qery/query": "~0.12.48",
+        "@qery/query": "~0.12.49",
         "@qery/query-server": "~0.12.48",
         "esbuild": "0.25.0",
         "tailwindcss": "~3.4.17",
