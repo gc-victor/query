@@ -1,13 +1,20 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
 @layer base {
-    :root {
-        --scrollbar-color-primary: rgb(241 245 249);
-        /* bg-slate-600 */
-        --scrollbar-color-secondary: rgb(203 213 225);
-        /* bg-slate-900 */
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
     }
 }
 
@@ -38,4 +45,34 @@ body {
     height: 100%;
     margin: 0;
     padding: 0;
+}
+
+/* Webfonts */
+
+@font-face {
+    font-family: "Cal Sans";
+    font-style: normal;
+    font-display: swap;
+    font-weight: 800;
+    src:
+        url("/_/asset/public/webfonts/cache/CalSans-SemiBold.woff2") format("woff2"),
+        url("/_/asset/public/webfonts/cache/CalSans-SemiBold.woff") format("woff"),
+        url("/_/asset/public/webfonts/cache/CalSans-SemiBold.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Red Hat Text";
+    font-style: normal;
+    font-display: optional;
+    font-weight: 400;
+    src: url("/_/asset/public/webfonts/cache/RedHatText-Regular.ttf") format("truetype");
+}
+
+body {
+    font-family: "Red Hat Text", sans-serif;
+}
+
+.font-cal {
+    letter-spacing: 0.025em;
+    font-family: "Cal Sans", sans-serif;
 }

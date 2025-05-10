@@ -13,8 +13,6 @@ bundle() {
     --bundle \
     --target=es2020 \
     --format=esm \
-    --jsx-factory=h \
-    --jsx-fragment=Fragment \
     --minify=true \
     --legal-comments=none \
     --splitting \

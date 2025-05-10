@@ -1,4 +1,5 @@
 import { Database } from "query:database";
+import { jsonResponse, handleApiError } from "@/pages/lib/server/response";
 
 export async function handleRequest(req: Request) {
     try {
@@ -10,22 +11,8 @@ export async function handleRequest(req: Request) {
             [value]
         );
 
-        return new Response(JSON.stringify({ value }), {
-            status: 200,
-            headers: {
-                "content-type": "application/json"
-            }
-        });
+        return jsonResponse({ value });
     } catch (e) {
-        const error = e as Error;
-        
-        console.error(JSON.stringify({ error: error.message, stack: error.stack }));
-
-        return new Response("Internal Server Error", {
-            status: 500,
-            headers: {
-                "content-type": "application/json"
-            }
-        });
+        return handleApiError(e);
     }
 }

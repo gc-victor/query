@@ -1,71 +1,55 @@
-class CounterIsland extends HTMLElement {
-    private count = 0;
-    private counterElement: HTMLElement | null = null;
-    private timeoutId: number;
+import { ReactiveComponent } from "@qery/reactive-component";
 
-    constructor() {
-        super();
+export class CounterIsland extends ReactiveComponent {
+    private timeoutId = 0;
+    count!: number;
 
-        this.timeoutId = 0;
-        this.counterElement = this.querySelector("[data-counter]");
+    connectedCallback(): void {
+        super.connectedCallback();
+
+        this.effect(() => {
+            const count = this.count;
+
+            this.storeCounterValue();
+        });
     }
 
-    async connectedCallback() {
-        this.count = Number(this.counterElement?.textContent || 0);
-        this.updateDisplay();
-
-        this.addEventListener("click", this.handleClick.bind(this));
+    increment() {
+        this.count++;
     }
 
-    private async handleClick(e: Event) {
-        e.preventDefault();
+    decrement() {
+        this.count--;
+    }
 
-        const target = e.target as HTMLElement;
-
-        const closestActionElement = target.closest("[data-action]") as HTMLElement;
-        if (!closestActionElement) return;
-
-        const action = closestActionElement.dataset.action;
-        if (!action) return;
-
-        if (action === "increment") {
-            this.count++;
-        } else if (action === "decrement") {
-            this.count--;
-        } else if (action === "reset") {
-            this.count = 0;
-        } else {
-            return;
-        }
-
-        this.updateDisplay();
-        this.storeCounterValue();
+    reset() {
+        this.count = 0;
     }
 
     private storeCounterValue() {
-        // Update counter in database
-        return this.debounce(async () => {
-            await fetch("/api/counter", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ value: this.count }),
-            });
+        this.debounce(async () => {
+            try {
+                const response = await fetch("/api/counter", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ value: this.count }),
+                });
+
+                if (!response.ok) {
+                    console.error("Failed to update counter value");
+                }
+            } catch (error) {
+                console.error("Error storing counter value:", error);
+            }
         }, 500)();
     }
 
-    private updateDisplay() {
-        this.counterElement = this.querySelector("[data-counter]");
-        if (this.counterElement) {
-            this.counterElement.textContent = this.count.toString();
-        }
-    }
-
-    private debounce<T extends (...args: unknown[]) => void>(fn: T, delay: number): (...args: Parameters<T>) => void {
+    private debounce<T extends (...args: unknown[]) => unknown>(fn: T, delay: number): (...args: Parameters<T>) => void {
         return (...args: Parameters<T>) => {
             clearTimeout(this.timeoutId);
-            this.timeoutId = setTimeout(() => fn(...args), delay);
+            this.timeoutId = window.setTimeout(() => fn(...args), delay);
         };
     }
 }
