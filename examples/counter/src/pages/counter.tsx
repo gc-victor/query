@@ -1,11 +1,12 @@
 export function Counter({ count }: { count: number }) {
     return (
-        <>
-            <div className="flex items-center justify-center text-4xl font-bold text-slate-800 dark:text-slate-200 mb-6">
+        <counter-island>
+            <div className="flex items-center justify-center text-4xl font-bold text-slate-800 mb-6">
                 <button
-                    className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    className="p-2 rounded-full hover:bg-slate-200 transition-colors"
                     type="button"
-                    data-action="decrement"
+                    onclick="decrement"
+                    aria-label="Decrease counter"
                 >
                     <svg
                         className="w-6 h-6"
@@ -23,11 +24,14 @@ export function Counter({ count }: { count: number }) {
                         <path d="M5 12h14" />
                     </svg>
                 </button>
-                <span className="mx-4 w-12" data-counter>{count}</span>
+                <span className="mx-4 w-12 font-cal text-center" $state="count">
+                    {count}
+                </span>
                 <button
-                    className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    className="p-2 rounded-full hover:bg-slate-200 transition-colors"
                     type="button"
-                    data-action="increment"
+                    onclick="increment"
+                    aria-label="Increase counter"
                 >
                     <svg
                         className="w-6 h-6"
@@ -49,37 +53,38 @@ export function Counter({ count }: { count: number }) {
             </div>
             <div className="flex justify-center">
                 <button
-                    class="
-                        inline-flex
-                        items-center
-                        justify-center
-                        whitespace-nowrap
-                        rounded-md
-                        text-sm
-                        font-medium
-                        ring-offset-background
-                        transition-colors
-                        focus-visible:outline-none
-                        focus-visible:ring-2
-                        focus-visible:ring-ring
-                        focus-visible:ring-offset-2
-                        disabled:pointer-events-none
-                        disabled:opacity-50
-                        border
-                        border-input
-                        bg-background
-                        hover:bg-accent
-                        hover:text-accent-foreground
-                        h-10
-                        px-4
-                        py-2
-                        mr-2"
-                    type="reset"
-                    data-action="reset"
+                    className="
+                    inline-flex
+                    items-center
+                    justify-center
+                    whitespace-nowrap
+                    rounded-md
+                    text-sm
+                    font-medium
+                    ring-offset-background
+                    transition-colors
+                    focus-visible:outline-none
+                    focus-visible:ring-2
+                    focus-visible:ring-ring
+                    focus-visible:ring-offset-2
+                    disabled:pointer-events-none
+                    disabled:opacity-50
+                    border
+                    border-input
+                    bg-background
+                    hover:bg-accent
+                    hover:text-accent-foreground
+                    h-10
+                    px-4
+                    py-2
+                    mr-2
+                "
+                    type="button"
+                    onclick="reset"
                 >
                     Reset
                 </button>
             </div>
-        </>
+        </counter-island>
     );
 }
