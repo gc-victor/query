@@ -77,7 +77,7 @@ simd-json = { version = "0.15", default-features = false, features = [
 tokio = { version = "1", features = ["full"] }
 tracing = { version = "0.1", features = ["log"] }
 url = "2.5.4"
-uuid = { version = "1.16", default-features = false, features = [
+uuid = { version = "1.17", default-features = false, features = [
     "fast-rng",
     "v4",
 ] }
