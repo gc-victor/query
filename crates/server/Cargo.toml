@@ -52,4 +52,4 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-bunyan-formatter = "0.3.10"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 url = "2.5.4"
-uuid = { version = "1.16", features = ["v4"] }
+uuid = { version = "1.17", features = ["v4"] }
