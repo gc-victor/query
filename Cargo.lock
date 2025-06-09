@@ -45,7 +45,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "831010a0f742e1209b3bcea8fab6a8e149051ba6099432c8cb2cc117dec3ead1"
 dependencies = [
  "aead",
- "aes",
  "cipher",
  "ctr",
  "ghash",
@@ -1093,7 +1092,6 @@ checksum = "f55bf8e7b65898637379c1b74eb1551107c8294ed26d855ceb9fd1a09cfc9bc0"
 dependencies = [
  "const-oid",
  "der_derive",
- "pem-rfc7468",
  "zeroize",
 ]
 
@@ -1233,7 +1231,6 @@ dependencies = [
  "elliptic-curve",
  "rfc6979",
  "signature",
- "spki",
 ]
 
 [[package]]
@@ -1255,7 +1252,6 @@ dependencies = [
  "generic-array",
  "group",
  "hkdf",
- "pem-rfc7468",
  "pkcs8",
  "rand_core 0.6.4",
  "sec1",
@@ -2865,7 +2861,7 @@ checksum = "23fb14cb19457329c82206317a5663005a4d404783dc74f4252769b0d5f42856"
 [[package]]
 name = "llrt_abort"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "llrt_events",
  "llrt_exceptions",
@@ -2877,7 +2873,7 @@ dependencies = [
 [[package]]
 name = "llrt_assert"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "llrt_utils",
  "rquickjs",
@@ -2886,7 +2882,7 @@ dependencies = [
 [[package]]
 name = "llrt_buffer"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "llrt_encoding",
  "llrt_utils",
@@ -2896,7 +2892,7 @@ dependencies = [
 [[package]]
 name = "llrt_build"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "rustc_version",
 ]
@@ -2904,7 +2900,7 @@ dependencies = [
 [[package]]
 name = "llrt_context"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "llrt_build",
  "llrt_utils",
@@ -2916,7 +2912,7 @@ dependencies = [
 [[package]]
 name = "llrt_crypto"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -2940,7 +2936,6 @@ dependencies = [
  "p256",
  "p384",
  "p521",
- "pkcs8",
  "rand 0.8.5",
  "ring",
  "rquickjs",
@@ -2954,7 +2949,7 @@ dependencies = [
 [[package]]
 name = "llrt_encoding"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "base64-simd",
  "hex-simd",
@@ -2966,7 +2961,7 @@ dependencies = [
 [[package]]
 name = "llrt_events"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "llrt_utils",
  "rquickjs",
@@ -2976,7 +2971,7 @@ dependencies = [
 [[package]]
 name = "llrt_exceptions"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "llrt_utils",
  "rquickjs",
@@ -2985,7 +2980,7 @@ dependencies = [
 [[package]]
 name = "llrt_json"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "itoa",
  "llrt_build",
@@ -2998,7 +2993,7 @@ dependencies = [
 [[package]]
 name = "llrt_modules"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "llrt_abort",
  "llrt_assert",
@@ -3015,7 +3010,7 @@ dependencies = [
 [[package]]
 name = "llrt_timers"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "llrt_context",
  "llrt_utils",
@@ -3027,7 +3022,7 @@ dependencies = [
 [[package]]
 name = "llrt_url"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "llrt_utils",
  "rquickjs",
@@ -3037,7 +3032,7 @@ dependencies = [
 [[package]]
 name = "llrt_utils"
 version = "0.5.1-beta"
-source = "git+https://github.com/awslabs/llrt#57d0cc83230aaf3da9207fa817516abe8a62cc3f"
+source = "git+https://github.com/awslabs/llrt#62c47b0fe6357ea0322bc9876f1c5795f6a57497"
 dependencies = [
  "llrt_build",
  "rquickjs",
@@ -3581,7 +3576,6 @@ dependencies = [
  "ecdsa",
  "elliptic-curve",
  "primeorder",
- "rand_core 0.6.4",
  "sha2",
 ]
 
@@ -3650,15 +3644,6 @@ checksum = "38af38e8470ac9dee3ce1bae1af9c1671fffc44ddfd8bd1d0a3445bf349a8ef3"
 dependencies = [
  "base64 0.22.1",
  "serde",
-]
-
-[[package]]
-name = "pem-rfc7468"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88b39c9bfcfc231068454382784bb460aae594343fb030d46e9f50a645418412"
-dependencies = [
- "base64ct",
 ]
 
 [[package]]
@@ -6897,7 +6882,6 @@ checksum = "c7e468321c81fb07fa7f4c636c3972b9100f0346e5b6a9f2bd0603a52f7ed277"
 dependencies = [
  "curve25519-dalek",
  "rand_core 0.6.4",
- "serde",
  "zeroize",
 ]
 
