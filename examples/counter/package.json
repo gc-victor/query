@@ -7,7 +7,7 @@
         "@qery/query-server": "~0.12.49",
         "@tailwindcss/cli": "^4.1.6",
         "esbuild": "0.25.4",
-        "tailwindcss": "^4.1.6",
+        "tailwindcss": "^4.1.10",
         "typescript": "~5.8.3"
     },
     "scripts": {
