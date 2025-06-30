@@ -5,7 +5,7 @@
         "@biomejs/biome": "~1.9.4",
         "@qery/query": "~0.12.49",
         "@qery/query-server": "~0.12.49",
-        "@tailwindcss/cli": "^4.1.6",
+        "@tailwindcss/cli": "^4.1.11",
         "esbuild": "0.25.4",
         "tailwindcss": "^4.1.6",
         "typescript": "~5.8.3"
