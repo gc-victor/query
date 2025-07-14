@@ -8,7 +8,7 @@
         "@biomejs/biome": "~1.9.4",
         "@qery/query": "~0.12.49",
         "@qery/query-server": "~0.12.49",
-        "esbuild": "0.25.0",
+        "esbuild": "0.25.6",
         "tailwindcss": "~3.4.17",
         "tailwindcss-cli": "~0.1.2",
         "typescript": "~5.7.3",
