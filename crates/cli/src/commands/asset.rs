@@ -1,5 +1,6 @@
 use std::{
     collections::hash_map::DefaultHasher,
+    error::Error,
     fs,
     hash::{Hash, Hasher},
     path, str,
@@ -27,7 +28,7 @@ struct Asset {
     pub mime_type: String,
 }
 
-pub async fn command_asset(command: &AssetArgs) -> Result<()> {
+pub async fn command_asset(command: &AssetArgs) -> Result<(), Box<dyn Error>> {
     let is_delete = command.delete;
     let path = command.path.clone().unwrap_or("public".to_string());
     let metadata = fs::metadata(&path)?;
@@ -133,7 +134,7 @@ pub async fn command_asset(command: &AssetArgs) -> Result<()> {
     Ok(())
 }
 
-fn asset_builder(file_path: &str) -> Result<Asset> {
+fn asset_builder(file_path: &str) -> Result<Asset, Box<dyn Error>> {
     let data = match fs::read(file_path) {
         Ok(data) => data,
         Err(e) => {
@@ -144,8 +145,9 @@ fn asset_builder(file_path: &str) -> Result<Asset> {
     let name = file_path
         .split(path::MAIN_SEPARATOR)
         .last()
-        .unwrap()
+        .ok_or("Could not get file name")?
         .to_string();
+
     let mime_type = mime_guess::from_path(name)
         .first_or_text_plain()
         .to_string();
@@ -168,14 +170,18 @@ mod tests {
 
     #[test]
     fn test_asset_exist() {
-        // Test case 1: Existing asset file
         let file_name = "file.txt";
 
         let dir = "../../.tests/path/to/asset".to_string();
         let path = format!("{dir}/{file_name}");
 
-        std::fs::create_dir_all(dir).unwrap();
-        std::fs::write(&path, "Asset file content").unwrap();
+        std::fs::create_dir_all(dir).unwrap_or_else(|err| {
+            eprintln!("could not create dir: {err}");
+        });
+
+        std::fs::write(&path, "Asset file content").unwrap_or_else(|err| {
+            eprintln!("could write content to file: {err}");
+        });
 
         let expected_data = b"Asset file content".to_vec();
         let expected_name = "../../.tests/path/to/asset/file.txt".to_string();
